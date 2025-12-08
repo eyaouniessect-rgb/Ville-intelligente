@@ -1,4 +1,7 @@
 package com.ville.gestionincidents.service.utilisateur;
 
-public class UtilisateurService {
+import com.ville.gestionincidents.dto.auth.RegisterDto;
+
+public interface UtilisateurService {
+    boolean register(RegisterDto dto);
 }

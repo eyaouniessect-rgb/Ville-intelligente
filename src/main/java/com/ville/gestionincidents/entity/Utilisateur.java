@@ -27,6 +27,7 @@ public class Utilisateur {
 
     private boolean emailVerifie = false;
 
+
     private String verificationToken;
     private LocalDateTime verificationTokenExpiration;
 }
