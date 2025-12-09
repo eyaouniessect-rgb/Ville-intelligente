@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title>Accueil</title>
+    <meta charset="UTF-8">
+</head>
+<body>
+
+<h1>Bienvenue sur la plateforme de gestion des incidents ! 👋</h1>
+
+<div style="background: #f0f0f0; padding: 20px; border-radius: 8px; margin: 20px 0;">
+    <h3>Informations de connexion :</h3>
+
+    <p>📧 <strong>Email :</strong>
+        <span sec:authentication="name">Utilisateur</span>
+    </p>
+
+    <p>🎭 <strong>Rôle :</strong>
+        <span sec:authentication="authorities">ROLE_USER</span>
+    </p>
+
+    <p>✅ <strong>Statut :</strong> Connecté</p>
+</div>
+
+<div style="margin-top: 30px;">
+    <h3>Actions disponibles :</h3>
+    <ul>
+        <li><a href="/incidents">📋 Voir mes incidents</a></li>
+        <li sec:authorize="hasRole('CITOYEN')">
+            <a href="/incidents/new">➕ Signaler un incident</a>
+        </li>
+        <li sec:authorize="hasRole('ADMIN')">
+            <a href="/admin/dashboard">⚙️ Administration</a>
+        </li>
+    </ul>
+</div>
+
+<hr>
+
+<form th:action="@{/logout}" method="post" style="margin-top: 20px;">
+    <button type="submit" style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer;">
+        🚪 Se déconnecter
+    </button>
+</form>
+
+</body>
+</html>
