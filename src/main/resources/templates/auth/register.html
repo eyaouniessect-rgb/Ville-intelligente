@@ -1,34 +1,79 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
+    <meta charset="UTF-8">
     <title>Inscription</title>
+    <link rel="stylesheet" th:href="@{/css/register.css}">
 </head>
 <body>
 
-<h2>Créer un compte</h2>
+<div class="container">
+    <h2>🔐 Créer un compte</h2>
 
-<div th:if="${error}" style="color:red;">
-    <p th:text="${error}"></p>
+    <!-- ✅ AJOUT : Message de succès après inscription -->
+    <div th:if="${success}" class="alert-success">
+        <strong>✅ Inscription réussie !</strong><br>
+        📧 Un email de vérification a été envoyé à votre adresse.
+        Veuillez vérifier votre boîte mail pour activer votre compte avant de vous connecter.
+    </div>
+
+    <div th:if="${error}" class="alert-error">
+        <strong>❌ Erreur :</strong>
+        <span th:text="${error}"></span>
+    </div>
+
+    <form th:action="@{/auth/register}" th:object="${user}" method="post" id="registerForm">
+        <!-- Le reste du formulaire reste identique -->
+        <div class="form-group">
+            <label for="nom">Nom :</label>
+            <input type="text" id="nom" th:field="*{nom}" required minlength="2" maxlength="50">
+            <span class="field-error" th:if="${#fields.hasErrors('nom')}" th:errors="*{nom}"></span>
+        </div>
+
+        <div class="form-group">
+            <label for="prenom">Prénom :</label>
+            <input type="text" id="prenom" th:field="*{prenom}" required minlength="2" maxlength="50">
+            <span class="field-error" th:if="${#fields.hasErrors('prenom')}" th:errors="*{prenom}"></span>
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email :</label>
+            <input type="email" id="email" th:field="*{email}" required>
+            <span class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
+        </div>
+
+        <div class="password-requirements">
+            <strong>🔒 Exigences du mot de passe :</strong>
+            <div class="requirement" id="req-length">Au moins 12 caractères</div>
+            <div class="requirement" id="req-uppercase">Au moins une majuscule (A-Z)</div>
+            <div class="requirement" id="req-lowercase">Au moins une minuscule (a-z)</div>
+            <div class="requirement" id="req-number">Au moins un chiffre (0-9)</div>
+            <div class="requirement" id="req-special">Au moins un caractère spécial (@$!%*?&)</div>
+        </div>
+
+        <div class="form-group">
+            <label for="motDePasse">Mot de passe :</label>
+            <input type="password" id="motDePasse" th:field="*{motDePasse}"
+                   required
+                   pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,}$">
+            <span class="field-error" th:if="${#fields.hasErrors('motDePasse')}" th:errors="*{motDePasse}"></span>
+        </div>
+
+        <div class="form-group">
+            <label for="confirmMotDePasse">Confirmer le mot de passe :</label>
+            <input type="password" id="confirmMotDePasse" th:field="*{confirmMotDePasse}" required>
+            <span class="field-error" id="password-match-error"></span>
+        </div>
+
+        <button type="submit">✅ Créer mon compte</button>
+    </form>
+
+    <div class="login-link">
+        <p>Déjà un compte ? <a th:href="@{/auth/login}">Se connecter</a></p>
+    </div>
 </div>
 
-<form th:action="@{/auth/register}" th:object="${user}" method="post">
-
-    <label>Nom :</label>
-    <input type="text" th:field="*{nom}" required>
-
-    <label>Prénom :</label>
-    <input type="text" th:field="*{prenom}" required>
-
-    <label>Email :</label>
-    <input type="email" th:field="*{email}" required>
-
-    <label>Mot de passe :</label>
-    <input type="password" th:field="*{motDePasse}" required>
-
-    <button type="submit">Créer un compte</button>
-</form>
-
-<p><a th:href="@{/auth/login}">Déjà un compte ? Connexion</a></p>
+<script th:src="@{/js/register.js}"></script>
 
 </body>
 </html>
