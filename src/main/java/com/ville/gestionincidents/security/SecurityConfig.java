@@ -28,10 +28,15 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
                 .and()
                 .formLogin()
-                .loginPage("/auth/login")
-                .loginProcessingUrl("/auth/login")
-                .defaultSuccessUrl("/", true)
+                .loginPage("/auth/login")      // page HTML
+                .loginProcessingUrl("/auth/login")  // ✅ Correspond au formulaire
+                .defaultSuccessUrl("/home", true)
                 .failureUrl("/auth/login?error=true")
+                .failureHandler((request, response, exception) -> {
+                    System.out.println("❌ LOGIN FAILED : " + exception.getMessage());
+                    response.sendRedirect("/auth/login?error");
+                })
+
                 .permitAll()
                 .and()
                 .logout()
