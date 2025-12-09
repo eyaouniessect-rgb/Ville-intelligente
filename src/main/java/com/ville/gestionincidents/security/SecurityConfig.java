@@ -25,14 +25,26 @@ public class SecurityConfig {
         http
                 .csrf().disable()
                 .authorizeRequests()
-                .antMatchers("/auth/login", "/auth/register", "/auth/verify", "/static/css/**", "/static/js/**", "/css/**", "/js/**", "/images/**").permitAll()
+
+                // 🔓 PUBLIC
+                .antMatchers("/auth/login", "/auth/register", "/auth/verify",
+                        "/static/css/**", "/static/js/**", "/css/**", "/js/**", "/images/**").permitAll()
+
+                // 🔐 ACCÈS CITOYEN
+                .antMatchers("/citoyen/**").hasRole("CITOYEN")
+
+                // 🔐 AUTRES REQUÊTES
                 .anyRequest().authenticated()
                 .and()
+
                 .formLogin()
                 .loginPage("/auth/login")
                 .loginProcessingUrl("/auth/login")
-                .defaultSuccessUrl("/home", true)
-               // .failureUrl("/auth/login?error=true")
+
+                // 📌 REDIRECTION PAR DÉFAUT (citoyen pour l'instant)
+                .defaultSuccessUrl("/citoyen/home", true)
+
+                // GESTION DES ERREURS
                 .failureHandler((request, response, exception) -> {
 
                     System.out.println("=================================");
@@ -41,20 +53,18 @@ public class SecurityConfig {
                     System.out.println("Message : " + exception.getMessage());
                     System.out.println("=================================");
 
-                    // ✅ PRIORITÉ EMAIL NON VÉRIFIÉ
-                    if (exception instanceof DisabledException
-                            || (exception.getMessage() != null
-                            && exception.getMessage().contains("EMAIL_NOT_VERIFIED"))) {
+                    if (exception instanceof DisabledException ||
+                            (exception.getMessage() != null &&
+                                    exception.getMessage().contains("EMAIL_NOT_VERIFIED"))) {
 
                         response.sendRedirect("/auth/login?error=email_not_verified");
                         return;
                     }
 
-                    // ❌ Autres cas (mauvais mot de passe / utilisateur inexistant)
                     response.sendRedirect("/auth/login?error=bad_credentials");
                 })
-
                 .permitAll()
+
                 .and()
                 .logout()
                 .logoutUrl("/logout")
@@ -69,11 +79,7 @@ public class SecurityConfig {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setUserDetailsService(userDetailsService);
         provider.setPasswordEncoder(passwordEncoder);
-
-        // Permet de ne pas masquer DisabledException (email non vérifié)
         provider.setHideUserNotFoundExceptions(false);
-
         return provider;
     }
-
 }
