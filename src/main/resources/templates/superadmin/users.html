@@ -254,24 +254,25 @@
                 <td th:text="${user.prenom + ' ' + user.nom}">Nom Prénom</td>
                 <td th:text="${user.email}">email@example.com</td>
                 <td>
-                            <span class="badge"
-                <td>
-    <span class="badge" th:switch="${user.role}">
-        <span th:case="SUPERADMIN" class="badge superadmin">superadmin</span>
-        <span th:case="ADMIN" class="badge admin">admin</span>
-        <span th:case="AGENT" class="badge agent">agent</span>
-        <span th:case="*"
-              class="badge citoyen">citoyen</span>
+    <span th:switch="${user.role}">
+        <span th:case="${T(com.ville.gestionincidents.enumeration.Role).SUPERADMIN}" class="badge superadmin">superadmin</span>
+        <span th:case="${T(com.ville.gestionincidents.enumeration.Role).ADMIN}" class="badge admin">admin</span>
+        <span th:case="${T(com.ville.gestionincidents.enumeration.Role).AGENT}" class="badge agent">agent</span>
+        <span th:case="*" class="badge citoyen">citoyen</span>
     </span>
                 </td>
 
-                th:text="${user.role}">ROLE</span>
-                </td>
+
+
+
+
                 <td>
                             <span class="status-badge"
                                   th:classappend="${user.emailVerifie} ? 'active' : 'inactive'"
                                   th:text="${user.emailVerifie} ? 'Actif' : 'Inactif'">Statut</span>
                 </td>
+
+
                 <td>
                     <div class="actions">
                         <a th:href="@{/superadmin/users/{id}(id=${user.id})}" class="btn btn-view">Voir</a>

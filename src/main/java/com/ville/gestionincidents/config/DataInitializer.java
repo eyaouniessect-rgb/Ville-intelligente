@@ -36,16 +36,16 @@ public class DataInitializer implements CommandLineRunner {
             // Mot de passe : SuperAdmin123!@#
             superAdmin.setMotDePasse(passwordEncoder.encode("SuperAdmin123!@#"));
             superAdmin.setRole(Role.SUPERADMIN);
-            superAdmin.setEmailVerifie(true); // ✅ Compte activé directement
+            superAdmin.setEmailVerifie(true); //  Compte activé directement
 
             utilisateurRepository.save(superAdmin);
 
-            System.out.println("✅ SUPERADMIN créé avec succès !");
-            System.out.println("📧 Email    : superadmin@ville.intelligente");
-            System.out.println("🔑 Password : SuperAdmin123!@#");
+            System.out.println("SUPERADMIN créé avec succès !");
+            System.out.println(" Email    : superadmin@ville.intelligente");
+            System.out.println("Password : SuperAdmin123!@#");
             System.out.println("==========================================");
         } else {
-            System.out.println("ℹ️  Un compte SUPERADMIN existe déjà. Aucune initialisation nécessaire.");
+            System.out.println(" Un compte SUPERADMIN existe déjà. Aucune initialisation nécessaire.");
         }
     }
 }

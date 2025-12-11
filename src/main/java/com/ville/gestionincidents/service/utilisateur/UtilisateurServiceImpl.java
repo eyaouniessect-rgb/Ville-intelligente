@@ -120,6 +120,12 @@ public class UtilisateurServiceImpl implements UtilisateurService {
             throw new RuntimeException("Cet email est déjà utilisé");
         }
 
+        // 🔐 Vérifier les règles du mot de passe
+        if (!isPasswordValid(utilisateur.getMotDePasse())) {
+            throw new RuntimeException("Le mot de passe ne respecte pas les critères de sécurité : " +
+                    "12 caractères minimum, majuscule, minuscule, chiffre et caractère spécial.");
+        }
+
         // Hasher le mot de passe
         utilisateur.setMotDePasse(passwordEncoder.encode(utilisateur.getMotDePasse()));
 
@@ -147,6 +153,7 @@ public class UtilisateurServiceImpl implements UtilisateurService {
 
         return savedUser;
     }
+
 
     @Override
     @Transactional

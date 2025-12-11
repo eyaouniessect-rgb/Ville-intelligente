@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détails Utilisateur - Ville Intelligente</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+        }
+
+        .card {
+            background: white;
+            width: 100%;
+            max-width: 550px;
+            padding: 35px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #1f2937;
+            font-size: 26px;
+        }
+
+        .item {
+            margin-bottom: 18px;
+        }
+
+        .label {
+            font-weight: 600;
+            color: #4b5563;
+            margin-bottom: 4px;
+        }
+
+        .value {
+            background: #f9fafb;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            color: #1f2937;
+        }
+
+        /* Badges role */
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: bold;
+            border-radius: 12px;
+            text-transform: lowercase;
+        }
+        .badge.superadmin { background: #fce7f3; color: #9f1239; }
+        .badge.admin      { background: #ddd6fe; color: #5b21b6; }
+        .badge.agent      { background: #d1fae5; color: #065f46; }
+        .badge.citoyen    { background: #fed7aa; color: #92400e; }
+
+        /* Buttons */
+        .btn-container {
+            margin-top: 25px;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: 0.3s;
+            display: inline-block;
+        }
+
+        .btn-back {
+            background: #3b82f6;
+            color: white;
+        }
+        .btn-back:hover {
+            background: #2563eb;
+        }
+
+        .btn-edit {
+            background: #10b981;
+            color: white;
+        }
+        .btn-edit:hover {
+            background: #059669;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="card">
+    <h2>👤 Détails de l'utilisateur</h2>
+
+    <div class="item">
+        <div class="label">Prénom</div>
+        <div class="value" th:text="${user.prenom}"></div>
+    </div>
+
+    <div class="item">
+        <div class="label">Nom</div>
+        <div class="value" th:text="${user.nom}"></div>
+    </div>
+
+    <div class="item">
+        <div class="label">Email</div>
+        <div class="value" th:text="${user.email}"></div>
+    </div>
+
+    <div class="item">
+        <div class="label">Rôle</div>
+        <div class="value">
+            <span th:switch="${user.role}">
+                <span th:case="SUPERADMIN" class="badge superadmin">superadmin</span>
+                <span th:case="ADMIN" class="badge admin">admin</span>
+                <span th:case="AGENT" class="badge agent">agent</span>
+                <span th:case="*" class="badge citoyen">citoyen</span>
+            </span>
+        </div>
+    </div>
+
+    <div class="btn-container">
+        <a th:href="@{/superadmin/users}" class="btn btn-back">← Retour</a>
+        <a th:href="@{/superadmin/users/{id}/edit(id=${user.id})}" class="btn btn-edit">✏ Modifier</a>
+    </div>
+</div>
+
+</body>
+</html>
