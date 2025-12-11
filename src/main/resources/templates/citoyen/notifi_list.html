@@ -1,17 +1,20 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
 <head>
     <meta charset="UTF-8">
     <title>Notifications</title>
 
     <style>
+
         body {
             font-family:'Segoe UI';
             background: linear-gradient(135deg,#667eea,#764ba2);
             padding:20px;
         }
 
-        /* ---------- HEADER ---------- */
+        /* ------- HEADER (identique à Mes Incidents) ------- */
         .header {
             background:white; padding:20px; border-radius:10px;
             margin-bottom:20px;
@@ -31,9 +34,8 @@
 
         .btn {
             padding:10px 18px; border-radius:8px;
-            text-decoration:none; font-weight:bold;
-            color:white;
-            transition:0.3s;
+            text-decoration:none; color:white;
+            font-weight:bold; transition:0.3s;
         }
 
         .btn:hover { opacity:0.85; }
@@ -41,7 +43,8 @@
         .back-btn { background:#3b82f6; }
         .logout-btn { background:#ef4444; border:none; cursor:pointer; }
 
-        /* ---------- NOTIFICATION CARDS ---------- */
+
+        /* ------- NOTIFICATION ITEMS ------- */
         .notif-card {
             background:white; padding:20px; border-radius:10px;
             max-width:800px; margin:0 auto 20px auto;
@@ -50,12 +53,13 @@
 
         .notif-title { font-weight:bold; color:#4f46e5; }
         .notif-date { color:#6b7280; font-size:13px; margin-bottom:8px; }
+
     </style>
 </head>
 
 <body>
 
-<!-- ========== HEADER ========== -->
+<!-- ===== HEADER (même que Mes Incidents) ===== -->
 <div class="header">
     <h1>🔔 Notifications</h1>
 
@@ -70,7 +74,7 @@
     </div>
 </div>
 
-<!-- ========== CONTENT ========== -->
+<!-- ===== CONTENT ===== -->
 <div th:each="n : ${notifications}" class="notif-card">
     <div class="notif-title" th:text="${n.titre}"></div>
     <div class="notif-date" th:text="${n.date}"></div>
