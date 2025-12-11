@@ -140,7 +140,7 @@ public class SuperAdminController {
                 return "redirect:/superadmin/users";
             }
 
-            model.addAttribute("utilisateur", user);
+            model.addAttribute("user", user);
             model.addAttribute("roles", new Role[]{Role.AGENT, Role.ADMIN}); // Pas de SUPERADMIN
             return "superadmin/edit-user";
         } catch (Exception e) {
@@ -151,7 +151,7 @@ public class SuperAdminController {
 
     @PostMapping("/users/{id}/edit")
     public String editUser(@PathVariable Long id,
-                           @Valid @ModelAttribute Utilisateur utilisateur,
+                           @Valid @ModelAttribute ("user")Utilisateur utilisateur,
                            BindingResult result,
                            RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
