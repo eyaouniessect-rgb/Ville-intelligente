@@ -122,11 +122,11 @@
 
 <div class="login-container">
 
-    <h2>🏙️ Connexion</h2>
+    <h2> Connexion</h2>
 
-    <!-- 🌿 SUCCESS : Email vérifié -->
+    <!--  SUCCESS : Email vérifié -->
     <div th:if="${param.verified != null}" class="alert alert-success">
-        ✅ <strong>Votre email a été vérifié !</strong><br>
+         <strong>Votre email a été vérifié !</strong><br>
         Vous pouvez maintenant vous connecter.
     </div>
 
@@ -157,9 +157,9 @@
     </div>
 
 
-    <!-- 👋 Déconnexion -->
+    <!-- Déconnexion -->
     <div th:if="${param.logout != null}" class="alert alert-info">
-        👋 Déconnexion réussie.
+         Déconnexion réussie.
     </div>
 
     <!-- FORMULAIRE -->
