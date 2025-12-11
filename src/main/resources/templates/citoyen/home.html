@@ -1,21 +1,108 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
-    <title>Espace Citoyen</title>
+    <title>Dashboard Citoyen</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        /* --- même style superadmin --- */
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg,#667eea,#764ba2);
+            min-height:100vh;
+        }
+        .container { max-width:1200px; margin:0 auto; padding:25px; }
+
+        .header {
+            background:white; padding:20px; border-radius:12px;
+            display:flex; justify-content:space-between; align-items:center;
+            box-shadow:0 4px 6px rgba(0,0,0,.1);
+        }
+        .header h1 { color:#667eea; }
+        .user-badge {
+            background: linear-gradient(135deg,#667eea,#764ba2);
+            color:white; padding:8px 16px; border-radius:20px;
+            font-weight:bold;
+        }
+        .logout-btn {
+            background:#ef4444; color:white; border:none;
+            padding:10px 20px; border-radius:5px; cursor:pointer;
+        }
+        .logout-btn:hover { background:#dc2626; }
+
+        .stats-grid {
+            margin-top:25px;
+            display:grid; gap:20px;
+            grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+        }
+        .stat-card {
+            background:white; border-radius:12px; padding:25px;
+            box-shadow:0 4px 6px rgba(0,0,0,.1);
+            transition:0.3s;
+        }
+        .stat-card:hover { transform:translateY(-5px); }
+
+        .stat-card h3 { color:#6b7280; text-transform:uppercase; font-size:14px; margin-bottom:10px; }
+        .number { font-size:36px; font-weight:bold; color:#1f2937; }
+        .reported { border-left:4px solid #3b82f6; }
+        .inprogress { border-left:4px solid #f59e0b; }
+        .resolved { border-left:4px solid #10b981; }
+
+        .actions {
+            margin-top:30px;
+            display:flex;
+            gap:20px;
+        }
+        .action-btn {
+            padding:14px 24px; border-radius:8px; text-decoration:none; color:white;
+            font-weight:bold; background:linear-gradient(135deg,#667eea,#764ba2);
+            box-shadow:0 4px 6px rgba(0,0,0,.15);
+        }
+        .action-btn:hover { opacity:0.85; }
+    </style>
 </head>
 
 <body>
-<h1>Bienvenue dans votre espace citoyen 👋</h1>
+<div class="container">
 
-<p>Vous pouvez :</p>
-<ul>
-    <li>Déclarer un incident</li>
-    <li>Consulter vos incidents</li>
-    <li>Voir le statut de vos demandes</li>
-</ul>
+    <!-- Header -->
+    <div class="header">
+        <h1>👤 Dashboard Citoyen</h1>
+        <div>
+            <span class="user-badge" sec:authentication="principal.username"></span>
+            <form th:action="@{/logout}" method="post" style="display:inline;">
+                <button class="logout-btn">Déconnexion</button>
+            </form>
+        </div>
+    </div>
 
-<a href="/logout">Se déconnecter</a>
+    <!-- Statistiques -->
+    <div class="stats-grid">
+        <div class="stat-card reported">
+            <h3>Incidents Signalés</h3>
+            <div class="number" th:text="${totalIncidents}">0</div>
+        </div>
+
+        <div class="stat-card inprogress">
+            <h3>En Cours</h3>
+            <div class="number" th:text="${inProgress}">0</div>
+        </div>
+
+        <div class="stat-card resolved">
+            <h3>Résolus</h3>
+            <div class="number" th:text="${resolved}">0</div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+        <a th:href="@{/citoyen/incidents}" class="action-btn">📋 Voir mes incidents</a>
+        <a th:href="@{/citoyen/incidents/create}" class="action-btn">➕ Déclarer un incident</a>
+        <a th:href="@{/citoyen/notifications}" class="action-btn">🔔 Notifications</a>
+    </div>
+
+</div>
 </body>
 </html>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Notifications</title>
+    <style>
+        body { font-family:'Segoe UI'; background:#eef2ff; padding:20px; }
+        .notif-card {
+            background:white; padding:20px; border-radius:10px;
+            max-width:800px; margin:0 auto 20px auto;
+            box-shadow:0 4px 6px rgba(0,0,0,.1);
+        }
+        .notif-title { font-weight:bold; color:#4f46e5; }
+        .notif-date { color:#6b7280; font-size:13px; }
+    </style>
+</head>
+<body>
+
+<h1 style="text-align:center;margin-bottom:20px;">🔔 Notifications</h1>
+
+<div th:each="n : ${notifications}" class="notif-card">
+    <div class="notif-title" th:text="${n.titre}"></div>
+    <div class="notif-date" th:text="${n.date}"></div>
+    <p th:text="${n.message}"></p>
+</div>
+
+</body>
+</html>

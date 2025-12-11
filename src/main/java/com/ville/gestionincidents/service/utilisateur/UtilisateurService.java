@@ -89,4 +89,5 @@ public interface UtilisateurService {
      * Liste des N utilisateurs les plus récents
      */
     List<Utilisateur> findRecentUsers(int limit);
+
 }
