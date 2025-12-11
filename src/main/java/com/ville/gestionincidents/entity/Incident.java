@@ -3,10 +3,12 @@ package com.ville.gestionincidents.entity;
 import com.ville.gestionincidents.enumeration.CategorieIncident;
 import com.ville.gestionincidents.enumeration.PrioriteIncident;
 import com.ville.gestionincidents.enumeration.StatutIncident;
+import lombok.Data;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
+@Data
 
 @Entity
 public class Incident {

@@ -1,4 +1,9 @@
 package com.ville.gestionincidents.service.notification;
 
-public class NotificationService {
+import com.ville.gestionincidents.entity.Notification;
+import java.util.List;
+
+public interface NotificationService {
+
+    List<Notification> findByUserEmail(String email);
 }

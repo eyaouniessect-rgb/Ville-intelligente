@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Détails Incident</title>
+
+    <style>
+        body { background:#f3f4f6; font-family:'Segoe UI'; padding:30px; }
+        .card {
+            background:white; padding:30px; border-radius:12px;
+            max-width:900px; margin:auto; box-shadow:0 4px 6px rgba(0,0,0,.1);
+        }
+        .label { font-weight:bold; color:#6b7280; }
+        .value { margin-bottom:15px; }
+
+        .photo {
+            width:120px; border-radius:8px; margin-right:10px;
+        }
+    </style>
+</head>
+
+<body>
+<div class="card">
+    <h1>📌 Détails de l'incident</h1>
+
+    <p><span class="label">Catégorie :</span>
+        <span class="value" th:text="${incident.categorie}"></span>
+    </p>
+
+    <p><span class="label">Description :</span>
+        <span class="value" th:text="${incident.description}"></span>
+    </p>
+
+    <p><span class="label">Statut :</span>
+        <span class="value" th:text="${incident.statut}"></span>
+    </p>
+
+    <p><span class="label">Date :</span>
+        <span class="value" th:text="${incident.dateSignalement}"></span>
+    </p>
+
+    <h3>📸 Photos</h3>
+    <div th:each="ph : ${incident.photos}">
+        <img class="photo" th:src="@{'/uploads/' + ${ph.nomFichier}}"/>
+    </div>
+
+</div>
+</body>
+</html>

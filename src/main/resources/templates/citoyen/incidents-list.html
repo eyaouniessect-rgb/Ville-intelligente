@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Mes Incidents</title>
+    <style>
+        body {
+            font-family: 'Segoe UI';
+            background: linear-gradient(135deg,#667eea,#764ba2);
+            padding:20px;
+        }
+
+        .card {
+            background:white; padding:25px; border-radius:12px;
+            max-width:1100px; margin:0 auto; box-shadow:0 4px 6px rgba(0,0,0,.1);
+        }
+
+        table { width:100%; border-collapse:collapse; margin-top:20px; }
+        th {
+            background:#f3f4f6; padding:12px; color:#374151; text-align:left;
+        }
+        td { padding:12px; border-bottom:1px solid #eee; }
+
+        .badge {
+            padding:6px 12px; border-radius:12px; font-size:12px; font-weight:bold;
+            color:white;
+        }
+        .signalé { background:#3b82f6; }
+        .pris { background:#f59e0b; }
+        .resolu { background:#10b981; }
+
+        a.details-btn {
+            background:linear-gradient(135deg,#667eea,#764ba2);
+            padding:8px 14px; color:white; border-radius:6px;
+            text-decoration:none;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="card">
+    <h1>📋 Mes Incidents</h1>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Catégorie</th>
+            <th>Description</th>
+            <th>Date</th>
+            <th>Statut</th>
+            <th>Détails</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <tr th:each="inc : ${incidents}">
+            <td th:text="${inc.categorie}"></td>
+            <td th:text="${inc.description}"></td>
+            <td th:text="${inc.dateSignalement}"></td>
+
+            <td>
+                <span class="badge"
+                      th:classappend="${
+                        inc.statut=='SIGNALE' ? 'signalé' :
+                        (inc.statut=='EN_COURS' ? 'pris' : 'resolu')
+                      }"
+                      th:text="${inc.statut}"></span>
+            </td>
+
+            <td>
+                <a class="details-btn"
+                   th:href="@{'/citoyen/incidents/' + ${inc.id}}">Voir</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>
