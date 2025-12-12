@@ -10,14 +10,16 @@ spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect
 spring.mail.host=smtp.gmail.com
 spring.mail.port=587
 spring.mail.username=mayssabenazzouz2@gmail.com
-spring.mail.password=xqpx fxdp noaa lskr
+spring.mail.password="xqpx fxdp noaa lskr"
 spring.mail.properties.mail.smtp.auth=true
 spring.mail.properties.mail.smtp.starttls.enable=true
 
 # URL de base de l'application
 app.base-url=http://localhost:8080
 
-# Dossier o\u00F9 stocker les photos
+
+
+# Dossier où stocker les photos
 uploads.path=uploads/
 
 # Thymeleaf
