@@ -38,6 +38,9 @@ public class SecurityConfig {
 
                 // 🔓 PUBLIC
                 .antMatchers("/auth/login", "/auth/register", "/auth/verify",
+                        "/incident/nouveau",
+                        "/incident/ajouter",
+                        "/incident/success",
                         "/static/css/**", "/static/js/**", "/css/**", "/js/**", "/images/**").permitAll()
 
                 // 🔐 ACCÈS SUPERADMIN

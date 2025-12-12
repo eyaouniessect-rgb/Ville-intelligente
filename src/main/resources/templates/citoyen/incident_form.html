@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Déclarer un incident</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <!-- Bootstrap (style simple et propre) -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+
+    <style>
+        #map {
+            height: 350px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body class="container mt-4">
+
+<h2 class="mb-4">Déclarer un incident</h2>
+
+<form th:action="@{/incident/ajouter}" th:object="${incident}" method="post" enctype="multipart/form-data">
+
+    <!-- 📝 Description -->
+    <div class="mb-3">
+        <label>Description :</label>
+        <textarea class="form-control" th:field="*{description}" required></textarea>
+    </div>
+
+    <!-- 🏷 Catégorie -->
+    <div class="mb-3">
+        <label>Catégorie :</label>
+        <select class="form-control" th:field="*{categorie}">
+            <option th:each="c : ${categories}" th:value="${c}" th:text="${c}"></option>
+        </select>
+    </div>
+
+    <!-- 🏡 Adresse saisie -->
+    <div class="mb-3">
+        <label>Adresse (facultatif) :</label>
+        <input class="form-control" type="text" th:field="*{adresse}">
+    </div>
+
+    <!-- 🌍 Carte Leaflet -->
+    <label>Localisation (cliquez sur la carte pour ajuster) :</label>
+    <div id="map"></div>
+
+    <!-- Champs remplis automatiquement -->
+    <input type="hidden" th:field="*{latitude}" id="latitude">
+    <input type="hidden" th:field="*{longitude}" id="longitude">
+
+    <!-- 📸 Upload photo -->
+    <div class="mb-3">
+        <label>Photo :</label>
+        <input class="form-control" type="file" th:field="*{photo}">
+    </div>
+
+    <button class="btn btn-primary">Déclarer l'incident</button>
+
+</form>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+
+    // ==========================================================
+    // 1) Initialisation de la carte sans position (en attendant GPS)
+    // ==========================================================
+    var map = L.map('map').setView([36.8065, 10.1815], 13); // Tunis par défaut
+
+    // Couche OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Marqueur (on le crée vide pour le remplir après)
+    var marker;
+
+    // ==========================================================
+    // 2) Géolocalisation HTML5 : récupérer position réelle utilisateur
+    // ==========================================================
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+
+            var lat = position.coords.latitude;
+            var lng = position.coords.longitude;
+
+            // Centrer la carte sur la position réelle
+            map.setView([lat, lng], 16);
+
+            // Placer un marqueur sur la position actuelle
+            marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+
+            // Remplir les champs du formulaire
+            document.getElementById("latitude").value = lat;
+            document.getElementById("longitude").value = lng;
+
+            // Si l'utilisateur déplace le marqueur
+            marker.on('dragend', function(e) {
+                var newLatLng = e.target.getLatLng();
+                document.getElementById("latitude").value = newLatLng.lat;
+                document.getElementById("longitude").value = newLatLng.lng;
+            });
+
+        }, function() {
+            console.log("Impossible de récupérer la position.");
+        });
+    }
+
+    // ==========================================================
+    // 3) Si l'utilisateur clique sur la carte → bouger le marqueur
+    // ==========================================================
+    map.on('click', function(e) {
+
+        var lat = e.latlng.lat;
+        var lng = e.latlng.lng;
+
+        // Si le marqueur n'existe pas encore → on le crée
+        if (!marker) {
+            marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+        } else {
+            marker.setLatLng([lat, lng]);
+        }
+
+        // Mettre à jour les champs cachés
+        document.getElementById("latitude").value = lat;
+        document.getElementById("longitude").value = lng;
+    });
+
+</script>
+
+</body>
+</html>
