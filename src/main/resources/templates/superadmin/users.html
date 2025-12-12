@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Utilisateurs - Ville Intelligente</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #1f2937;
+            font-size: 28px;
+        }
+
+        .back-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .filters {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .filters label {
+            color: #374151;
+            font-weight: 500;
+        }
+
+        .filters select {
+            padding: 8px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .users-table-container {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .users-table th {
+            background: #f3f4f6;
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .users-table td {
+            padding: 15px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .users-table tr:hover {
+            background: #f9fafb;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .badge.superadmin { background: #fce7f3; color: #9f1239; }
+        .badge.admin { background: #ddd6fe; color: #5b21b6; }
+        .badge.agent { background: #d1fae5; color: #065f46; }
+        .badge.citoyen { background: #fed7aa; color: #92400e; }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-badge.active { background: #d1fae5; color: #065f46; }
+        .status-badge.inactive { background: #fee2e2; color: #991b1b; }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-view {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-view:hover {
+            background: #2563eb;
+        }
+
+        .btn-edit {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background: #059669;
+        }
+
+        .btn-toggle {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn-toggle:hover {
+            background: #d97706;
+        }
+
+        .btn-delete {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #dc2626;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+        }
+
+        .empty-state h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>👥 Gestion des Utilisateurs</h1>
+        <a th:href="@{/superadmin/dashboard}" class="back-link">← Retour au dashboard</a>
+    </div>
+
+    <!-- Messages de succès/erreur -->
+    <div class="alert alert-success" th:if="${success}">
+        ✓ <span th:text="${success}"></span>
+    </div>
+
+    <div class="alert alert-error" th:if="${error}">
+        ✗ <span th:text="${error}"></span>
+    </div>
+
+    <!-- Filtres -->
+    <div class="filters">
+        <label for="roleFilter">Filtrer par rôle :</label>
+        <select id="roleFilter" onchange="filterByRole(this.value)">
+            <option value="">Tous les rôles</option>
+            <option value="ADMIN" th:selected="${filterRole == T(com.ville.gestionincidents.enumeration.Role).ADMIN}">Administrateurs</option>
+            <option value="AGENT" th:selected="${filterRole == T(com.ville.gestionincidents.enumeration.Role).AGENT}">Agents</option>
+            <option value="CITOYEN" th:selected="${filterRole == T(com.ville.gestionincidents.enumeration.Role).CITOYEN}">Citoyens</option>
+        </select>
+    </div>
+
+    <!-- Tableau des utilisateurs -->
+    <div class="users-table-container">
+        <table class="users-table" th:if="${users != null and !users.isEmpty()}">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nom Complet</th>
+                <th>Email</th>
+                <th>Rôle</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="user : ${users}">
+                <td th:text="${user.id}">1</td>
+                <td th:text="${user.prenom + ' ' + user.nom}">Nom Prénom</td>
+                <td th:text="${user.email}">email@example.com</td>
+                <td>
+    <span th:switch="${user.role}">
+        <span th:case="${T(com.ville.gestionincidents.enumeration.Role).SUPERADMIN}" class="badge superadmin">superadmin</span>
+        <span th:case="${T(com.ville.gestionincidents.enumeration.Role).ADMIN}" class="badge admin">admin</span>
+        <span th:case="${T(com.ville.gestionincidents.enumeration.Role).AGENT}" class="badge agent">agent</span>
+        <span th:case="*" class="badge citoyen">citoyen</span>
+    </span>
+                </td>
+
+
+
+
+
+                <td>
+                            <span class="status-badge"
+                                  th:classappend="${user.emailVerifie} ? 'active' : 'inactive'"
+                                  th:text="${user.emailVerifie} ? 'Actif' : 'Inactif'">Statut</span>
+                </td>
+
+
+                <td>
+                    <div class="actions">
+                        <a th:href="@{/superadmin/users/{id}(id=${user.id})}" class="btn btn-view">Voir</a>
+
+                        <a th:href="@{/superadmin/users/{id}/edit(id=${user.id})}"
+                           class="btn btn-edit"
+                           th:if="${user.role != T(com.ville.gestionincidents.enumeration.Role).SUPERADMIN}">
+                            Modifier
+                        </a>
+
+                        <form th:action="@{/superadmin/users/{id}/toggle-status(id=${user.id})}"
+                              method="post"
+                              style="margin: 0;"
+                              th:if="${user.role != T(com.ville.gestionincidents.enumeration.Role).SUPERADMIN}"
+                              onsubmit="return confirm('Êtes-vous sûr de vouloir changer le statut de cet utilisateur ?');">
+                            <button type="submit" class="btn btn-toggle">
+                                <span th:text="${user.emailVerifie} ? 'Désactiver' : 'Activer'">Toggle</span>
+                            </button>
+                        </form>
+
+                        <form th:action="@{/superadmin/users/{id}/delete(id=${user.id})}"
+                              method="post"
+                              style="margin: 0;"
+                              th:if="${user.role != T(com.ville.gestionincidents.enumeration.Role).SUPERADMIN}"
+                              onsubmit="return confirm('⚠️ ATTENTION : Êtes-vous ABSOLUMENT sûr de vouloir supprimer cet utilisateur ? Cette action est IRRÉVERSIBLE.');">
+                            <button type="submit" class="btn btn-delete">Supprimer</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div class="empty-state" th:if="${users == null or users.isEmpty()}">
+            <h3>Aucun utilisateur trouvé</h3>
+            <p>Aucun utilisateur ne correspond aux critères de recherche.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    function filterByRole(role) {
+        if (role === '') {
+            window.location.href = '/superadmin/users';
+        } else {
+            window.location.href = '/superadmin/users?role=' + role;
+        }
+    }
+</script>
+</body>
+</html>

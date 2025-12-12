@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Mes Incidents</title>
+
+    <style>
+        body {
+            font-family: 'Segoe UI';
+            background: linear-gradient(135deg,#667eea,#764ba2);
+            padding:20px;
+        }
+
+        /* ------- HEADER ------- */
+        .header {
+            background:white; padding:20px; border-radius:10px;
+            margin-bottom:20px;
+            display:flex; justify-content:space-between; align-items:center;
+            box-shadow:0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .user-info {
+            display:flex; align-items:center; gap:15px;
+        }
+
+        .user-badge {
+            background: linear-gradient(135deg,#667eea,#764ba2);
+            color:white; padding:8px 16px;
+            border-radius:20px; font-weight:bold;
+        }
+
+        .btn {
+            padding:10px 18px;
+            border-radius:8px;
+            text-decoration:none;
+            color:white;
+            font-weight:bold;
+            transition:0.3s;
+        }
+
+        .btn:hover { opacity:0.85; }
+
+        .back-btn { background:#3b82f6; }
+        .logout-btn { background:#ef4444; border:none; cursor:pointer; }
+
+
+        /* ------- TABLE / CARD ------- */
+        .card {
+            background:white; padding:25px; border-radius:12px;
+            max-width:1100px; margin:0 auto;
+            box-shadow:0 4px 6px rgba(0,0,0,.1);
+        }
+
+        table { width:100%; border-collapse:collapse; margin-top:20px; }
+        th {
+            background:#f3f4f6; padding:12px; color:#374151; text-align:left;
+        }
+        td { padding:12px; border-bottom:1px solid #eee; }
+
+        .badge {
+            padding:6px 12px; border-radius:12px; font-size:12px; font-weight:bold;
+            color:white;
+        }
+        .signalé { background:#3b82f6; }
+        .pris { background:#f59e0b; }
+        .resolu { background:#10b981; }
+
+        a.details-btn {
+            background:linear-gradient(135deg,#667eea,#764ba2);
+            padding:8px 14px; color:white; border-radius:6px;
+            text-decoration:none;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- ===== HEADER ===== -->
+<div class="header">
+    <h1>📋 Mes Incidents</h1>
+
+    <div class="user-info">
+        <span class="user-badge" sec:authentication="principal.username"></span>
+
+        <a th:href="@{/citoyen/home}" class="btn back-btn">🏠 Retour Dashboard</a>
+
+        <form th:action="@{/logout}" method="post" style="margin:0;">
+            <button class="btn logout-btn">Déconnexion</button>
+        </form>
+    </div>
+</div>
+
+<!-- ===== CONTENT ===== -->
+<div class="card">
+
+    <table>
+        <thead>
+        <tr>
+            <th>Catégorie</th>
+            <th>Description</th>
+            <th>Date</th>
+            <th>Statut</th>
+            <th>Détails</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <tr th:each="inc : ${incidents}">
+            <td th:text="${inc.categorie}"></td>
+            <td th:text="${inc.description}"></td>
+            <td th:text="${inc.dateDeclaration}"></td>
+
+            <td>
+                <span class="badge"
+                      th:classappend="${
+                        inc.statut.name() == 'SIGNALE' ? 'signalé' :
+                        (inc.statut.name() == 'EN_COURS' ? 'pris' : 'resolu')
+                      }"
+                      th:text="${inc.statut}">
+                </span>
+            </td>
+
+            <td>
+                <a class="details-btn"
+                   th:href="@{'/citoyen/incidents/' + ${inc.id}}">Voir</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+</div>
+
+</body>
+</html>
