@@ -132,9 +132,10 @@
         <strong>Erreur :</strong> <span th:text="${error}"></span>
     </div>
 
-    <form th:action="@{/superadmin/users/{id}/edit(id=${user.id})}"
+    <!-- ✅ FORMULAIRE CORRIGÉ -->
+    <form th:action="@{/superadmin/users/{id}/edit(id=${userId})}"
           method="post"
-          th:object="${user}">
+          th:object="${utilisateur}">
 
         <div class="form-group">
             <label for="prenom">Prénom *</label>
@@ -154,7 +155,10 @@
         <div class="form-group">
             <label for="role">Rôle *</label>
             <select id="role" th:field="*{role}">
-                <option th:each="r : ${roles}" th:value="${r}" th:text="${r}"></option>
+                <option th:each="r : ${roles}"
+                        th:value="${r}"
+                        th:text="${r}">
+                </option>
             </select>
         </div>
 

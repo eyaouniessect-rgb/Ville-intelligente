@@ -1,5 +1,8 @@
 package com.ville.gestionincidents.controller.citoyen;
 
+import com.ville.gestionincidents.dto.utilisateur.citoyen.ChangePasswordDto;
+import com.ville.gestionincidents.dto.utilisateur.citoyen.CitoyenProfilDto;
+import com.ville.gestionincidents.dto.utilisateur.citoyen.CitoyenUpdateProfilDto;
 import com.ville.gestionincidents.entity.Incident;
 import com.ville.gestionincidents.entity.Utilisateur;
 import com.ville.gestionincidents.service.incident.IncidentService;
@@ -8,11 +11,16 @@ import com.ville.gestionincidents.service.utilisateur.UtilisateurService;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import javax.validation.Valid;
 
 @Controller
 @RequestMapping("/citoyen")
@@ -88,14 +96,110 @@ public class CitoyenController {
     // -------------------------
     // Profil Citoyen
     // -------------------------
+    // 📄 Affichage du profil
     @GetMapping("/profil")
     public String profil(Model model,
                          @AuthenticationPrincipal UserDetails userDetails) {
 
-        Utilisateur u = utilisateurService.findByEmail(userDetails.getUsername());
+        CitoyenProfilDto profil =
+                utilisateurService.getProfilCitoyen(userDetails.getUsername());
 
-        model.addAttribute("citoyen", u);
+        CitoyenUpdateProfilDto form = new CitoyenUpdateProfilDto();
+        form.setNom(profil.getNom());
+        form.setPrenom(profil.getPrenom());
+        form.setEmail(profil.getEmail());
+        form.setTelephone(profil.getTelephone());
+        form.setAdresse(profil.getAdresse());
+
+        model.addAttribute("profil", profil);
+        model.addAttribute("utilisateur", form);
 
         return "citoyen/profil_citoyen";
     }
+
+    //  Modification du profil
+    @PostMapping("/profil")
+    public String updateProfil(
+            @Valid @ModelAttribute("utilisateur") CitoyenUpdateProfilDto dto,
+            BindingResult result,
+            @AuthenticationPrincipal UserDetails userDetails,
+            Model model) {
+
+        if (result.hasErrors()) {
+            return "citoyen/profil_citoyen";
+        }
+
+        String oldEmail = userDetails.getUsername();
+
+        // 🟠 Si l’email a changé → page de confirmation
+        if (!oldEmail.equals(dto.getEmail())) {
+            model.addAttribute("ancienEmail", oldEmail);
+            model.addAttribute("nouvelEmail", dto.getEmail());
+            model.addAttribute("dto", dto); // on garde les données
+            return "citoyen/confirm_email_change";
+        }
+
+        // 🟢 Sinon, modification normale
+        utilisateurService.updateProfilCitoyen(oldEmail, dto);
+        return "redirect:/citoyen/profil";
+    }
+
+    @PostMapping("/profil/confirm")
+    public String confirmEmailChange(
+            @ModelAttribute CitoyenUpdateProfilDto dto,
+            @AuthenticationPrincipal UserDetails userDetails,
+            RedirectAttributes redirectAttributes) {
+
+        String oldEmail = userDetails.getUsername();
+
+        // sauvegarde réelle
+        utilisateurService.updateProfilCitoyen(oldEmail, dto);
+
+        // déconnexion
+        SecurityContextHolder.clearContext();
+
+        redirectAttributes.addFlashAttribute(
+                "toast",
+                "Email modifié. Veuillez vous reconnecter."
+        );
+
+        return "redirect:/login";
+    }
+
+    @GetMapping("/change-password")
+    public String changePasswordForm(Model model) {
+        model.addAttribute("passwordDto", new ChangePasswordDto());
+        return "citoyen/change_password";
+    }
+
+    @PostMapping("/change-password")
+    public String changePassword(
+            @Valid @ModelAttribute("passwordDto") ChangePasswordDto dto,
+            BindingResult result,
+            @AuthenticationPrincipal UserDetails userDetails,
+            RedirectAttributes redirectAttributes) {
+
+        if (result.hasErrors()) {
+            return "citoyen/change_password";
+        }
+
+        Utilisateur user =
+                utilisateurService.findByEmail(userDetails.getUsername());
+
+        try {
+            utilisateurService.changePasswordCitoyen(user.getId(), dto);
+            redirectAttributes.addFlashAttribute(
+                    "success",
+                    "Mot de passe modifié avec succès"
+            );
+            return "redirect:/citoyen/profil";
+
+        } catch (RuntimeException e) {
+            result.reject(null, e.getMessage());
+            return "citoyen/change_password";
+        }
+    }
+
+
+
 }
