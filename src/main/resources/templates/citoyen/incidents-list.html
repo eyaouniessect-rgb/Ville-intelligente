@@ -3,73 +3,346 @@
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mes Incidents</title>
 
     <style>
-        body {
-            font-family: 'Segoe UI';
-            background: linear-gradient(135deg,#667eea,#764ba2);
-            padding:20px;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        /* ------- HEADER ------- */
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
         .header {
-            background:white; padding:20px; border-radius:10px;
-            margin-bottom:20px;
-            display:flex; justify-content:space-between; align-items:center;
-            box-shadow:0 4px 6px rgba(0,0,0,0.1);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px 30px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            animation: slideDown 0.5s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header h1 {
+            font-size: 28px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
         .user-info {
-            display:flex; align-items:center; gap:15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
         .user-badge {
-            background: linear-gradient(135deg,#667eea,#764ba2);
-            color:white; padding:8px 16px;
-            border-radius:20px; font-weight:bold;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
         }
 
         .btn {
-            padding:10px 18px;
-            border-radius:8px;
-            text-decoration:none;
-            color:white;
-            font-weight:bold;
-            transition:0.3s;
+            padding: 10px 20px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .btn:hover { opacity:0.85; }
-
-        .back-btn { background:#3b82f6; }
-        .logout-btn { background:#ef4444; border:none; cursor:pointer; }
-
-
-        /* ------- TABLE / CARD ------- */
-        .card {
-            background:white; padding:25px; border-radius:12px;
-            max-width:1100px; margin:0 auto;
-            box-shadow:0 4px 6px rgba(0,0,0,.1);
+        .back-btn {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
         }
 
-        table { width:100%; border-collapse:collapse; margin-top:20px; }
-        th {
-            background:#f3f4f6; padding:12px; color:#374151; text-align:left;
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
         }
-        td { padding:12px; border-bottom:1px solid #eee; }
 
-        .badge {
-            padding:6px 12px; border-radius:12px; font-size:12px; font-weight:bold;
-            color:white;
+        .logout-btn {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
         }
-        .signalé { background:#3b82f6; }
-        .pris { background:#f59e0b; }
-        .resolu { background:#10b981; }
 
-        a.details-btn {
-            background:linear-gradient(135deg,#667eea,#764ba2);
-            padding:8px 14px; color:white; border-radius:6px;
-            text-decoration:none;
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .incidents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .incident-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .incident-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .incident-image {
+            position: relative;
+            height: 200px;
+            background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+            overflow: hidden;
+        }
+
+        .incident-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .incident-card:hover .incident-image img {
+            transform: scale(1.05);
+        }
+
+        .incident-image .no-image {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            font-size: 48px;
+            color: #d1d5db;
+        }
+
+        .image-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #667eea;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .image-count {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .incident-content {
+            padding: 20px;
+        }
+
+        .incident-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+
+        .incident-category {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .incident-status {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .status-signale {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-en-cours {
+            background: #fed7aa;
+            color: #92400e;
+        }
+
+        .status-resolu {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .incident-description {
+            color: #4b5563;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 16px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .incident-meta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+            padding-top: 12px;
+            border-top: 1px solid #f3f4f6;
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .incident-meta span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .incident-footer {
+            display: flex;
+            gap: 8px;
+        }
+
+        .details-btn {
+            flex: 1;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px;
+            border-radius: 10px;
+            text-decoration: none;
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .details-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .empty-state {
+            background: white;
+            border-radius: 16px;
+            padding: 60px 40px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state h2 {
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            color: #6b7280;
+            margin-bottom: 24px;
+        }
+
+        .add-incident-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 14px 28px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .add-incident-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .user-info {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .incidents-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -82,52 +355,95 @@
 
     <div class="user-info">
         <span class="user-badge" sec:authentication="principal.username"></span>
-
         <a th:href="@{/citoyen/home}" class="btn back-btn">🏠 Retour Dashboard</a>
-
         <form th:action="@{/logout}" method="post" style="margin:0;">
-            <button class="btn logout-btn">Déconnexion</button>
+            <button class="btn logout-btn">🚪 Déconnexion</button>
         </form>
     </div>
 </div>
 
 <!-- ===== CONTENT ===== -->
-<div class="card">
+<div class="container">
 
-    <table>
-        <thead>
-        <tr>
-            <th>Catégorie</th>
-            <th>Description</th>
-            <th>Date</th>
-            <th>Statut</th>
-            <th>Détails</th>
-        </tr>
-        </thead>
+    <!-- Si aucun incident -->
+    <div class="empty-state" th:if="${#lists.isEmpty(incidents)}">
+        <div class="empty-state-icon">📭</div>
+        <h2>Aucun incident déclaré</h2>
+        <p>Vous n'avez pas encore signalé d'incident.</p>
+        <a th:href="@{/citoyen/getFormIncident}" class="add-incident-btn">
+            ➕ Déclarer un incident
+        </a>
+    </div>
 
-        <tbody>
-        <tr th:each="inc : ${incidents}">
-            <td th:text="${inc.categorie}"></td>
-            <td th:text="${inc.description}"></td>
-            <td th:text="${inc.dateDeclaration}"></td>
+    <!-- Grid des incidents -->
+    <div class="incidents-grid" th:if="${!#lists.isEmpty(incidents)}">
 
-            <td>
-                <span class="badge"
-                      th:classappend="${
-                        inc.statut.name() == 'SIGNALE' ? 'signalé' :
-                        (inc.statut.name() == 'EN_COURS' ? 'pris' : 'resolu')
-                      }"
-                      th:text="${inc.statut}">
-                </span>
-            </td>
+        <div class="incident-card" th:each="inc : ${incidents}">
 
-            <td>
-                <a class="details-btn"
-                   th:href="@{'/citoyen/incidents/' + ${inc.id}}">Voir</a>
-            </td>
-        </tr>
-        </tbody>
-    </table>
+            <!-- Image principale -->
+            <div class="incident-image">
+                <!-- Si l'incident a des photos -->
+                <div th:if="${!#lists.isEmpty(inc.photos)}">
+                    <!-- Afficher la photo principale -->
+                    <img th:each="photo : ${inc.photos}"
+                         th:if="${photo.principale}"
+                         th:src="@{'/' + ${photo.cheminStockage}}"
+                         th:alt="${inc.categorie}">
+
+                    <!-- Badge "Photo principale" -->
+                    <span class="image-badge">📸 Photo principale</span>
+
+                    <!-- Compteur de photos si > 1 -->
+                    <span class="image-count" th:if="${#lists.size(inc.photos) > 1}">
+                        🖼️ <span th:text="${#lists.size(inc.photos)}"></span> photos
+                    </span>
+                </div>
+
+                <!-- Si pas de photos -->
+                <div class="no-image" th:unless="${!#lists.isEmpty(inc.photos)}">
+                    📷
+                </div>
+            </div>
+
+            <!-- Contenu de la carte -->
+            <div class="incident-content">
+
+                <!-- Header: Catégorie + Statut -->
+                <div class="incident-header">
+                    <span class="incident-category" th:text="${inc.categorie}"></span>
+                    <span class="incident-status"
+                          th:classappend="${
+                            inc.statut.name() == 'SIGNALE' ? 'status-signale' :
+                            (inc.statut.name() == 'EN_COURS' ? 'status-en-cours' : 'status-resolu')
+                          }"
+                          th:text="${inc.statut}">
+                    </span>
+                </div>
+
+                <!-- Description -->
+                <p class="incident-description" th:text="${inc.description}"></p>
+
+                <!-- Métadonnées -->
+                <div class="incident-meta">
+                    <span>
+                        📅 <span th:text="${#temporals.format(inc.dateDeclaration, 'dd/MM/yyyy')}"></span>
+                    </span>
+                    <span th:if="${inc.adresse != null && !#strings.isEmpty(inc.adresse)}">
+                        📍 <span th:text="${#strings.abbreviate(inc.adresse, 20)}"></span>
+                    </span>
+                </div>
+
+                <!-- Footer: Bouton détails -->
+                <div class="incident-footer">
+                    <a class="details-btn" th:href="@{'/citoyen/incidents/' + ${inc.id}}">
+                        👁️ Voir les détails
+                    </a>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
 
 </div>
 

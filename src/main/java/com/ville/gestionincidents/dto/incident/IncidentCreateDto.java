@@ -4,6 +4,8 @@ import com.ville.gestionincidents.enumeration.CategorieIncident;
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 /**
  * DTO utilisé pour recevoir les données du formulaire citoyen.
  */
@@ -17,7 +19,8 @@ public class IncidentCreateDto {
     private Double latitude;
     private Double longitude;
 
-    private MultipartFile photo;
+    // Permet d’uploader plusieurs images
+    private List<MultipartFile> photos;
 
 
 
