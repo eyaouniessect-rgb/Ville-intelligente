@@ -51,16 +51,17 @@ public class CitoyenController {
     // -------------------------
     // Liste incidents
     // -------------------------
+
     @GetMapping("/incidents")
     public String incidentsList(Model model,
                                 @AuthenticationPrincipal UserDetails userDetails) {
 
-        String email = userDetails.getUsername();
-
-        model.addAttribute("incidents", incidentService.findByCitoyenEmail(email));
+        model.addAttribute("incidents", incidentService.getIncidentsForCurrentUser());
 
         return "citoyen/incidents-list";
     }
+
+
 
 
     // -------------------------

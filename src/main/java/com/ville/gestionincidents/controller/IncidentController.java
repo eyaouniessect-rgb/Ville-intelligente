@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/incident")
+@RequestMapping("/citoyen")
 public class IncidentController {
 
     private final IncidentService incidentService;
@@ -20,7 +20,7 @@ public class IncidentController {
     /**
      * Affiche le formulaire de déclaration
      */
-    @GetMapping("/nouveau")
+    @GetMapping("/getFormIncident")
     public String afficherFormulaire(Model model) {
         model.addAttribute("incident", new IncidentCreateDto());
         model.addAttribute("categories", CategorieIncident.values());
@@ -30,19 +30,22 @@ public class IncidentController {
     /**
      * Traite la soumission du formulaire
      */
-    @PostMapping("/ajouter")
+    @PostMapping("/incident/ajouter")
     public String ajouterIncident(@ModelAttribute IncidentCreateDto dto) {
 
         incidentService.creerIncident(dto);
 
-        return "redirect:/incident/success";
+        return "redirect:/citoyen/incident/success";
     }
 
     /**
      * Page succès
      */
-    @GetMapping("/success")
+    @GetMapping("/incident/success")
     public String success() {
         return "citoyen/incident_success";
     }
+
+
+
 }

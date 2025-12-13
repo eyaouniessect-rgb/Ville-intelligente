@@ -20,4 +20,5 @@ public class IncidentCreateDto {
     private MultipartFile photo;
 
 
+
 }

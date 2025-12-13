@@ -3,11 +3,12 @@ package com.ville.gestionincidents.service.incident;
 import com.ville.gestionincidents.dto.incident.IncidentCreateDto;
 import com.ville.gestionincidents.entity.Incident;
 import com.ville.gestionincidents.entity.Photo;
+import com.ville.gestionincidents.entity.Utilisateur;
 import com.ville.gestionincidents.enumeration.StatutIncident;
 import com.ville.gestionincidents.mapper.IncidentMapper;
 import com.ville.gestionincidents.repository.IncidentRepository;
 import com.ville.gestionincidents.repository.PhotoRepository;
-
+import com.ville.gestionincidents.security.CurrentUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +25,7 @@ public class IncidentServiceImpl implements IncidentService {
     private final PhotoRepository photoRepository;
     private final IncidentMapper incidentMapper;
     private final PhotoStorageService photoStorageService;
+    private final CurrentUserService currentUserService;
 
     @Override
     public void creerIncident(IncidentCreateDto dto) {
@@ -31,6 +33,12 @@ public class IncidentServiceImpl implements IncidentService {
         // 1️⃣ Convertir le DTO en entité Incident
         Incident incident = incidentMapper.toEntity(dto);
 
+        // 2️⃣ Associer automatiquement le citoyen connecté
+        Utilisateur citoyen = currentUserService.getCurrentUser();
+        System.out.println("Utilisateur connecté : " + citoyen.getEmail());
+
+        incident.setCitoyen(citoyen);
+        incident.setStatut(StatutIncident.SIGNALE);
         // 2️⃣ Sauvegarder l'incident dans la BD
         incidentRepository.save(incident);
 
@@ -55,6 +63,13 @@ public class IncidentServiceImpl implements IncidentService {
         }
 
 
+    }
+
+    //pour recuperer les incidents d'un utlisateur connecte
+    @Override
+    public List<Incident> getIncidentsForCurrentUser() {
+        Utilisateur user = currentUserService.getCurrentUser();
+        return incidentRepository.findByCitoyen(user);
     }
 
     @Override
