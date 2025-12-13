@@ -40,9 +40,11 @@ public class CitoyenController {
 
         String email = userDetails.getUsername();
 
-        model.addAttribute("totalIncidents", incidentService.countByEmail(email));
-        model.addAttribute("inProgress", incidentService.countInProgress(email));
-        model.addAttribute("resolved", incidentService.countResolved(email));
+        model.addAttribute("countSignale", incidentService.countSignale(email));
+        model.addAttribute("countPrisEnCharge", incidentService.countPrisEnCharge(email));
+        model.addAttribute("countEnResolution", incidentService.countEnResolution(email));
+        model.addAttribute("countResolu", incidentService.countResolu(email));
+        model.addAttribute("countCloture", incidentService.countCloture(email));
 
         return "citoyen/home";
     }
@@ -52,11 +54,31 @@ public class CitoyenController {
     // Liste incidents
     // -------------------------
 
+    //receuperer la liste des incidents pour un utlisateur connecte selon un statut ( filtre ) par defaut recupere tous les status
     @GetMapping("/incidents")
-    public String incidentsList(Model model,
-                                @AuthenticationPrincipal UserDetails userDetails) {
+    public String incidentsList(
+            @RequestParam(value = "statut", required = false) String statut,
+            Model model,
+            @AuthenticationPrincipal UserDetails userDetails) {
 
-        model.addAttribute("incidents", incidentService.getIncidentsForCurrentUser());
+        String email = userDetails.getUsername();
+
+        boolean isFiltering = (statut != null && !statut.isEmpty());
+
+        // 🔹 Liste filtrée OU non filtrée
+        if (!isFiltering) {
+            model.addAttribute("incidents", incidentService.getIncidentsForCurrentUser());
+        } else {
+            model.addAttribute("incidents", incidentService.getIncidentsByStatutForUser(email, statut));
+        }
+
+        // 🔹 Vérifier SI l'utilisateur possède AU MOINS un incident (tous statuts confondus)
+        boolean hasAnyIncident = !incidentService.getIncidentsForCurrentUser().isEmpty();
+
+        model.addAttribute("hasAnyIncident", hasAnyIncident);
+        model.addAttribute("isFiltering", isFiltering);
+        model.addAttribute("statuts", com.ville.gestionincidents.enumeration.StatutIncident.values());
+        model.addAttribute("statutActuel", statut);
 
         return "citoyen/incidents-list";
     }
