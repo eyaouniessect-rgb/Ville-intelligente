@@ -37,9 +37,7 @@ public class CreateUtilisateurByAdminDto {
 
     // ==================== CHAMP SPÉCIFIQUE AGENT ====================
 
-    /**
-     * Département de travail de l'agent
-     * Utilisé uniquement si le rôle est AGENT
-     */
-    private String departement;
+    @NotNull(message = "Le département est obligatoire pour un administrateur")
+    private Long departementId;
+
 }
