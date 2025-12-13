@@ -25,7 +25,6 @@
             padding: 20px;
         }
 
-        /* ------- HEADER ------- */
         .header {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
@@ -40,14 +39,8 @@
         }
 
         @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .header h1 {
@@ -112,7 +105,6 @@
             box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
         }
 
-        /* ------- CARD ------- */
         .card {
             background: white;
             padding: 40px;
@@ -124,29 +116,10 @@
         }
 
         @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .section-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: #1f2937;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 3px solid #667eea;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        /* ------- FORM ------- */
         .form-group {
             margin-bottom: 25px;
         }
@@ -187,14 +160,7 @@
 
         .file-input-wrapper {
             position: relative;
-            overflow: hidden;
-            display: inline-block;
             width: 100%;
-        }
-
-        .file-input-wrapper input[type=file] {
-            position: absolute;
-            left: -9999px;
         }
 
         .file-input-label {
@@ -218,14 +184,60 @@
             color: #667eea;
         }
 
-        .file-name {
-            margin-top: 8px;
-            font-size: 13px;
-            color: #059669;
-            font-weight: 500;
+        .photos-preview {
+            margin-top: 12px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 12px;
         }
 
-        /* ------- MAP ------- */
+        .photo-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #e5e7eb;
+            background: #f9fafb;
+        }
+
+        .photo-item img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+        }
+
+        .photo-item .photo-name {
+            padding: 6px;
+            font-size: 11px;
+            color: #6b7280;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .photo-item .remove-btn {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .photo-item .remove-btn:hover {
+            background: #dc2626;
+            transform: scale(1.1);
+        }
+
         .map-container {
             margin-bottom: 25px;
         }
@@ -247,7 +259,6 @@
             color: #92400e;
         }
 
-        /* ------- SUBMIT BUTTON ------- */
         .submit-btn {
             width: 100%;
             padding: 16px;
@@ -272,7 +283,6 @@
             transform: translateY(0);
         }
 
-        /* ------- RESPONSIVE ------- */
         @media (max-width: 768px) {
             .header {
                 flex-direction: column;
@@ -298,7 +308,6 @@
             }
         }
 
-        /* ------- LOADING STATE ------- */
         .loading-overlay {
             display: none;
             position: fixed;
@@ -334,7 +343,6 @@
 
 <body>
 
-<!-- ===== HEADER ===== -->
 <div class="header">
     <h1>➕ Déclarer un incident</h1>
 
@@ -351,28 +359,25 @@
     </div>
 </div>
 
-<!-- ===== CONTENT ===== -->
 <div class="card">
 
-    <form th:action="@{/citoyen/incident/ajouter}"
-          th:object="${incident}"
+    <form id="incidentForm"
+          th:action="@{/citoyen/incident/ajouter}"
           method="post"
-          enctype="multipart/form-data"
-          onsubmit="showLoading()">
+          enctype="multipart/form-data">
 
-        <!-- Description -->
         <div class="form-group">
             <label class="form-label">📝 Description de l'incident *</label>
             <textarea class="form-control"
-                      th:field="*{description}"
+                      name="description"
+                      id="description"
                       placeholder="Décrivez l'incident en détail..."
                       required></textarea>
         </div>
 
-        <!-- Catégorie -->
         <div class="form-group">
             <label class="form-label">🏷️ Catégorie *</label>
-            <select class="form-control" th:field="*{categorie}" required>
+            <select class="form-control" name="categorie" id="categorie" required>
                 <option value="">-- Sélectionnez une catégorie --</option>
                 <option th:each="c : ${categories}"
                         th:value="${c}"
@@ -380,16 +385,15 @@
             </select>
         </div>
 
-        <!-- Adresse -->
         <div class="form-group">
             <label class="form-label">🏡 Adresse (optionnel)</label>
             <input class="form-control"
                    type="text"
-                   th:field="*{adresse}"
+                   name="adresse"
+                   id="adresse"
                    placeholder="Ex: Avenue Habib Bourguiba, Tunis">
         </div>
 
-        <!-- Carte -->
         <div class="map-container">
             <label class="form-label">📍 Localisation sur la carte *</label>
             <div id="map"></div>
@@ -398,29 +402,31 @@
             </div>
         </div>
 
-        <!-- Champs cachés pour lat/lng -->
-        <input type="hidden" th:field="*{latitude}" id="latitude">
-        <input type="hidden" th:field="*{longitude}" id="longitude">
+        <input type="hidden" name="latitude" id="latitude">
+        <input type="hidden" name="longitude" id="longitude">
 
-        <!-- Photo -->
+        <!-- SECTION PHOTOS CORRIGÉE -->
         <div class="form-group">
-            <label class="form-label">📸 Photo de l'incident</label>
+            <label class="form-label">📸 Photo(s) de l'incident (max 3)</label>
             <div class="file-input-wrapper">
-                <input type="file"
-                       th:field="*{photo}"
-                       id="photoInput"
-                       accept="image/*"
-                       onchange="updateFileName(this)"
-                        >
                 <label for="photoInput" class="file-input-label">
                     <span style="font-size: 24px;">📷</span>
-                    <span>Cliquez pour ajouter une photo</span>
+                    <span>Cliquez pour ajouter des photos (0/3)</span>
                 </label>
+                <input type="file"
+                       id="photoInput"
+                       name="photos"
+                       accept="image/*"
+                       multiple
+                       style="display: none;"
+                       onchange="handleFileSelect(this)">
             </div>
-            <div id="fileName" class="file-name"></div>
+
+            <!-- Zone de prévisualisation -->
+            <div id="photosPreview" class="photos-preview"></div>
         </div>
 
-        <button type="submit" class="submit-btn">
+        <button type="button" class="submit-btn" onclick="submitForm()">
             ✅ Déclarer l'incident
         </button>
 
@@ -428,38 +434,138 @@
 
 </div>
 
-<!-- Loading Overlay -->
 <div class="loading-overlay" id="loadingOverlay">
     <div class="spinner"></div>
 </div>
 
-<!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
+    // ========== GESTION DES PHOTOS MULTIPLES ==========
+    const MAX_PHOTOS = 3; // Limite maximum de photos
+    let selectedFiles = [];
 
-    // ==========================================================
-    // GESTION DU NOM DE FICHIER
-    // ==========================================================
-    function updateFileName(input) {
-        const fileNameDiv = document.getElementById('fileName');
-        if (input.files && input.files[0]) {
-            fileNameDiv.textContent = '✓ ' + input.files[0].name;
+    function handleFileSelect(input) {
+        const newFiles = Array.from(input.files);
+
+        // Ajouter les nouveaux fichiers (sans doublons)
+        newFiles.forEach(file => {
+            // Vérifier la limite
+            if (selectedFiles.length >= MAX_PHOTOS) {
+                alert(`⚠️ Vous ne pouvez ajouter que ${MAX_PHOTOS} photos maximum.`);
+                return;
+            }
+
+            const exists = selectedFiles.some(f =>
+                f.name === file.name && f.size === file.size && f.lastModified === file.lastModified
+            );
+            if (!exists && selectedFiles.length < MAX_PHOTOS) {
+                selectedFiles.push(file);
+            }
+        });
+
+        // Afficher les photos
+        displayPhotos();
+        updateInputState();
+
+        console.log("📸 Fichiers sélectionnés:", selectedFiles.length);
+        selectedFiles.forEach((f, i) => {
+            console.log(`  ${i + 1}. ${f.name} (${(f.size / 1024).toFixed(1)} KB)`);
+        });
+    }
+
+    function updateInputState() {
+        const input = document.getElementById('photoInput');
+        const label = document.querySelector('.file-input-label span:last-child');
+
+        if (selectedFiles.length >= MAX_PHOTOS) {
+            input.disabled = true;
+            label.textContent = `Maximum atteint (${MAX_PHOTOS}/${MAX_PHOTOS})`;
+            document.querySelector('.file-input-label').style.opacity = '0.6';
+            document.querySelector('.file-input-label').style.cursor = 'not-allowed';
         } else {
-            fileNameDiv.textContent = '';
+            input.disabled = false;
+            label.textContent = `Cliquez pour ajouter des photos (${selectedFiles.length}/${MAX_PHOTOS})`;
+            document.querySelector('.file-input-label').style.opacity = '1';
+            document.querySelector('.file-input-label').style.cursor = 'pointer';
         }
     }
 
-    // ==========================================================
-    // LOADING OVERLAY
-    // ==========================================================
+    function removePhoto(index) {
+        selectedFiles.splice(index, 1);
+        displayPhotos();
+        updateInputState();
+        console.log("🗑️ Photo supprimée. Reste:", selectedFiles.length);
+    }
+
+    function displayPhotos() {
+        const previewDiv = document.getElementById('photosPreview');
+
+        if (selectedFiles.length === 0) {
+            previewDiv.innerHTML = '';
+            return;
+        }
+
+        previewDiv.innerHTML = selectedFiles.map((file, index) => {
+            const url = URL.createObjectURL(file);
+            return `
+                <div class="photo-item">
+                    <img src="${url}" alt="${file.name}">
+                    <div class="photo-name">${file.name}</div>
+                    <button type="button" class="remove-btn" onclick="removePhoto(${index})">✕</button>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function submitForm() {
+        console.log("🚀 Soumission du formulaire...");
+
+        const form = document.getElementById('incidentForm');
+        const formData = new FormData(form);
+
+        // Supprimer les anciennes photos et ajouter les nouvelles
+        formData.delete('photos');
+
+        selectedFiles.forEach((file, index) => {
+            formData.append('photos', file);
+            console.log(`  ✅ Photo ${index + 1} ajoutée: ${file.name} (${file.size} bytes)`);
+        });
+
+        // Afficher le loading
+        showLoading();
+
+        // Envoyer avec fetch
+        fetch(form.action, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            console.log("📡 Réponse reçue:", response.status);
+            if (response.redirected) {
+                window.location.href = response.url;
+            } else if (response.ok) {
+                window.location.href = '/citoyen/incident/success';
+            } else {
+                throw new Error('Erreur HTTP: ' + response.status);
+            }
+        })
+        .catch(error => {
+            console.error('❌ Erreur:', error);
+            alert('Erreur lors de l\'envoi du formulaire. Veuillez réessayer.');
+            hideLoading();
+        });
+    }
+
     function showLoading() {
         document.getElementById('loadingOverlay').classList.add('active');
     }
 
-    // ==========================================================
-    // CARTE LEAFLET
-    // ==========================================================
+    function hideLoading() {
+        document.getElementById('loadingOverlay').classList.remove('active');
+    }
+
+    // ========== CARTE LEAFLET ==========
     var map = L.map('map').setView([36.8065, 10.1815], 13);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -468,12 +574,8 @@
 
     var marker;
 
-    // ==========================================================
-    // GÉOLOCALISATION
-    // ==========================================================
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(position) {
-
             var lat = position.coords.latitude;
             var lng = position.coords.longitude;
 
@@ -494,15 +596,11 @@
             });
 
         }, function() {
-            console.log("Impossible de récupérer la position GPS.");
+            console.log("⚠️ Impossible de récupérer la position GPS.");
         });
     }
 
-    // ==========================================================
-    // CLIC SUR LA CARTE
-    // ==========================================================
     map.on('click', function(e) {
-
         var lat = e.latlng.lat;
         var lng = e.latlng.lng;
 
@@ -518,7 +616,6 @@
         document.getElementById("latitude").value = lat;
         document.getElementById("longitude").value = lng;
     });
-
 </script>
 
 </body>

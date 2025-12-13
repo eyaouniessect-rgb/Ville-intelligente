@@ -10,8 +10,9 @@ import java.util.List;
  */
 public interface IncidentService {
 
+    //declarer un incident
     void creerIncident(IncidentCreateDto dto);
-
+     //recuperer les incident d'un citoyen donnee
     List<Incident> getIncidentsForCurrentUser();
 
 

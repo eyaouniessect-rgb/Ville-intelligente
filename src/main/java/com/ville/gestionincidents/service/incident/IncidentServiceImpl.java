@@ -11,6 +11,7 @@ import com.ville.gestionincidents.repository.PhotoRepository;
 import com.ville.gestionincidents.security.CurrentUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -30,41 +31,71 @@ public class IncidentServiceImpl implements IncidentService {
     @Override
     public void creerIncident(IncidentCreateDto dto) {
 
+        // LOG POUR DÉBOGAGE
+        System.out.println("=== CRÉATION INCIDENT ===");
+        System.out.println("Description: " + dto.getDescription());
+        System.out.println("Nombre de photos reçues: " +
+                (dto.getPhotos() != null ? dto.getPhotos().size() : 0));
+
+        if (dto.getPhotos() != null) {
+            for (MultipartFile f : dto.getPhotos()) {
+                System.out.println("  - Fichier: " + f.getOriginalFilename() +
+                        " | Taille: " + f.getSize() + " bytes");
+            }
+        }
+
         // 1️⃣ Convertir le DTO en entité Incident
         Incident incident = incidentMapper.toEntity(dto);
 
         // 2️⃣ Associer automatiquement le citoyen connecté
         Utilisateur citoyen = currentUserService.getCurrentUser();
-        System.out.println("Utilisateur connecté : " + citoyen.getEmail());
-
         incident.setCitoyen(citoyen);
         incident.setStatut(StatutIncident.SIGNALE);
-        // 2️⃣ Sauvegarder l'incident dans la BD
-        incidentRepository.save(incident);
 
-        // 3️⃣ Si une photo a été uploadée → la sauvegarder
-        if (dto.getPhoto() != null && !dto.getPhoto().isEmpty()) {
+        // 3️⃣ Sauvegarder l'incident
+        incident = incidentRepository.save(incident); // ✅ Récupérer l'incident sauvegardé
 
-            // --- 3.1 Sauvegarde physique dans /uploads/ ---
-            String nomFichier = photoStorageService.save(dto.getPhoto());
+        // 4️⃣ Gérer plusieurs photos
+        if (dto.getPhotos() != null && !dto.getPhotos().isEmpty()) {
 
-            // Chemin complet : uploads/nomFichier
-            String cheminStockage = "uploads/" + nomFichier;
+            boolean isFirst = true;
 
-            // --- 3.2 Enregistrement en BD ---
-            Photo photo = new Photo();
-            photo.setNomFichier(nomFichier);
-            photo.setTypeContenu(dto.getPhoto().getContentType());
-            photo.setCheminStockage(cheminStockage);
-            photo.setPrincipale(true);    // la 1ère photo = photo principale
-            photo.setIncident(incident);  // relation ManyToOne
+            for (MultipartFile fichier : dto.getPhotos()) {
+                // ✅ Vérifier que le fichier n'est pas vide
+                if (fichier == null || fichier.isEmpty()) {
+                    System.out.println("  ⚠️ Fichier vide ou null, ignoré");
+                    continue;
+                }
 
-            photoRepository.save(photo);
+                try {
+                    // 4.1 Sauvegarde dans /uploads/
+                    String nomFichier = photoStorageService.save(fichier);
+                    System.out.println("  ✅ Photo sauvegardée: " + nomFichier);
+
+                    // 4.2 Enregistrement BD
+                    Photo photo = new Photo();
+                    photo.setNomFichier(nomFichier);
+                    photo.setTypeContenu(fichier.getContentType());
+                    photo.setCheminStockage("uploads/" + nomFichier);
+                    photo.setPrincipale(isFirst);
+                    photo.setIncident(incident);
+
+                    photoRepository.save(photo);
+                    System.out.println("  ✅ Photo enregistrée en BD: ID=" + photo.getId());
+
+                    isFirst = false;
+
+                } catch (Exception e) {
+                    System.err.println("  ❌ Erreur lors du traitement de la photo: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        } else {
+            System.out.println("⚠️ Aucune photo à traiter");
         }
 
-
+        System.out.println("=== FIN CRÉATION INCIDENT ===");
     }
-
     //pour recuperer les incidents d'un utlisateur connecte
     @Override
     public List<Incident> getIncidentsForCurrentUser() {
