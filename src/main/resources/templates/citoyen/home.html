@@ -78,22 +78,33 @@
         </div>
     </div>
 
-    <!-- Statistiques -->
     <div class="stats-grid">
+
         <div class="stat-card reported">
-            <h3>Incidents Signalés</h3>
-            <div class="number" th:text="${totalIncidents}">0</div>
+            <h3>Signalés</h3>
+            <div class="number" th:text="${countSignale}">0</div>
+        </div>
+
+        <div class="stat-card" style="border-left:4px solid #8b5cf6;">
+            <h3>Pris en charge</h3>
+            <div class="number" th:text="${countPrisEnCharge}">0</div>
         </div>
 
         <div class="stat-card inprogress">
-            <h3>En Cours</h3>
-            <div class="number" th:text="${inProgress}">0</div>
+            <h3>En résolution</h3>
+            <div class="number" th:text="${countEnResolution}">0</div>
         </div>
 
         <div class="stat-card resolved">
             <h3>Résolus</h3>
-            <div class="number" th:text="${resolved}">0</div>
+            <div class="number" th:text="${countResolu}">0</div>
         </div>
+
+        <div class="stat-card" style="border-left:4px solid #6b7280;">
+            <h3>Clôturés</h3>
+            <div class="number" th:text="${countCloture}">0</div>
+        </div>
+
     </div>
 
     <!-- Actions -->

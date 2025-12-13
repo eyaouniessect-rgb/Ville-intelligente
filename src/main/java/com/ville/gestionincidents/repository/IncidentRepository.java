@@ -23,4 +23,9 @@ public interface IncidentRepository extends JpaRepository<Incident, Long> {
 
     // Récupérer tous les incidents d'un citoyen A suprrimer rediger par mayssa
     List<Incident> findByCitoyenEmail(String email);
+
+
+    //recuperre les incidents par statut qui correspond a un citoyen donne
+    List<Incident> findByCitoyenIdAndStatut(Long citoyenId, StatutIncident statut);
+
 }

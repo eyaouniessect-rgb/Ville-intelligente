@@ -8,6 +8,7 @@ import com.ville.gestionincidents.enumeration.StatutIncident;
 import com.ville.gestionincidents.mapper.IncidentMapper;
 import com.ville.gestionincidents.repository.IncidentRepository;
 import com.ville.gestionincidents.repository.PhotoRepository;
+import com.ville.gestionincidents.repository.UtilisateurRepository;
 import com.ville.gestionincidents.security.CurrentUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ import java.util.List;
 public class IncidentServiceImpl implements IncidentService {
 
     private final IncidentRepository incidentRepository;
+    private final UtilisateurRepository utilisateurRepository;
     private final PhotoRepository photoRepository;
     private final IncidentMapper incidentMapper;
     private final PhotoStorageService photoStorageService;
@@ -103,20 +105,48 @@ public class IncidentServiceImpl implements IncidentService {
         return incidentRepository.findByCitoyen(user);
     }
 
+
+    //recuperee les incidents d'un utlisateur connnecte par status
+    @Override
+    public List<Incident> getIncidentsByStatutForUser(String email, String statut) {
+        Utilisateur user = utilisateurRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
+
+        return incidentRepository.findByCitoyenIdAndStatut(user.getId(),
+                StatutIncident.valueOf(statut));
+    }
+
+
     @Override
     public int countByEmail(String email) {
         return incidentRepository.countByCitoyenEmail(email);
     }
 
     @Override
-    public int countInProgress(String email) {
+    public int countSignale(String email) {
+        return incidentRepository.countByCitoyenEmailAndStatut(email, StatutIncident.SIGNALE);
+    }
+
+    @Override
+    public int countPrisEnCharge(String email) {
+        return incidentRepository.countByCitoyenEmailAndStatut(email, StatutIncident.PRIS_EN_CHARGE);
+    }
+
+    @Override
+    public int countEnResolution(String email) {
         return incidentRepository.countByCitoyenEmailAndStatut(email, StatutIncident.EN_RESOLUTION);
     }
 
     @Override
-    public int countResolved(String email) {
+    public int countResolu(String email) {
         return incidentRepository.countByCitoyenEmailAndStatut(email, StatutIncident.RESOLU);
     }
+
+    @Override
+    public int countCloture(String email) {
+        return incidentRepository.countByCitoyenEmailAndStatut(email, StatutIncident.CLOTURE);
+    }
+
 
     @Override
     public List<Incident> findByCitoyenEmail(String email) {
