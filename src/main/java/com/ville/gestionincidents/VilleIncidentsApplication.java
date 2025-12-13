@@ -8,5 +8,7 @@ public class VilleIncidentsApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(VilleIncidentsApplication.class, args);
+
+
     }
 }

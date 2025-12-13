@@ -42,6 +42,7 @@ public class Incident {
 
     // Relations
     @ManyToOne
+    @JoinColumn(name = "citoyen_id")
     private Utilisateur citoyen;
 
     @ManyToOne

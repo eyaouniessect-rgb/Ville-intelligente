@@ -12,6 +12,9 @@ public interface IncidentService {
 
     void creerIncident(IncidentCreateDto dto);
 
+    List<Incident> getIncidentsForCurrentUser();
+
+
     //developper par mayssa
     int countByEmail(String email); // Total incidents
 
