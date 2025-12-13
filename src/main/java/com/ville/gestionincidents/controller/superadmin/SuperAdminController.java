@@ -4,6 +4,7 @@ import com.ville.gestionincidents.dto.utilisateur.superAdmin.CreateUtilisateurBy
 import com.ville.gestionincidents.dto.utilisateur.superAdmin.UpdateUtilisateurByAdminDto;
 import com.ville.gestionincidents.entity.Utilisateur;
 import com.ville.gestionincidents.enumeration.Role;
+import com.ville.gestionincidents.service.departement.DepartementService;
 import com.ville.gestionincidents.service.utilisateur.UtilisateurService;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,8 @@ public class SuperAdminController {
 
     @Autowired
     private UtilisateurService utilisateurService;
+    @Autowired
+    private DepartementService departementService;
 
     // ==================== DASHBOARD ====================
 
@@ -77,10 +80,15 @@ public class SuperAdminController {
      */
     @GetMapping("/create-admin")
     public String createAdminForm(Model model) {
-        // ✅ On passe un DTO vide au lieu d'une entité
+
         model.addAttribute("utilisateur", new CreateUtilisateurByAdminDto());
+
+        // ✅ liste des départements existants
+        model.addAttribute("departements", departementService.findAll());
+
         return "superadmin/create-admin";
     }
+
 
     /**
      * ✅ REFACTORISÉ : Utilise maintenant un DTO avec validation
@@ -121,9 +129,12 @@ public class SuperAdminController {
      */
     @GetMapping("/create-agent")
     public String createAgentForm(Model model) {
+
         model.addAttribute("utilisateur", new CreateUtilisateurByAdminDto());
-        // Vous pouvez ajouter la liste des départements disponibles ici
-        // model.addAttribute("departements", departementService.findAll());
+
+        // ✅ EXACTEMENT comme pour admin
+        model.addAttribute("departements", departementService.findAll());
+
         return "superadmin/create-agent";
     }
 

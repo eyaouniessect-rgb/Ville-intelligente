@@ -136,6 +136,28 @@
             <div class="password-hint">Minimum 12 caractères, avec majuscule, minuscule, chiffre et caractère spécial</div>
             <div class="error" th:if="${#fields.hasErrors('motDePasse')}" th:errors="*{motDePasse}"></div>
         </div>
+        <div class="form-group">
+            <label for="departementId">Département *</label>
+
+            <select id="departementId"
+                    th:field="*{departementId}"
+                    required
+                    style="width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #e5e7eb;">
+
+                <option value="">-- Sélectionner un département --</option>
+
+                <option th:each="dep : ${departements}"
+                        th:value="${dep.id}"
+                        th:text="${dep.nom}">
+                </option>
+            </select>
+
+            <div class="error"
+                 th:if="${#fields.hasErrors('departementId')}"
+                 th:errors="*{departementId}">
+            </div>
+        </div>
+
 
         <button type="submit" class="submit-btn">
             Créer l’Agent

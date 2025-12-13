@@ -6,12 +6,15 @@ import com.ville.gestionincidents.dto.utilisateur.citoyen.CitoyenProfilDto;
 import com.ville.gestionincidents.dto.utilisateur.citoyen.CitoyenUpdateProfilDto;
 import com.ville.gestionincidents.dto.utilisateur.superAdmin.CreateUtilisateurByAdminDto;
 import com.ville.gestionincidents.dto.utilisateur.superAdmin.UpdateUtilisateurByAdminDto;
+import com.ville.gestionincidents.entity.Departement;
 import com.ville.gestionincidents.entity.Utilisateur;
 import com.ville.gestionincidents.enumeration.Role;
 import com.ville.gestionincidents.mapper.UtilisateurMapper;
+import com.ville.gestionincidents.repository.DepartementRepository;
 import com.ville.gestionincidents.repository.UtilisateurRepository;
 import com.ville.gestionincidents.service.email.EmailService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,6 +43,8 @@ public class UtilisateurServiceImpl implements UtilisateurService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final UtilisateurMapper utilisateurMapper; // ✅ NOUVEAU : Mapper pour conversions
+    @Autowired
+    private DepartementRepository departementRepository;
 
     // ==================== INSCRIPTION CITOYEN (INCHANGÉ) ====================
 
@@ -164,48 +169,31 @@ public CitoyenProfilDto getProfilCitoyen(String email) {
     @Override
     @Transactional
     public Utilisateur createUserByAdmin(CreateUtilisateurByAdminDto dto, Role role) {
-        System.out.println("👨‍💼 Création d'utilisateur par ADMIN : " + dto.getEmail());
-        System.out.println("   Rôle attribué : " + role);
 
-        // 1. Vérifier si l'email existe déjà
-        if (utilisateurRepository.findByEmail(dto.getEmail()).isPresent()) {
-            System.out.println("❌ Email déjà utilisé : " + dto.getEmail());
-            throw new RuntimeException("Cet email est déjà utilisé");
+        if (utilisateurRepository.existsByEmail(dto.getEmail())) {
+            throw new IllegalArgumentException("Email déjà utilisé");
         }
 
-        // 2. Empêcher la création d'un SUPERADMIN
-        if (role == Role.SUPERADMIN) {
-            System.out.println("❌ Tentative de création d'un SUPERADMIN refusée");
-            throw new RuntimeException("Impossible de créer un SUPERADMIN");
+        Utilisateur user = new Utilisateur();
+        user.setNom(dto.getNom());
+        user.setPrenom(dto.getPrenom());
+        user.setEmail(dto.getEmail());
+        user.setMotDePasse(passwordEncoder.encode(dto.getMotDePasse()));
+        user.setRole(role);
+        user.setEmailVerifie(true);
+
+        // ✅ Association au département (ADMIN & AGENT)
+        if (role == Role.ADMIN || role == Role.AGENT) {
+
+            Departement departement = departementRepository
+                    .findById(dto.getDepartementId())
+                    .orElseThrow(() ->
+                            new IllegalArgumentException("Département introuvable"));
+
+            user.setDepartement(departement);
         }
 
-        // 3. Valider le mot de passe (critères de sécurité)
-        if (!isPasswordValid(dto.getMotDePasse())) {
-            throw new RuntimeException("Le mot de passe ne respecte pas les critères de sécurité : " +
-                    "12 caractères minimum, majuscule, minuscule, chiffre et caractère spécial (@$!%*?&).");
-        }
-
-        // 4. ✅ Convertir le DTO en entité via le MAPPER
-        Utilisateur utilisateur = utilisateurMapper.toEntityByAdmin(dto, role);
-
-        // 5. Sauvegarder l'utilisateur en base de données
-        Utilisateur savedUser = utilisateurRepository.save(utilisateur);
-
-        // 6. Envoyer un email de bienvenue
-        try {
-            emailService.sendWelcomeEmail(
-                    savedUser.getEmail(),
-                    savedUser.getNom(),
-                    savedUser.getRole()
-            );
-            System.out.println("✅ Utilisateur créé avec succès : " + savedUser.getEmail());
-            System.out.println("   Rôle : " + savedUser.getRole());
-            System.out.println("   📧 Email de bienvenue envoyé");
-        } catch (Exception e) {
-            System.err.println("⚠️ Utilisateur créé mais email non envoyé : " + e.getMessage());
-        }
-
-        return savedUser;
+        return utilisateurRepository.save(user); // ✅ retour
     }
 
     // ==================== MODIFICATION PAR SUPERADMIN (✅ REFACTORISÉ AVEC DTO) ====================

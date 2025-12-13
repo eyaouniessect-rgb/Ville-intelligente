@@ -2,6 +2,11 @@ package com.ville.gestionincidents.entity;
 
 import javax.persistence.*;
 import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 
 @Entity
 public class Departement {

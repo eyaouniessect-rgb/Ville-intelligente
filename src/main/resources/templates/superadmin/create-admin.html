@@ -167,6 +167,27 @@
             </div>
             <div class="error" th:if="${#fields.hasErrors('motDePasse')}" th:errors="*{motDePasse}"></div>
         </div>
+        <div class="form-group">
+            <label for="departementId">Département *</label>
+
+            <select id="departementId"
+                    th:field="*{departementId}"
+                    required>
+
+                <option value="">-- Sélectionner un département --</option>
+
+                <option th:each="dep : ${departements}"
+                        th:value="${dep.id}"
+                        th:text="${dep.nom}">
+                </option>
+            </select>
+
+            <div class="error"
+                 th:if="${#fields.hasErrors('departementId')}"
+                 th:errors="*{departementId}">
+            </div>
+        </div>
+
 
         <button type="submit" class="submit-btn">
             Créer l'Administrateur
