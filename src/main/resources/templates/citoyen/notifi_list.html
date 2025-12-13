@@ -1,84 +1,131 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Notifications</title>
+    <title>Mes notifications</title>
 
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family:'Segoe UI';
-            background: linear-gradient(135deg,#667eea,#764ba2);
-            padding:20px;
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            min-height: 100vh;
+            padding: 30px;
         }
 
-        /* ------- HEADER (identique à Mes Incidents) ------- */
+        .container { max-width: 900px; margin: auto; }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
         .header {
-            background:white; padding:20px; border-radius:10px;
-            margin-bottom:20px;
-            display:flex; justify-content:space-between; align-items:center;
-            box-shadow:0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
         }
 
-        .user-info {
-            display:flex; align-items:center; gap:15px;
+        .header h2 { color: #4f46e5; }
+
+        .badge {
+            background: #ef4444;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 14px;
+            font-weight: bold;
         }
 
-        .user-badge {
-            background: linear-gradient(135deg,#667eea,#764ba2);
-            color:white; padding:8px 16px;
-            border-radius:20px; font-weight:bold;
+        .notification {
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification.unread {
+            background: #eef2ff;
+            border-left: 6px solid #4f46e5;
+        }
+
+        .notification.read {
+            background: #f9fafb;
+            opacity: 0.7;
+        }
+
+        .notif-content { max-width: 70%; }
+
+        .notif-message {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 6px;
+        }
+
+        .notif-date {
+            font-size: 13px;
+            color: #6b7280;
         }
 
         .btn {
-            padding:10px 18px; border-radius:8px;
-            text-decoration:none; color:white;
-            font-weight:bold; transition:0.3s;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
         }
 
-        .btn:hover { opacity:0.85; }
+        .btn:hover { background: #4338ca; }
 
-        .back-btn { background:#3b82f6; }
-        .logout-btn { background:#ef4444; border:none; cursor:pointer; }
-
-
-        /* ------- NOTIFICATION ITEMS ------- */
-        .notif-card {
-            background:white; padding:20px; border-radius:10px;
-            max-width:800px; margin:0 auto 20px auto;
-            box-shadow:0 4px 6px rgba(0,0,0,.1);
+        .empty {
+            text-align: center;
+            color: #6b7280;
+            padding: 40px;
         }
-
-        .notif-title { font-weight:bold; color:#4f46e5; }
-        .notif-date { color:#6b7280; font-size:13px; margin-bottom:8px; }
-
     </style>
 </head>
 
 <body>
 
-<!-- ===== HEADER (même que Mes Incidents) ===== -->
-<div class="header">
-    <h1>🔔 Notifications</h1>
+<div class="container">
+    <div class="card">
 
-    <div class="user-info">
-        <span class="user-badge" sec:authentication="principal.username"></span>
+        <div class="header">
+            <h2>🔔 Mes notifications</h2>
+            <span class="badge" th:text="${nbNonLues} + ' non lues'"></span>
+        </div>
 
-        <a th:href="@{/citoyen/home}" class="btn back-btn">🏠 Dashboard</a>
+        <div th:if="${#lists.isEmpty(notifications)}" class="empty">
+            Aucune notification pour le moment 🙂
+        </div>
 
-        <form th:action="@{/logout}" method="post" style="margin:0;">
-            <button class="btn logout-btn">Déconnexion</button>
-        </form>
+        <div th:each="n : ${notifications}"
+             th:class="'notification ' + (${n.lu} ? 'read' : 'unread')">
+
+            <div class="notif-content">
+                <div class="notif-message" th:text="${n.message}"></div>
+                <div class="notif-date"
+                     th:text="${#temporals.format(n.dateEnvoi, 'dd/MM/yyyy HH:mm')}">
+                </div>
+            </div>
+
+            <form th:if="${!n.lu}"
+                  th:action="@{/citoyen/notifications/{id}/lu(id=${n.id})}"
+                  method="post">
+                <button class="btn" type="submit">Marquer comme lue</button>
+            </form>
+
+        </div>
+
     </div>
-</div>
-
-<!-- ===== CONTENT ===== -->
-<div th:each="n : ${notifications}" class="notif-card">
-    <div class="notif-title" th:text="${n.titre}"></div>
-    <div class="notif-date" th:text="${n.date}"></div>
-    <p th:text="${n.message}"></p>
 </div>
 
 </body>

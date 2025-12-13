@@ -11,7 +11,6 @@ public class PreferenceNotification {
 
     private boolean emailActif;
     private boolean emailChangementStatut;
-    private boolean emailNouveauCommentaire;
     private boolean pushActif;
 
     @OneToOne
