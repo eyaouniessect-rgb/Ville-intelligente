@@ -1,10 +1,11 @@
 package com.ville.gestionincidents.entity;
 
 import com.ville.gestionincidents.enumeration.TypeNotification;
+import lombok.Data;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-
+@Data
 @Entity
 public class Notification {
 

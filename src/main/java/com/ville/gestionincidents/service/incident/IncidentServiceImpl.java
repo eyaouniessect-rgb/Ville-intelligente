@@ -13,6 +13,8 @@ import com.ville.gestionincidents.security.CurrentUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import com.ville.gestionincidents.service.notification.NotificationService;
+import com.ville.gestionincidents.enumeration.TypeNotification;
 
 import java.util.List;
 
@@ -29,6 +31,8 @@ public class IncidentServiceImpl implements IncidentService {
     private final IncidentMapper incidentMapper;
     private final PhotoStorageService photoStorageService;
     private final CurrentUserService currentUserService;
+    private final NotificationService notificationService;
+
 
     @Override
     public void creerIncident(IncidentCreateDto dto) {
@@ -56,6 +60,15 @@ public class IncidentServiceImpl implements IncidentService {
 
         // 3️⃣ Sauvegarder l'incident
         incident = incidentRepository.save(incident); // ✅ Récupérer l'incident sauvegardé
+
+        // 🔔 Notification : création d'incident
+        notificationService.creerNotification(
+                citoyen.getEmail(),
+                TypeNotification.CREATION_INCIDENT,
+                "Votre incident a été créé avec succès",
+                incident
+        );
+
 
         // 4️⃣ Gérer plusieurs photos
         if (dto.getPhotos() != null && !dto.getPhotos().isEmpty()) {

@@ -105,15 +105,8 @@ public class CitoyenController {
     // -------------------------
     // Notifications
     // -------------------------
-    @GetMapping("/notifications")
-    public String notifications(Model model,
-                                @AuthenticationPrincipal UserDetails userDetails) {
 
-        model.addAttribute("notifications",
-                notificationService.findByUserEmail(userDetails.getUsername()));
 
-        return "citoyen/notifi_list";
-    }
 
 
     // -------------------------
