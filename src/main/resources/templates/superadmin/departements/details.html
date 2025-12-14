@@ -1,10 +1,454 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Département ' + ${departement.nom} + ' - Ville Intelligente'">Détails Département</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        .header {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .back-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .back-link:hover { text-decoration: underline; }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn:hover { transform: translateY(-2px); }
+
+        .dept-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .dept-title h1 {
+            color: #1f2937;
+            font-size: 32px;
+        }
+
+        .dept-icon {
+            font-size: 40px;
+        }
+
+        .dept-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-icon {
+            font-size: 20px;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f3f4f6;
+            border-radius: 8px;
+        }
+
+        .info-content h4 {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 3px;
+            text-transform: uppercase;
+        }
+
+        .info-content p {
+            color: #1f2937;
+            font-weight: 500;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .section {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .section-header h2 {
+            color: #1f2937;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .count-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .service-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .service-card:hover {
+            border-color: #10b981;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+            transform: translateY(-3px);
+        }
+
+        .service-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+
+        .service-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .service-id {
+            font-size: 12px;
+            color: #6b7280;
+            background: #f3f4f6;
+            padding: 3px 8px;
+            border-radius: 5px;
+        }
+
+        .service-description {
+            color: #6b7280;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 15px;
+            min-height: 40px;
+        }
+
+        .service-stats {
+            background: #f9fafb;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .stat strong {
+            color: #1f2937;
+        }
+
+        .service-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        .btn-edit { background: #3b82f6; color: white; }
+        .btn-delete { background: #ef4444; color: white; }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6b7280;
+        }
+
+        .empty-state .icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 24px;
+            color: #1f2937;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .header-top {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+
+            .header-actions {
+                width: 100%;
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .dept-info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
-$END$
+<div class="container">
+    <!-- Header avec infos du département -->
+    <div class="header">
+        <div class="header-top">
+            <a th:href="@{/superadmin/departements}" class="back-link">
+                ← Retour à la liste
+            </a>
+            <div class="header-actions">
+                <a th:href="@{/superadmin/departements/{id}/services/add(id=${departement.id})}"
+                   class="btn btn-primary">
+                    + Ajouter un Service
+                </a>
+                <a th:href="@{/superadmin/departements/{id}/edit(id=${departement.id})}"
+                   class="btn btn-secondary">
+                    ✏️ Modifier
+                </a>
+                <form th:action="@{/superadmin/departements/{id}/delete(id=${departement.id})}"
+                      method="post"
+                      style="margin: 0;"
+                      onsubmit="return confirm('⚠️ ATTENTION : Voulez-vous vraiment supprimer ce département ? Cette action est irréversible.');">
+                    <button type="submit" class="btn btn-danger">
+                        🗑️ Supprimer
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="dept-title">
+            <span class="dept-icon">🏢</span>
+            <h1 th:text="${departement.nom}">Nom du Département</h1>
+        </div>
+
+        <p style="color: #6b7280; font-size: 16px; margin-bottom: 20px;"
+           th:text="${departement.description} ?: 'Aucune description'">
+            Description du département
+        </p>
+
+        <div class="dept-info-grid">
+            <div class="info-item">
+                <div class="info-icon">📧</div>
+                <div class="info-content">
+                    <h4>Email</h4>
+                    <p th:text="${departement.email} ?: 'Non renseigné'">email@ville.tn</p>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-icon">📞</div>
+                <div class="info-content">
+                    <h4>Téléphone</h4>
+                    <p th:text="${departement.telephone} ?: 'Non renseigné'">71 234 567</p>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-icon">🔧</div>
+                <div class="info-content">
+                    <h4>Services</h4>
+                    <p><strong th:text="${services.size()}">0</strong> service(s)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="alert alert-success" th:if="${success}">
+        ✓ <span th:text="${success}"></span>
+    </div>
+
+    <div class="alert alert-error" th:if="${error}">
+        ✗ <span th:text="${error}"></span>
+    </div>
+
+    <!-- Section des services -->
+    <div class="section">
+        <div class="section-header">
+            <h2>
+                🔧 Services du département
+                <span class="count-badge" th:text="${services.size()}">0</span>
+            </h2>
+            <a th:href="@{/superadmin/departements/{id}/services/add(id=${departement.id})}"
+               class="btn btn-primary btn-sm">
+                + Ajouter un Service
+            </a>
+        </div>
+
+        <!-- Liste des services -->
+        <div class="services-grid" th:if="${services != null and !services.isEmpty()}">
+            <div class="service-card" th:each="service : ${services}">
+                <div class="service-header">
+                    <div>
+                        <div class="service-name" th:text="${service.nom}">Nom du service</div>
+                    </div>
+                </div>
+
+                <div class="service-description" th:text="${service.description} ?: 'Aucune description'">
+                    Description du service
+                </div>
+
+                <div class="service-stats">
+                    <div class="stat">
+                        📋 <strong th:text="${service.nombreIncidents}">0</strong> incident(s)
+                    </div>
+                </div>
+
+                <div class="service-actions">
+                    <a th:href="@{/superadmin/departements/services/{id}/edit(id=${service.id})}"
+                       class="btn btn-edit btn-sm">
+                        ✏️ Modifier
+                    </a>
+
+                    <form th:action="@{/superadmin/departements/services/{id}/delete(id=${service.id})}"
+                          method="post"
+                          style="margin: 0;"
+                          onsubmit="return confirm('⚠️ Supprimer ce service ? Cette action est irréversible.');">
+                        <button type="submit" class="btn btn-delete btn-sm">
+                            🗑️ Supprimer
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- État vide -->
+        <div class="empty-state" th:if="${services == null or services.isEmpty()}">
+            <div class="icon">🔧</div>
+            <h3>Aucun service</h3>
+            <p>Ce département n'a pas encore de services.</p>
+            <a th:href="@{/superadmin/departements/{id}/services/add(id=${departement.id})}"
+               class="btn btn-primary">
+                + Ajouter le premier service
+            </a>
+        </div>
+    </div>
+</div>
 </body>
 </html>

@@ -224,12 +224,6 @@
                 <a th:href="@{/superadmin/departements/{id}/edit(id=${dept.id})}"
                    class="btn btn-edit btn-sm">Modifier</a>
 
-                <form th:action="@{/superadmin/departements/{id}/toggle-status(id=${dept.id})}"
-                      method="post" style="margin: 0;">
-                    <button type="submit" class="btn btn-toggle btn-sm"
-                            th:text="${dept.actif} ? 'Désactiver' : 'Activer'">Toggle</button>
-                </form>
-
                 <form th:action="@{/superadmin/departements/{id}/delete(id=${dept.id})}"
                       method="post" style="margin: 0;"
                       onsubmit="return confirm('⚠️ Supprimer ce département ? Cette action est irréversible.');">
