@@ -176,6 +176,7 @@ public class CitoyenController {
 
         String oldEmail = authHelper.getEmailOrThrow(authentication);
 
+
         utilisateurService.updateProfilCitoyen(oldEmail, dto);
 
         SecurityContextHolder.clearContext();
