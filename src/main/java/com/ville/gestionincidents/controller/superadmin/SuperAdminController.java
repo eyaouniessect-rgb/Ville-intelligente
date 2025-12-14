@@ -3,8 +3,10 @@ package com.ville.gestionincidents.controller.superadmin;
 import com.ville.gestionincidents.dto.utilisateur.superAdmin.CreateUtilisateurByAdminDto;
 import com.ville.gestionincidents.dto.utilisateur.superAdmin.UpdateUtilisateurByAdminDto;
 import com.ville.gestionincidents.entity.Utilisateur;
+import com.ville.gestionincidents.entity.ServiceMunicipal;
 import com.ville.gestionincidents.enumeration.Role;
 import com.ville.gestionincidents.service.departement.DepartementService;
+import com.ville.gestionincidents.service.serviceMunicipal.ServiceMunicipalService;
 import com.ville.gestionincidents.service.utilisateur.UtilisateurService;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,8 +16,9 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
+import com.ville.gestionincidents.dto.service.ServiceMunicipalDto;
 import java.util.List;
+
 
 
 @Controller
@@ -27,6 +30,8 @@ public class SuperAdminController {
     private UtilisateurService utilisateurService;
     @Autowired
     private DepartementService departementService;
+    @Autowired
+    private ServiceMunicipalService serviceMunicipalService;
 
     // ==================== DASHBOARD ====================
 
@@ -123,8 +128,9 @@ public class SuperAdminController {
     @PostMapping("/create-agent")
     public String createAgent(@Valid @ModelAttribute("utilisateur") CreateUtilisateurByAdminDto dto,
                               BindingResult result,
-                              RedirectAttributes redirectAttributes) {
+                              RedirectAttributes redirectAttributes,Model model) {
         if (result.hasErrors()) {
+            model.addAttribute("departements", departementService.findAll());
             return "superadmin/users/create-agent";
         }
 
@@ -141,6 +147,23 @@ public class SuperAdminController {
                     "Erreur lors de la création : " + e.getMessage());
             return "redirect:/superadmin/create-agent";
         }
+    }
+
+    @GetMapping("/departements/{departementId}/services")
+    @ResponseBody
+    public List<ServiceMunicipalDto> getServicesByDepartement(@PathVariable Long departementId) {
+        List<ServiceMunicipal> services = serviceMunicipalService.findServicesByDepartement(departementId);
+
+        // Convertir en DTO pour éviter les références circulaires
+        return services.stream()
+                .map(service -> new ServiceMunicipalDto(
+                        service.getId(),
+                        service.getNom(),
+                        service.getDescription(),
+                        service.getDepartement().getId(),
+                        service.getDepartement().getNom()
+                ))
+                .collect(java.util.stream.Collectors.toList());
     }
 
     // ==================== VOIR DÉTAILS D'UN UTILISATEUR ====================
