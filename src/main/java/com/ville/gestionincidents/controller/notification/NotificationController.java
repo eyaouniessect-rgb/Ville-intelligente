@@ -1,4 +1,4 @@
-package com.ville.gestionincidents.controller;
+package com.ville.gestionincidents.controller.notification;
 
 import com.ville.gestionincidents.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +20,7 @@ public class NotificationController {
     public String afficherNotifications(Model model, Principal principal) {
 
         String email = principal.getName();
+
 
         model.addAttribute(
                 "notifications",

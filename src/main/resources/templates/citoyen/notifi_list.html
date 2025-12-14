@@ -16,79 +16,274 @@
 
         .container { max-width: 900px; margin: auto; }
 
+        /* HEADER PRINCIPAL */
+        .top-header {
+            background: white;
+            border-radius: 15px;
+            padding: 20px 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .top-header h1 {
+            color: #667eea;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .back-btn {
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            transition: .3s;
+        }
+
+        .back-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        /* CARD PRINCIPALE */
         .card {
             background: white;
             border-radius: 15px;
             padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 6px rgba(0,0,0,.1);
         }
 
-        .header {
+        /* SOUS-HEADER AVEC STATS */
+        .sub-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
         }
 
-        .header h2 { color: #4f46e5; }
-
-        .badge {
-            background: #ef4444;
-            color: white;
-            padding: 6px 14px;
-            border-radius: 999px;
-            font-size: 14px;
-            font-weight: bold;
-        }
-
-        .notification {
-            padding: 15px 20px;
-            border-radius: 12px;
-            margin-bottom: 15px;
+        .stats {
             display: flex;
-            justify-content: space-between;
+            gap: 20px;
             align-items: center;
         }
 
+        .badge {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .total-count {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .btn-preferences {
+            background: #667eea;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: .3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-preferences:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        /* NOTIFICATIONS */
+        .notifications-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .notification {
+            padding: 18px 22px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all .3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .notification::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 5px;
+            transition: .3s;
+        }
+
         .notification.unread {
-            background: #eef2ff;
-            border-left: 6px solid #4f46e5;
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            border: 2px solid #c7d2fe;
+        }
+
+        .notification.unread::before {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        .notification.unread:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
         }
 
         .notification.read {
             background: #f9fafb;
-            opacity: 0.7;
+            border: 2px solid #e5e7eb;
+            opacity: 0.8;
         }
 
-        .notif-content { max-width: 70%; }
+        .notification.read::before {
+            background: #d1d5db;
+        }
+
+        .notif-icon {
+            font-size: 24px;
+            margin-right: 15px;
+        }
+
+        .notif-main {
+            display: flex;
+            align-items: center;
+            flex: 1;
+        }
+
+        .notif-content {
+            flex: 1;
+        }
 
         .notif-message {
             font-weight: 600;
             color: #1f2937;
             margin-bottom: 6px;
+            line-height: 1.4;
+        }
+
+        .notification.unread .notif-message {
+            color: #4f46e5;
         }
 
         .notif-date {
             font-size: 13px;
             color: #6b7280;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
-        .btn {
-            background: #4f46e5;
+        .btn-mark-read {
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             border: none;
-            padding: 8px 14px;
+            padding: 8px 16px;
             border-radius: 8px;
             cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: .3s;
+            white-space: nowrap;
+        }
+
+        .btn-mark-read:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-mark-read:active {
+            transform: translateY(0);
+        }
+
+        /* ÉTAT VIDE */
+        .empty {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .empty-text {
+            color: #6b7280;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .empty-subtext {
+            color: #9ca3af;
             font-size: 14px;
         }
 
-        .btn:hover { background: #4338ca; }
+        /* BADGE "NOUVEAU" */
+        .new-badge {
+            background: #ef4444;
+            color: white;
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+            margin-left: 10px;
+            animation: blink 1.5s infinite;
+        }
 
-        .empty {
-            text-align: center;
-            color: #6b7280;
-            padding: 40px;
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            body { padding: 15px; }
+
+            .notification {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .btn-mark-read {
+                width: 100%;
+            }
+
+            .sub-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
         }
     </style>
 </head>
@@ -96,33 +291,66 @@
 <body>
 
 <div class="container">
+
+    <!-- HEADER AVEC RETOUR -->
+    <div class="top-header">
+        <h1>🔔 Mes notifications</h1>
+        <a th:href="@{/citoyen/home}" class="back-btn">← Retour au tableau de bord</a>
+    </div>
+
+    <!-- CARD PRINCIPALE -->
     <div class="card">
 
-        <div class="header">
-            <h2>🔔 Mes notifications</h2>
-            <span class="badge" th:text="${nbNonLues} + ' non lues'"></span>
-        </div>
-
-        <div th:if="${#lists.isEmpty(notifications)}" class="empty">
-            Aucune notification pour le moment 🙂
-        </div>
-
-        <div th:each="n : ${notifications}"
-             th:class="'notification ' + (${n.lu} ? 'read' : 'unread')">
-
-            <div class="notif-content">
-                <div class="notif-message" th:text="${n.message}"></div>
-                <div class="notif-date"
-                     th:text="${#temporals.format(n.dateEnvoi, 'dd/MM/yyyy HH:mm')}">
-                </div>
+        <!-- SOUS-HEADER AVEC STATISTIQUES -->
+        <div class="sub-header">
+            <div class="stats">
+                <span class="badge" th:if="${nbNonLues > 0}">
+                    <span th:text="${nbNonLues}"></span> non lue<span th:if="${nbNonLues > 1}">s</span>
+                </span>
+                <span class="total-count">
+                    📊 <span th:text="${#lists.size(notifications)}"></span> notification<span th:if="${#lists.size(notifications) > 1}">s</span> au total
+                </span>
             </div>
+            <a th:href="@{/citoyen/preferences-notifications}" class="btn-preferences">
+                ⚙️ Gérer mes préférences
+            </a>
+        </div>
 
-            <form th:if="${!n.lu}"
-                  th:action="@{/citoyen/notifications/{id}/lu(id=${n.id})}"
-                  method="post">
-                <button class="btn" type="submit">Marquer comme lue</button>
-            </form>
+        <!-- LISTE DES NOTIFICATIONS -->
+        <div th:if="${!#lists.isEmpty(notifications)}" class="notifications-list">
+            <div th:each="n : ${notifications}"
+                 th:class="'notification ' + (${n.lu} ? 'read' : 'unread')">
 
+                <div class="notif-main">
+                    <span class="notif-icon" th:if="${!n.lu}">📬</span>
+                    <span class="notif-icon" th:if="${n.lu}">📭</span>
+
+                    <div class="notif-content">
+                        <div class="notif-message">
+                            <span th:text="${n.message}"></span>
+                            <span class="new-badge" th:if="${!n.lu}">NOUVEAU</span>
+                        </div>
+                        <div class="notif-date">
+                            🕐 <span th:text="${#temporals.format(n.dateEnvoi, 'dd/MM/yyyy à HH:mm')}"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <form th:if="${!n.lu}"
+                      th:action="@{/citoyen/notifications/{id}/lu(id=${n.id})}"
+                      method="post"
+                      style="margin: 0;">
+                    <button class="btn-mark-read" type="submit">✓ Marquer comme lue</button>
+                </form>
+
+            </div>
+        </div>
+
+        <!-- ÉTAT VIDE -->
+        <div th:if="${#lists.isEmpty(notifications)}" class="empty">
+            <div class="empty-icon">🔕</div>
+            <div class="empty-text">Aucune notification pour le moment</div>
+            <div class="empty-subtext">Vous serez notifié des mises à jour importantes ici</div>
         </div>
 
     </div>
