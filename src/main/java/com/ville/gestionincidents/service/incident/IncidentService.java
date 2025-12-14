@@ -10,18 +10,29 @@ import java.util.List;
  */
 public interface IncidentService {
 
-    //declarer un incident
+    //declarer un incident cree par eya
     void creerIncident(IncidentCreateDto dto);
-     //recuperer les incident d'un citoyen donnee
+     //recuperer les incident d'un citoyen donnee creer par eya
     List<Incident> getIncidentsForCurrentUser();
+
+    //recuperer les incidents par status d'un citoyen connecte
+    List<Incident> getIncidentsByStatutForUser(String email, String statut);
+
 
 
     //developper par mayssa
     int countByEmail(String email); // Total incidents
 
-    int countInProgress(String email); // Nombre incidents en cours
+    int countSignale(String email);
 
-    int countResolved(String email); // Nombre incidents résolus
+    int countPrisEnCharge(String email);
+
+    int countEnResolution(String email);
+
+    int countResolu(String email);
+
+    int countCloture(String email);
+
 
     List<Incident> findByCitoyenEmail(String email); // Liste incidents
 

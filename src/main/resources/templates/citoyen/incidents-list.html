@@ -362,11 +362,42 @@
     </div>
 </div>
 
+<!-- Barre de filtre -->
+<form method="get" class="filter-bar" style="
+    margin-bottom:20px;
+    display:flex;
+    gap:12px;
+    align-items:center;
+">
+    <label style="color:white; font-weight:bold;">Filtrer par statut :</label>
+
+    <select name="statut" onchange="this.form.submit()"
+            style="padding:10px; border-radius:8px; border:none; font-size:14px;">
+
+        <!-- Option : tous les statuts -->
+        <option th:value="''"
+                th:selected="${statutActuel == null}">
+            Tous
+        </option>
+
+        <!-- Options : statut listés -->
+        <option th:each="s : ${statuts}"
+                th:value="${s.name()}"
+                th:text="${s}"
+                th:selected="${s.name() == statutActuel}">
+        </option>
+
+    </select>
+</form>
+
+
+
 <!-- ===== CONTENT ===== -->
 <div class="container">
 
-    <!-- Si aucun incident -->
-    <div class="empty-state" th:if="${#lists.isEmpty(incidents)}">
+    <!-- 🟦 CAS 1 : aucun incident déclaré (tous statuts confondus) -->
+    <div class="empty-state"
+         th:if="${!hasAnyIncident}">
         <div class="empty-state-icon">📭</div>
         <h2>Aucun incident déclaré</h2>
         <p>Vous n'avez pas encore signalé d'incident.</p>
@@ -375,6 +406,19 @@
         </a>
     </div>
 
+    <!-- 🟨 CAS 2 : incidents existent, mais pas pour ce statut -->
+    <div class="empty-state"
+         th:if="${hasAnyIncident and #lists.isEmpty(incidents)}">
+        <div class="empty-state-icon">🔍</div>
+        <h2>Aucun incident trouvé pour ce statut</h2>
+        <p>Essayez d’appliquer un autre filtre.</p>
+    </div>
+
+    <!-- 🟩 CAS 3 : incidents à afficher -->
+    <div class="incidents-grid"
+         th:if="${!#lists.isEmpty(incidents)}">
+
+    </div>
     <!-- Grid des incidents -->
     <div class="incidents-grid" th:if="${!#lists.isEmpty(incidents)}">
 
