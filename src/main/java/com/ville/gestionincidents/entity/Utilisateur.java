@@ -1,5 +1,6 @@
 package com.ville.gestionincidents.entity;
 
+import com.ville.gestionincidents.enumeration.AuthProvider;
 import com.ville.gestionincidents.enumeration.Role;
 import lombok.Data;
 
@@ -44,4 +45,22 @@ public class Utilisateur {
     //  Champs utilisés pour la vérification d'email
     private String verificationToken;
     private LocalDateTime verificationTokenExpiration;
+
+    // ✅ À AJOUTER après la ligne : private LocalDateTime verificationTokenExpiration;
+
+    // NOUVEAUX CHAMPS POUR OAUTH2
+    @Enumerated(EnumType.STRING)
+    @Column(name = "auth_provider")
+    private AuthProvider authProvider = AuthProvider.LOCAL;
+
+    @Column(name = "provider_id")
+    private String providerId;
+
+    @Column(name = "image_url")
+    private String imageUrl;
+
+    @Transient
+    public String getFullName() {
+        return (prenom != null ? prenom : "") + " " + (nom != null ? nom : "");
+    }
 }

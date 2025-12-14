@@ -71,8 +71,8 @@
     <div class="header">
         <h1>👤 Dashboard Citoyen</h1>
         <div>
-            <span class="user-badge" sec:authentication="principal.username"></span>
-            <form th:action="@{/logout}" method="post" style="display:inline;">
+            <span th:text="${utilisateur.email}"></span>
+            <span th:text="${nomComplet}"></span>            <form th:action="@{/logout}" method="post" style="display:inline;">
                 <button class="logout-btn">Déconnexion</button>
             </form>
         </div>

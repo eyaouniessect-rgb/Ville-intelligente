@@ -5,15 +5,14 @@ import com.ville.gestionincidents.dto.utilisateur.citoyen.CitoyenProfilDto;
 import com.ville.gestionincidents.dto.utilisateur.citoyen.CitoyenUpdateProfilDto;
 import com.ville.gestionincidents.entity.Incident;
 import com.ville.gestionincidents.entity.Utilisateur;
+import com.ville.gestionincidents.security.AuthenticationHelper;
 import com.ville.gestionincidents.service.incident.IncidentService;
 import com.ville.gestionincidents.service.notification.NotificationService;
 import com.ville.gestionincidents.service.utilisateur.UtilisateurService;
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -30,15 +29,19 @@ public class CitoyenController {
     private final IncidentService incidentService;
     private final NotificationService notificationService;
     private final UtilisateurService utilisateurService;
+    private final AuthenticationHelper authHelper; //
 
     // -------------------------
     // Dashboard Citoyen
     // -------------------------
     @GetMapping("/home")
-    public String dashboard(Model model,
-                            @AuthenticationPrincipal UserDetails userDetails) {
+    public String dashboard(Model model, Authentication authentication) {
 
-        String email = userDetails.getUsername();
+        String email = authHelper.getEmailOrThrow(authentication);
+        Utilisateur utilisateur = utilisateurService.findByEmail(email);
+
+        //  Ajouter l'utilisateur au modèle (pour le header)
+        model.addAttribute("utilisateur", utilisateur);
 
         model.addAttribute("countSignale", incidentService.countSignale(email));
         model.addAttribute("countPrisEnCharge", incidentService.countPrisEnCharge(email));
@@ -49,30 +52,29 @@ public class CitoyenController {
         return "citoyen/home";
     }
 
-
     // -------------------------
     // Liste incidents
     // -------------------------
-
-    //receuperer la liste des incidents pour un utlisateur connecte selon un statut ( filtre ) par defaut recupere tous les status
     @GetMapping("/incidents")
     public String incidentsList(
             @RequestParam(value = "statut", required = false) String statut,
             Model model,
-            @AuthenticationPrincipal UserDetails userDetails) {
+            Authentication authentication) {
 
-        String email = userDetails.getUsername();
+        String email = authHelper.getEmailOrThrow(authentication);
+        Utilisateur utilisateur = utilisateurService.findByEmail(email);
+
+        // ✅ Ajouter l'utilisateur au modèle (pour le header)
+        model.addAttribute("utilisateur", utilisateur);
 
         boolean isFiltering = (statut != null && !statut.isEmpty());
 
-        // 🔹 Liste filtrée OU non filtrée
         if (!isFiltering) {
             model.addAttribute("incidents", incidentService.getIncidentsForCurrentUser());
         } else {
             model.addAttribute("incidents", incidentService.getIncidentsByStatutForUser(email, statut));
         }
 
-        // 🔹 Vérifier SI l'utilisateur possède AU MOINS un incident (tous statuts confondus)
         boolean hasAnyIncident = !incidentService.getIncidentsForCurrentUser().isEmpty();
 
         model.addAttribute("hasAnyIncident", hasAnyIncident);
@@ -83,42 +85,34 @@ public class CitoyenController {
         return "citoyen/incidents-list";
     }
 
-
-
-
     // -------------------------
     // Détails incident
     // -------------------------
     @GetMapping("/incidents/{id}")
     public String incidentDetails(@PathVariable Long id,
                                   Model model,
-                                  @AuthenticationPrincipal UserDetails userDetails) {
+                                  Authentication authentication) {
 
-        Incident inc = incidentService.findByIdAndCheckOwner(id, userDetails.getUsername());
+        String email = authHelper.getEmailOrThrow(authentication);
+        Utilisateur utilisateur = utilisateurService.findByEmail(email);
 
+        // ✅ Ajouter l'utilisateur au modèle (pour le header)
+        model.addAttribute("utilisateur", utilisateur);
+
+        Incident inc = incidentService.findByIdAndCheckOwner(id, email);
         model.addAttribute("incident", inc);
 
         return "citoyen/incident-details";
     }
 
-
-    // -------------------------
-    // Notifications
-    // -------------------------
-
-
-
-
     // -------------------------
     // Profil Citoyen
     // -------------------------
-    // 📄 Affichage du profil
     @GetMapping("/profil")
-    public String profil(Model model,
-                         @AuthenticationPrincipal UserDetails userDetails) {
+    public String profil(Model model, Authentication authentication) {
 
-        CitoyenProfilDto profil =
-                utilisateurService.getProfilCitoyen(userDetails.getUsername());
+        String email = authHelper.getEmailOrThrow(authentication);
+        CitoyenProfilDto profil = utilisateurService.getProfilCitoyen(email);
 
         CitoyenUpdateProfilDto form = new CitoyenUpdateProfilDto();
         form.setNom(profil.getNom());
@@ -133,25 +127,24 @@ public class CitoyenController {
         return "citoyen/profil_citoyen";
     }
 
-    //  Modification du profil
     @PostMapping("/profil")
     public String updateProfil(
             @Valid @ModelAttribute("utilisateur") CitoyenUpdateProfilDto dto,
             BindingResult result,
-            @AuthenticationPrincipal UserDetails userDetails,
+            Authentication authentication,
             Model model) {
 
         if (result.hasErrors()) {
             return "citoyen/profil_citoyen";
         }
 
-        String oldEmail = userDetails.getUsername();
+        String oldEmail = authHelper.getEmailOrThrow(authentication);
 
-        // 🟠 Si l’email a changé → page de confirmation
+        // 🟠 Si l'email a changé → page de confirmation
         if (!oldEmail.equals(dto.getEmail())) {
             model.addAttribute("ancienEmail", oldEmail);
             model.addAttribute("nouvelEmail", dto.getEmail());
-            model.addAttribute("dto", dto); // on garde les données
+            model.addAttribute("dto", dto);
             return "citoyen/confirm_email_change";
         }
 
@@ -163,15 +156,13 @@ public class CitoyenController {
     @PostMapping("/profil/confirm")
     public String confirmEmailChange(
             @ModelAttribute CitoyenUpdateProfilDto dto,
-            @AuthenticationPrincipal UserDetails userDetails,
+            Authentication authentication,
             RedirectAttributes redirectAttributes) {
 
-        String oldEmail = userDetails.getUsername();
+        String oldEmail = authHelper.getEmailOrThrow(authentication);
 
-        // sauvegarde réelle
         utilisateurService.updateProfilCitoyen(oldEmail, dto);
 
-        // déconnexion
         SecurityContextHolder.clearContext();
 
         redirectAttributes.addFlashAttribute(
@@ -192,15 +183,15 @@ public class CitoyenController {
     public String changePassword(
             @Valid @ModelAttribute("passwordDto") ChangePasswordDto dto,
             BindingResult result,
-            @AuthenticationPrincipal UserDetails userDetails,
+            Authentication authentication,
             RedirectAttributes redirectAttributes) {
 
         if (result.hasErrors()) {
             return "citoyen/change_password";
         }
 
-        Utilisateur user =
-                utilisateurService.findByEmail(userDetails.getUsername());
+        String email = authHelper.getEmailOrThrow(authentication);
+        Utilisateur user = utilisateurService.findByEmail(email);
 
         try {
             utilisateurService.changePasswordCitoyen(user.getId(), dto);
@@ -215,7 +206,4 @@ public class CitoyenController {
             return "citoyen/change_password";
         }
     }
-
-
-
 }

@@ -202,7 +202,7 @@
     <div class="header">
         <h1>🏛️ Dashboard SuperAdmin</h1>
         <div class="user-info">
-            <span class="user-badge" sec:authentication="principal.username">Email</span>
+            <span class="user-badge" th:text="${utilisateur.email}">Email</span>
             <form th:action="@{/logout}" method="post" style="margin: 0;">
                 <button type="submit" class="logout-btn">Déconnexion</button>
             </form>
