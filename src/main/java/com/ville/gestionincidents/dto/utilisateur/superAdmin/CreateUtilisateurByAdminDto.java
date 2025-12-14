@@ -24,10 +24,6 @@ public class CreateUtilisateurByAdminDto {
     @Email(message = "Format d'email invalide")
     private String email;
 
-    // ⚠️ Validation côté service pour les 12 caractères + complexité
-    @NotBlank(message = "Le mot de passe est obligatoire")
-    @Size(min = 12, message = "Le mot de passe doit contenir au moins 12 caractères")
-    private String motDePasse;
 
     // ==================== CHAMPS OPTIONNELS ====================
 
@@ -39,5 +35,10 @@ public class CreateUtilisateurByAdminDto {
 
     @NotNull(message = "Le département est obligatoire pour un administrateur")
     private Long departementId;
+
+    /**
+     * ID du service municipal (optionnel, pour les agents uniquement)
+     */
+    private Long serviceId;
 
 }

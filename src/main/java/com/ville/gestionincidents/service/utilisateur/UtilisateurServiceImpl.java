@@ -8,11 +8,14 @@ import com.ville.gestionincidents.dto.utilisateur.superAdmin.CreateUtilisateurBy
 import com.ville.gestionincidents.dto.utilisateur.superAdmin.UpdateUtilisateurByAdminDto;
 import com.ville.gestionincidents.entity.Departement;
 import com.ville.gestionincidents.entity.Utilisateur;
+import com.ville.gestionincidents.entity.ServiceMunicipal;
 import com.ville.gestionincidents.enumeration.Role;
 import com.ville.gestionincidents.mapper.UtilisateurMapper;
 import com.ville.gestionincidents.repository.DepartementRepository;
+import com.ville.gestionincidents.repository.ServiceMunicipalRepository;
 import com.ville.gestionincidents.repository.UtilisateurRepository;
 import com.ville.gestionincidents.service.email.EmailService;
+import com.ville.gestionincidents.service.password.PasswordGeneratorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,54 +27,39 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-/**
- * ✅ IMPLÉMENTATION REFACTORISÉE DU SERVICE UTILISATEUR
- *
- * Changements principaux :
- * - Injection de UtilisateurMapper pour gérer les conversions DTO ↔ Entité
- * - createUserByAdmin() et updateUserByAdmin() utilisent maintenant des DTOs
- * - Meilleure séparation des responsabilités
- * - Validation renforcée des mots de passe
- */
+
 @Service
 @RequiredArgsConstructor
 public class UtilisateurServiceImpl implements UtilisateurService {
 
-    // ==================== DÉPENDANCES ====================
 
     private final UtilisateurRepository utilisateurRepository;
+    private final ServiceMunicipalRepository serviceMunicipalRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
-    private final UtilisateurMapper utilisateurMapper; // ✅ NOUVEAU : Mapper pour conversions
+    private final UtilisateurMapper utilisateurMapper;
+    private final PasswordGeneratorService passwordGeneratorService;
     @Autowired
     private DepartementRepository departementRepository;
 
-    // ==================== INSCRIPTION CITOYEN (INCHANGÉ) ====================
+    // ==================== INSCRIPTION CITOYEN  ====================
 
-    /**
-     * Inscrit un nouveau citoyen avec vérification par email
-     * Le compte est créé mais désactivé jusqu'à vérification de l'email
-     */
     @Override
     @Transactional
     public boolean register(RegisterDto dto) {
-        System.out.println("📝 Tentative d'inscription : " + dto.getEmail());
 
         // 1. Vérifier si l'email existe déjà
         if (utilisateurRepository.findByEmail(dto.getEmail()).isPresent()) {
-            System.out.println("❌ Email déjà utilisé : " + dto.getEmail());
             return false;
         }
 
         // 2. Valider le mot de passe
         if (!isPasswordValid(dto.getMotDePasse())) {
-            System.out.println("❌ Mot de passe invalide (ne respecte pas les critères de sécurité)");
             return false;
         }
 
         // 3. Vérifier que les mots de passe correspondent
         if (!dto.getMotDePasse().equals(dto.getConfirmMotDePasse())) {
-            System.out.println("❌ Les mots de passe ne correspondent pas");
             return false;
         }
 
@@ -88,9 +76,7 @@ public class UtilisateurServiceImpl implements UtilisateurService {
         // 6. Envoyer l'email de vérification
         try {
             emailService.sendVerificationEmail(utilisateur.getEmail(), token);
-            System.out.println("✅ Utilisateur créé avec succès : " + utilisateur.getEmail());
-            System.out.println("   Rôle : " + utilisateur.getRole());
-            System.out.println("   📧 Email de vérification envoyé");
+
         } catch (Exception e) {
             System.err.println("❌ Erreur lors de l'envoi de l'email : " + e.getMessage());
         }
@@ -98,25 +84,20 @@ public class UtilisateurServiceImpl implements UtilisateurService {
         return true;
     }
 
-    /**
-     * Vérifie l'email d'un utilisateur et active son compte
-     */
+
     @Override
     @Transactional
     public boolean verifyEmail(String token) {
-        System.out.println("🔍 Tentative de vérification avec token : " + token);
 
         Utilisateur utilisateur = utilisateurRepository.findByVerificationToken(token)
                 .orElse(null);
 
         if (utilisateur == null) {
-            System.out.println("❌ Token invalide");
             return false;
         }
 
         // Vérifier si le token a expiré
         if (utilisateur.getVerificationTokenExpiration().isBefore(LocalDateTime.now())) {
-            System.out.println("❌ Token expiré pour : " + utilisateur.getEmail());
             return false;
         }
 
@@ -127,15 +108,15 @@ public class UtilisateurServiceImpl implements UtilisateurService {
 
         utilisateurRepository.save(utilisateur);
 
-        System.out.println("✅ Email vérifié avec succès pour : " + utilisateur.getEmail());
         return true;
     }
-//======================profil citoyen========
-@Override
-public CitoyenProfilDto getProfilCitoyen(String email) {
-    Utilisateur user = findByEmail(email);
-    return utilisateurMapper.toCitoyenProfilDto(user);
-}
+
+    //======================profil citoyen========
+    @Override
+    public CitoyenProfilDto getProfilCitoyen(String email) {
+        Utilisateur user = findByEmail(email);
+        return utilisateurMapper.toCitoyenProfilDto(user);
+    }
 
     @Override
     @Transactional
@@ -152,62 +133,72 @@ public CitoyenProfilDto getProfilCitoyen(String email) {
         utilisateurRepository.save(user);
     }
 
-    // ==================== CRÉATION PAR SUPERADMIN (✅ REFACTORISÉ AVEC DTO) ====================
+    // ==================== CRÉATION PAR SUPERADMIN  ====================
 
-    /**
-     * ✅ REFACTORISÉ : Crée un utilisateur (ADMIN/AGENT) via DTO
-     *
-     * AVANTAGES DU DTO :
-     * - Validation automatique des champs (@Valid dans le controller)
-     * - Pas de risque d'injection de données non souhaitées
-     * - Code plus propre et maintenable
-     *
-     * @param dto Données du formulaire de création
-     * @param role Rôle à attribuer (ADMIN ou AGENT)
-     * @return L'utilisateur créé
-     */
     @Override
     @Transactional
     public Utilisateur createUserByAdmin(CreateUtilisateurByAdminDto dto, Role role) {
-
-        if (utilisateurRepository.existsByEmail(dto.getEmail())) {
-            throw new IllegalArgumentException("Email déjà utilisé");
+        // 0. Autogénérer mdp
+        String temporaryPassword = passwordGeneratorService.generatePassword();
+        // 1. Vérifier si l'email existe déjà
+        if (utilisateurRepository.findByEmail(dto.getEmail()).isPresent()) {
+            throw new RuntimeException("Cet email est déjà utilisé");
         }
 
-        Utilisateur user = new Utilisateur();
-        user.setNom(dto.getNom());
-        user.setPrenom(dto.getPrenom());
-        user.setEmail(dto.getEmail());
-        user.setMotDePasse(passwordEncoder.encode(dto.getMotDePasse()));
-        user.setRole(role);
-        user.setEmailVerifie(true);
+        // 2. Créer l'utilisateur à partir du DTO
+        Utilisateur utilisateur = new Utilisateur();
+        utilisateur.setNom(dto.getNom());
+        utilisateur.setPrenom(dto.getPrenom());
+        utilisateur.setEmail(dto.getEmail());
+        // 3. Hasher le mot de passe autogénérée
+        utilisateur.setMotDePasse(passwordEncoder.encode(temporaryPassword));
+        // 4. Définir le rôle (ADMIN ou AGENT selon le paramètre)
+        utilisateur.setRole(role);
 
-        // ✅ Association au département (ADMIN & AGENT)
-        if (role == Role.ADMIN || role == Role.AGENT) {
+        // 5. Email vérifié automatiquement pour les utilisateurs créés par admin
+        utilisateur.setEmailVerifie(true);
+        utilisateur.setVerificationToken(null);
+        utilisateur.setVerificationTokenExpiration(null);
 
-            Departement departement = departementRepository
-                    .findById(dto.getDepartementId())
-                    .orElseThrow(() ->
-                            new IllegalArgumentException("Département introuvable"));
-
-            user.setDepartement(departement);
+        if (dto.getDepartementId() != null) {
+            Departement departement = departementRepository.findById(dto.getDepartementId())
+                    .orElseThrow(() -> new RuntimeException("Département introuvable"));
+            utilisateur.setDepartement(departement);
+        }
+        // 6. Assigner le service si un serviceId est fourni (pour les agents)
+        if (dto.getServiceId() != null) {
+            try {
+                ServiceMunicipal service = serviceMunicipalRepository.findById(dto.getServiceId())
+                        .orElseThrow(() -> new RuntimeException("Service introuvable"));
+                utilisateur.setServiceMunicipal(service);
+                System.out.println("✅ Agent assigné au service : " + service.getNom());
+            } catch (Exception e) {
+                System.err.println("⚠️ Erreur lors de l'assignation du service : " + e.getMessage());
+                // On continue sans service si erreur
+            }
         }
 
-        return utilisateurRepository.save(user); // ✅ retour
+        // 7. Sauvegarder l'utilisateur
+        Utilisateur savedUser = utilisateurRepository.save(utilisateur);
+
+        // 8. ENVOYER UN EMAIL DE BIENVENUE (C'EST ICI QUE ÇA MANQUAIT !)
+        try {
+            emailService.sendWelcomeEmail(
+                    savedUser.getEmail(),
+                    savedUser.getNom(),
+                    savedUser.getRole(),
+                    temporaryPassword
+            );
+        } catch (Exception e) {
+            System.err.println("⚠️ Utilisateur créé mais email non envoyé : " + e.getMessage());
+            // L'utilisateur est créé même si l'email échoue
+        }
+
+        return savedUser;
     }
 
-    // ==================== MODIFICATION PAR SUPERADMIN (✅ REFACTORISÉ AVEC DTO) ====================
+    // ==================== MODIFICATION PAR SUPERADMIN ( REFACTORISÉ AVEC DTO) ====================
 
-    /**
-     * ✅ REFACTORISÉ : Met à jour un utilisateur via DTO
-     *
-     * IMPORTANT : Le mot de passe n'est PAS modifiable via cette méthode
-     * Utilisez resetPasswordByAdmin() pour changer le mot de passe
-     *
-     * @param id ID de l'utilisateur à modifier
-     * @param dto Nouvelles données (nom, prénom, email, rôle)
-     * @return L'utilisateur modifié
-     */
     @Override
     @Transactional
     public Utilisateur updateUserByAdmin(Long id, UpdateUtilisateurByAdminDto dto) {
