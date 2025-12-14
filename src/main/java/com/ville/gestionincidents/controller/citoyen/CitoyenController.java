@@ -12,7 +12,10 @@ import com.ville.gestionincidents.service.utilisateur.UtilisateurService;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -52,9 +55,12 @@ public class CitoyenController {
         return "citoyen/home";
     }
 
+
     // -------------------------
     // Liste incidents
     // -------------------------
+
+    //receuperer la liste des incidents pour un utlisateur connecte selon un statut ( filtre ) par defaut recupere tous les status
     @GetMapping("/incidents")
     public String incidentsList(
             @RequestParam(value = "statut", required = false) String statut,
@@ -66,15 +72,16 @@ public class CitoyenController {
 
         // ✅ Ajouter l'utilisateur au modèle (pour le header)
         model.addAttribute("utilisateur", utilisateur);
-
         boolean isFiltering = (statut != null && !statut.isEmpty());
 
+        // 🔹 Liste filtrée OU non filtrée
         if (!isFiltering) {
             model.addAttribute("incidents", incidentService.getIncidentsForCurrentUser());
         } else {
             model.addAttribute("incidents", incidentService.getIncidentsByStatutForUser(email, statut));
         }
 
+        // 🔹 Vérifier SI l'utilisateur possède AU MOINS un incident (tous statuts confondus)
         boolean hasAnyIncident = !incidentService.getIncidentsForCurrentUser().isEmpty();
 
         model.addAttribute("hasAnyIncident", hasAnyIncident);
@@ -85,29 +92,36 @@ public class CitoyenController {
         return "citoyen/incidents-list";
     }
 
+
+
+
     // -------------------------
     // Détails incident
     // -------------------------
     @GetMapping("/incidents/{id}")
     public String incidentDetails(@PathVariable Long id,
                                   Model model,
-                                  Authentication authentication) {
+                                  @AuthenticationPrincipal UserDetails userDetails) {
 
-        String email = authHelper.getEmailOrThrow(authentication);
-        Utilisateur utilisateur = utilisateurService.findByEmail(email);
+        Incident inc = incidentService.findByIdAndCheckOwner(id, userDetails.getUsername());
 
-        // ✅ Ajouter l'utilisateur au modèle (pour le header)
-        model.addAttribute("utilisateur", utilisateur);
-
-        Incident inc = incidentService.findByIdAndCheckOwner(id, email);
         model.addAttribute("incident", inc);
 
         return "citoyen/incident-details";
     }
 
+
+    // -------------------------
+    // Notifications
+    // -------------------------
+
+
+
+
     // -------------------------
     // Profil Citoyen
     // -------------------------
+    // 📄 Affichage du profil
     @GetMapping("/profil")
     public String profil(Model model, Authentication authentication) {
 
@@ -127,12 +141,13 @@ public class CitoyenController {
         return "citoyen/profil_citoyen";
     }
 
+    //  Modification du profil
     @PostMapping("/profil")
     public String updateProfil(
             @Valid @ModelAttribute("utilisateur") CitoyenUpdateProfilDto dto,
             BindingResult result,
             Authentication authentication,
-            Model model) {
+            Model model){
 
         if (result.hasErrors()) {
             return "citoyen/profil_citoyen";
@@ -140,11 +155,11 @@ public class CitoyenController {
 
         String oldEmail = authHelper.getEmailOrThrow(authentication);
 
-        // 🟠 Si l'email a changé → page de confirmation
+        // 🟠 Si l’email a changé → page de confirmation
         if (!oldEmail.equals(dto.getEmail())) {
             model.addAttribute("ancienEmail", oldEmail);
             model.addAttribute("nouvelEmail", dto.getEmail());
-            model.addAttribute("dto", dto);
+            model.addAttribute("dto", dto); // on garde les données
             return "citoyen/confirm_email_change";
         }
 
@@ -171,6 +186,8 @@ public class CitoyenController {
         );
 
         return "redirect:/login";
+
+
     }
 
     @GetMapping("/change-password")
@@ -183,15 +200,15 @@ public class CitoyenController {
     public String changePassword(
             @Valid @ModelAttribute("passwordDto") ChangePasswordDto dto,
             BindingResult result,
-            Authentication authentication,
+            @AuthenticationPrincipal UserDetails userDetails,
             RedirectAttributes redirectAttributes) {
 
         if (result.hasErrors()) {
             return "citoyen/change_password";
         }
 
-        String email = authHelper.getEmailOrThrow(authentication);
-        Utilisateur user = utilisateurService.findByEmail(email);
+        Utilisateur user =
+                utilisateurService.findByEmail(userDetails.getUsername());
 
         try {
             utilisateurService.changePasswordCitoyen(user.getId(), dto);
@@ -206,4 +223,7 @@ public class CitoyenController {
             return "citoyen/change_password";
         }
     }
+
+
+
 }
