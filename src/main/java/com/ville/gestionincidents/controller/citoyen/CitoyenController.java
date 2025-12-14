@@ -165,6 +165,8 @@ public class CitoyenController {
 
         String oldEmail = userDetails.getUsername();
 
+
+
         // sauvegarde réelle
         utilisateurService.updateProfilCitoyen(oldEmail, dto);
 
