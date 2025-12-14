@@ -21,9 +21,11 @@ public class Notification {
     private boolean lu;
 
     @ManyToOne
+    @JoinColumn(name = "utilisateur_id")
     private Utilisateur utilisateur;
 
     @ManyToOne
+    @JoinColumn(name = "incident_id")
     private Incident incident;
 
     // getters/setters

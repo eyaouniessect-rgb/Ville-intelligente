@@ -25,7 +25,8 @@ public class NotificationServiceImpl implements NotificationService {
             TypeNotification type,
             String message,
             Incident incident
-    ) {
+    )
+    {
         Utilisateur utilisateur = utilisateurRepository
                 .findByEmail(emailUtilisateur)
                 .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));

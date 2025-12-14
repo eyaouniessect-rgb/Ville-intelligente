@@ -2,12 +2,17 @@ package com.ville.gestionincidents.entity;
 
 import com.ville.gestionincidents.enumeration.Role;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity //  Indique que cette classe est une entité JPA (table en base)
 @Data  // Lombok : génère getters, setters, toString, equals, hashCode
+@ToString(exclude = "notifications")
+@EqualsAndHashCode(exclude = "notifications")
 public class Utilisateur {
 
     @Id //  Clé primaire
@@ -44,4 +49,12 @@ public class Utilisateur {
     //  Champs utilisés pour la vérification d'email
     private String verificationToken;
     private LocalDateTime verificationTokenExpiration;
+
+    @OneToMany(mappedBy = "utilisateur", cascade = CascadeType.ALL)
+    private List<Notification> notifications;
+
+    // 🔔 Préférences de notification
+    @OneToOne(mappedBy = "utilisateur", cascade = CascadeType.ALL)
+    private PreferenceNotification preferenceNotification;
+
 }

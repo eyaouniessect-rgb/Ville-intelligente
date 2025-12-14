@@ -1,4 +1,4 @@
-package com.ville.gestionincidents.controller;
+package com.ville.gestionincidents.controller.incident;
 
 import com.ville.gestionincidents.dto.incident.IncidentCreateDto;
 import com.ville.gestionincidents.enumeration.CategorieIncident;

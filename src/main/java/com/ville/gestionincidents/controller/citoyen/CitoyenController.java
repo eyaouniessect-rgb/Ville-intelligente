@@ -102,9 +102,6 @@ public class CitoyenController {
     }
 
 
-    // -------------------------
-    // Notifications
-    // -------------------------
 
 
 
