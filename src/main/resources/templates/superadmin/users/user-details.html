@@ -138,14 +138,22 @@
     <div class="item">
         <div class="label">Rôle</div>
         <div class="value">
-            <span th:switch="${user.role}">
-                <span th:case="SUPERADMIN" class="badge superadmin">superadmin</span>
-                <span th:case="ADMIN" class="badge admin">admin</span>
-                <span th:case="AGENT" class="badge agent">agent</span>
-                <span th:case="*" class="badge citoyen">citoyen</span>
-            </span>
+        <span th:switch="${user.role}">
+            <span th:case="${T(com.ville.gestionincidents.enumeration.Role).SUPERADMIN}"
+                  class="badge superadmin">superadmin</span>
+
+            <span th:case="${T(com.ville.gestionincidents.enumeration.Role).ADMIN}"
+                  class="badge admin">admin</span>
+
+            <span th:case="${T(com.ville.gestionincidents.enumeration.Role).AGENT}"
+                  class="badge agent">agent</span>
+
+            <span th:case="*"
+                  class="badge citoyen">citoyen</span>
+        </span>
         </div>
     </div>
+
 
     <div class="btn-container">
         <a th:href="@{/superadmin/users}" class="btn btn-back">← Retour</a>
