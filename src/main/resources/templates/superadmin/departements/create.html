@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Créer un Département - Ville Intelligente</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .form-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .form-header .icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+        }
+
+        .form-header h1 {
+            color: #1f2937;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .form-header p {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .back-link {
+            display: inline-block;
+            color: #667eea;
+            text-decoration: none;
+            margin-bottom: 20px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .back-link:hover {
+            color: #5568d3;
+            transform: translateX(-5px);
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #374151;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .required {
+            color: #ef4444;
+            margin-left: 4px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-group .help-text {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 5px;
+        }
+
+        .form-group .error {
+            color: #ef4444;
+            font-size: 12px;
+            margin-top: 5px;
+            display: block;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            text-align: center;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="form-container">
+    <a th:href="@{/superadmin/departements}" class="back-link">← Retour à la liste</a>
+
+    <div class="form-header">
+        <div class="icon">🏢</div>
+        <h1>Créer un Département</h1>
+        <p>Ajoutez un nouveau département municipal</p>
+    </div>
+
+    <!-- Message d'erreur -->
+    <div class="alert alert-error" th:if="${error}">
+        <strong>❌ Erreur :</strong> <span th:text="${error}"></span>
+    </div>
+
+    <form th:action="@{/superadmin/departements/create}" method="post" th:object="${departement}">
+
+        <!-- Nom du département -->
+        <div class="form-group">
+            <label for="nom">Nom du département<span class="required">*</span></label>
+            <input type="text"
+                   id="nom"
+                   name="nom"
+                   th:field="*{nom}"
+                   placeholder="Ex: Voirie, Propreté, Sécurité..."
+                   required
+                   maxlength="100">
+            <span class="help-text">Nom unique du département (3-100 caractères)</span>
+            <span class="error" th:if="${#fields.hasErrors('nom')}" th:errors="*{nom}"></span>
+        </div>
+
+        <!-- Description -->
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description"
+                      name="description"
+                      th:field="*{description}"
+                      placeholder="Décrivez les missions et responsabilités de ce département..."
+                      maxlength="500"></textarea>
+            <span class="help-text">Description détaillée (optionnelle, max 500 caractères)</span>
+            <span class="error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></span>
+        </div>
+
+        <!-- Email et Téléphone -->
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email"
+                       id="email"
+                       name="email"
+                       th:field="*{email}"
+                       placeholder="departement@ville.tn"
+                       maxlength="100">
+                <span class="help-text">Email de contact (optionnel)</span>
+            </div>
+
+            <div class="form-group">
+                <label for="telephone">Téléphone</label>
+                <input type="tel"
+                       id="telephone"
+                       name="telephone"
+                       th:field="*{telephone}"
+                       placeholder="71 234 567"
+                       maxlength="20">
+                <span class="help-text">Numéro de téléphone (optionnel)</span>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+            <a th:href="@{/superadmin/departements}" class="btn btn-secondary">
+                Annuler
+            </a>
+            <button type="submit" class="btn btn-primary">
+                ✓ Créer le Département
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Validation en temps réel
+    document.getElementById('nom').addEventListener('input', function(e) {
+        const value = e.target.value;
+        const helpText = e.target.nextElementSibling;
+
+        if (value.length < 3) {
+            helpText.style.color = '#ef4444';
+            helpText.textContent = 'Le nom doit contenir au moins 3 caractères';
+        } else if (value.length > 100) {
+            helpText.style.color = '#ef4444';
+            helpText.textContent = 'Le nom ne peut pas dépasser 100 caractères';
+        } else {
+            helpText.style.color = '#10b981';
+            helpText.textContent = '✓ Nom valide';
+        }
+    });
+
+    // Compteur de caractères pour la description
+    document.getElementById('description').addEventListener('input', function(e) {
+        const value = e.target.value;
+        const helpText = e.target.nextElementSibling;
+        const remaining = 500 - value.length;
+
+        if (remaining < 0) {
+            helpText.style.color = '#ef4444';
+            helpText.textContent = 'Limite dépassée de ' + Math.abs(remaining) + ' caractères';
+        } else if (remaining < 50) {
+            helpText.style.color = '#f59e0b';
+            helpText.textContent = remaining + ' caractères restants';
+        } else {
+            helpText.style.color = '#6b7280';
+            helpText.textContent = remaining + ' caractères restants';
+        }
+    });
+</script>
+</body>
+</html>

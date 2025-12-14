@@ -9,3 +9,4 @@ public enum CategorieIncident {
     SIGNALISATION,
     ESPACES_VERTS
 }
+

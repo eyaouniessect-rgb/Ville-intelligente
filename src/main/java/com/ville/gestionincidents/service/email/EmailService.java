@@ -12,11 +12,6 @@ public interface EmailService {
     void sendVerificationEmail(String to, String token);
 
     /**
-     * Envoie une notification de mise à jour d'incident
-     */
-    void sendIncidentUpdateEmail(String to, Long incidentId, String nouveauStatut);
-
-    /**
      * Envoie un email de réinitialisation de mot de passe
      */
     void sendPasswordResetEmail(String to, String token);
@@ -24,12 +19,12 @@ public interface EmailService {
     // ==================== NOUVELLES MÉTHODES POUR SUPERADMIN ====================
 
     /**
-     * ✅ AJOUTER : Envoie un email de bienvenue pour les utilisateurs créés par admin
+     *  Envoie un email de bienvenue pour les utilisateurs créés par admin
      */
-    void sendWelcomeEmail(String to, String nom, Role role);
+    void sendWelcomeEmail(String to, String nom, Role role, String password);
 
     /**
-     * ✅ AJOUTER : Envoie une notification après réinitialisation du mot de passe par admin
+     *  Envoie une notification après réinitialisation du mot de passe par admin
      */
     void sendPasswordResetNotification(String to);
 }
