@@ -18,17 +18,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
-/**
- * ✅ CONTROLLER REFACTORISÉ AVEC DTOs
- *
- * Contrôleur SuperAdmin pour la gestion complète des utilisateurs
- * - Utilise des DTOs pour la création et modification
- * - Validation automatique via @Valid
- * - Séparation claire des responsabilités
- */
+
 @Controller
 @RequestMapping("/superadmin")
-@PreAuthorize("hasRole('SUPERADMIN')") // ⚠️ Accès réservé au SUPERADMIN uniquement
+@PreAuthorize("hasRole('SUPERADMIN')")
 public class SuperAdminController {
 
     @Autowired
@@ -78,39 +71,32 @@ public class SuperAdminController {
 
         model.addAttribute("users", users);
         model.addAttribute("roles", Role.values());
-        return "superadmin/users";
+        return "superadmin/users/users";
     }
 
-    // ==================== CRÉER UN ADMINISTRATEUR (REFACTORISÉ) ====================
+    // ==================== CRÉER UN ADMINISTRATEUR ====================
 
-    /**
-     * ✅ REFACTORISÉ : Utilise maintenant un DTO
-     * Affiche le formulaire de création d'admin
-     */
     @GetMapping("/create-admin")
     public String createAdminForm(Model model) {
 
         model.addAttribute("utilisateur", new CreateUtilisateurByAdminDto());
 
-        // ✅ liste des départements existants
+        //  liste des départements existants
         model.addAttribute("departements", departementService.findAll());
 
-        return "superadmin/create-admin";
+
+        return "superadmin/users/create-admin";
     }
 
-
-    /**
-     * ✅ REFACTORISÉ : Utilise maintenant un DTO avec validation
-     * Traite la soumission du formulaire de création d'admin
-     */
     @PostMapping("/create-admin")
     public String createAdmin(@Valid @ModelAttribute("utilisateur") CreateUtilisateurByAdminDto dto,
                               BindingResult result,
                               RedirectAttributes redirectAttributes) {
+
         // 1. Vérifier les erreurs de validation
         if (result.hasErrors()) {
             // Les erreurs sont automatiquement disponibles dans la vue
-            return "superadmin/create-admin";
+            return "superadmin/users/create-admin";
         }
 
         try {
@@ -130,33 +116,25 @@ public class SuperAdminController {
         }
     }
 
-    // ==================== CRÉER UN AGENT (REFACTORISÉ) ====================
 
-    /**
-     * ✅ REFACTORISÉ : Utilise maintenant un DTO
-     * Affiche le formulaire de création d'agent
-     */
+    // ==================== CRÉER UN AGENT ) ====================
+
     @GetMapping("/create-agent")
     public String createAgentForm(Model model) {
 
         model.addAttribute("utilisateur", new CreateUtilisateurByAdminDto());
 
-        // ✅ EXACTEMENT comme pour admin
         model.addAttribute("departements", departementService.findAll());
 
-        return "superadmin/create-agent";
+        return "superadmin/users/create-agent";
     }
 
-    /**
-     * ✅ REFACTORISÉ : Utilise maintenant un DTO avec validation
-     * Traite la soumission du formulaire de création d'agent
-     */
     @PostMapping("/create-agent")
     public String createAgent(@Valid @ModelAttribute("utilisateur") CreateUtilisateurByAdminDto dto,
                               BindingResult result,
                               RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
-            return "superadmin/create-agent";
+            return "superadmin/users/create-agent";
         }
 
         try {
@@ -184,7 +162,7 @@ public class SuperAdminController {
         try {
             Utilisateur user = utilisateurService.findById(id);
             model.addAttribute("user", user);
-            return "superadmin/user-details";
+            return "superadmin/users/user-details";
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Utilisateur introuvable");
             return "redirect:/superadmin/users";
@@ -223,7 +201,7 @@ public class SuperAdminController {
             model.addAttribute("utilisateur", dto);
             model.addAttribute("userId", id); // Pour le formulaire
             model.addAttribute("roles", new Role[]{Role.AGENT, Role.ADMIN}); // Pas de SUPERADMIN
-            return "superadmin/edit-user";
+            return "superadmin/users/edit-user";
 
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Utilisateur introuvable");
@@ -245,7 +223,7 @@ public class SuperAdminController {
             // En cas d'erreur, conserver l'ID pour le formulaire
             model.addAttribute("userId", id);
             model.addAttribute("roles", new Role[]{Role.AGENT, Role.ADMIN});
-            return "superadmin/edit-user";
+            return "superadmin/users/edit-user";
         }
 
         try {

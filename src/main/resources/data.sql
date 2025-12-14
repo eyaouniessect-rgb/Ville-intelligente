@@ -33,3 +33,7 @@ INSERT INTO utilisateur (
 -- Pour générer un hash BCrypt correct, utilisez la classe DataInitializer
 -- ou un outil en ligne comme : https://bcrypt-generator.com/
 
+
+
+
+

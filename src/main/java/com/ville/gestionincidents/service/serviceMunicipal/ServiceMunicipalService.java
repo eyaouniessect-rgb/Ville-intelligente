@@ -1,4 +1,17 @@
 package com.ville.gestionincidents.service.serviceMunicipal;
 
-public class ServiceMunicipalService {
+import com.ville.gestionincidents.entity.ServiceMunicipal;
+import java.util.List;
+
+public interface ServiceMunicipalService {
+
+    ServiceMunicipal addServiceToDepartement(Long departementId, ServiceMunicipal service);
+    ServiceMunicipal updateService(Long serviceId, ServiceMunicipal service);
+    void deleteService(Long serviceId);
+
+    ServiceMunicipal findServiceById(Long serviceId);
+    List<ServiceMunicipal> findServicesByDepartement(Long departementId);
+    List<ServiceMunicipal> findAllServices();
+
+    long countServices();
 }

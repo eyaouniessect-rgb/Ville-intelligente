@@ -46,29 +46,6 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public void sendIncidentUpdateEmail(String to, Long incidentId, String nouveauStatut) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(to);
-        message.setSubject("🔔 Mise à jour de votre incident #" + incidentId);
-        message.setText(
-                "Bonjour,\n\n" +
-                        "Votre incident #" + incidentId + " a été mis à jour.\n\n" +
-                        "Nouveau statut : " + nouveauStatut + "\n\n" +
-                        "Vous pouvez consulter les détails sur votre tableau de bord :\n" +
-                        baseUrl + "/incidents/" + incidentId + "\n\n" +
-                        "Cordialement,\n" +
-                        "L'équipe Ville Intelligente"
-        );
-
-        try {
-            mailSender.send(message);
-            System.out.println("📧 Notification d'incident envoyée à : " + to);
-        } catch (Exception e) {
-            System.err.println("❌ Erreur lors de l'envoi de la notification : " + e.getMessage());
-        }
-    }
-
-    @Override
     public void sendPasswordResetEmail(String to, String token) {
         String resetUrl = baseUrl + "/auth/reset-password?token=" + token;
 
@@ -94,13 +71,11 @@ public class EmailServiceImpl implements EmailService {
         }
     }
 
-    // ==================== NOUVELLES MÉTHODES POUR SUPERADMIN ====================
-
     /**
-     * ✅ NOUVELLE MÉTHODE : Envoie un email de bienvenue pour les utilisateurs créés par admin
+     *  Envoie un email de bienvenue pour les utilisateurs créés par admin
      */
     @Override
-    public void sendWelcomeEmail(String to, String nom, Role role) {
+    public void sendWelcomeEmail(String to, String nom, Role role, String password) {
         String roleLabel = getRoleLabel(role);
 
         SimpleMailMessage message = new SimpleMailMessage();
@@ -112,11 +87,11 @@ public class EmailServiceImpl implements EmailService {
                         "Vos identifiants de connexion :\n" +
                         "━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
                         "Email : " + to + "\n" +
-                        "Mot de passe : (celui défini par l'administrateur)\n" +
+                        "Mot de passe : " + password + "\n" +
                         "━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n" +
                         "Vous pouvez vous connecter à l'adresse suivante :\n" +
                         baseUrl + "/auth/login\n\n" +
-                        "⚠️ IMPORTANT : Nous vous recommandons de changer votre mot de passe lors de votre première connexion.\n\n" +
+                        "⚠️ IMPORTANT : Nous vous recommandons fortement de changer votre mot de passe lors de votre première connexion pour des raisons de sécurité.\n\n" +
                         "Si vous avez des questions, n'hésitez pas à contacter un administrateur.\n\n" +
                         "Cordialement,\n" +
                         "L'équipe Ville Intelligente"
@@ -132,7 +107,7 @@ public class EmailServiceImpl implements EmailService {
     }
 
     /**
-     * ✅ NOUVELLE MÉTHODE : Envoie une notification après réinitialisation du mot de passe par admin
+     * Envoie une notification après réinitialisation du mot de passe par admin
      */
     @Override
     public void sendPasswordResetNotification(String to) {

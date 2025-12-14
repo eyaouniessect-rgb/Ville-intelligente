@@ -42,6 +42,10 @@ public class Utilisateur {
     //  Colonne FK dans la table utilisateur
     private Departement departement;
 
+    @ManyToOne
+    @JoinColumn(name = "service_municipal_id")
+    private ServiceMunicipal serviceMunicipal;
+
     //  Champs utilisés pour la vérification d'email
     private String verificationToken;
     private LocalDateTime verificationTokenExpiration;

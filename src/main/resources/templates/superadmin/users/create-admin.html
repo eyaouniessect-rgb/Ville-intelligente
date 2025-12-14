@@ -158,15 +158,6 @@
             <input type="email" id="email" name="email" th:field="*{email}" required>
             <div class="error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
         </div>
-
-        <div class="form-group">
-            <label for="motDePasse">Mot de passe *</label>
-            <input type="password" id="motDePasse" name="motDePasse" th:field="*{motDePasse}" required>
-            <div class="password-hint">
-                Minimum 12 caractères, avec majuscule, minuscule, chiffre et caractère spécial
-            </div>
-            <div class="error" th:if="${#fields.hasErrors('motDePasse')}" th:errors="*{motDePasse}"></div>
-        </div>
         <div class="form-group">
             <label for="departementId">Département *</label>
 
@@ -187,7 +178,11 @@
                  th:errors="*{departementId}">
             </div>
         </div>
-
+        <!-- ✅ INFO : Le mot de passe sera généré automatiquement -->
+        <div class="alert alert-info">
+            <strong>🔑 Mot de passe automatique</strong>
+            <p>Un mot de passe sécurisé sera généré automatiquement et envoyé par email à l'utilisateur.</p>
+        </div>
 
         <button type="submit" class="submit-btn">
             Créer l'Administrateur

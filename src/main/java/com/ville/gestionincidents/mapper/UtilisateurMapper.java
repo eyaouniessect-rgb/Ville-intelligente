@@ -8,6 +8,7 @@ import com.ville.gestionincidents.dto.utilisateur.superAdmin.UpdateUtilisateurBy
 import com.ville.gestionincidents.dto.utilisateur.UtilisateurDto;
 import com.ville.gestionincidents.entity.Utilisateur;
 import com.ville.gestionincidents.enumeration.Role;
+import com.ville.gestionincidents.service.password.PasswordGeneratorService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,8 @@ import lombok.RequiredArgsConstructor;
 public class UtilisateurMapper {
 
     private final PasswordEncoder passwordEncoder;
+    private final PasswordGeneratorService passwordGeneratorService;
+
 
     // Affichage (Entity → DTO)
     public UtilisateurDto toDTO(Utilisateur u) {
@@ -62,11 +65,13 @@ public class UtilisateurMapper {
 
     //  Création par SuperAdmin (CreateUtilisateurByAdminDto → Entity)
     public Utilisateur toEntityByAdmin(CreateUtilisateurByAdminDto dto, Role role) {
+        String temporaryPassword = passwordGeneratorService.generatePassword();
+
         Utilisateur utilisateur = new Utilisateur();
         utilisateur.setNom(dto.getNom());
         utilisateur.setPrenom(dto.getPrenom());
         utilisateur.setEmail(dto.getEmail());
-        utilisateur.setMotDePasse(passwordEncoder.encode(dto.getMotDePasse()));
+        utilisateur.setMotDePasse(passwordEncoder.encode(temporaryPassword));
         utilisateur.setRole(role);
         utilisateur.setEmailVerifie(true); // Pré-vérifié par admin
 
