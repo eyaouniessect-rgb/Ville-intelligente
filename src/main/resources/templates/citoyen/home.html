@@ -303,19 +303,15 @@
     <!-- HEADER -->
     <div class="header">
         <div class="header-left">
-            <h1>
-                <span>👤</span>
-                Dashboard Citoyen
-            </h1>
+            <h1>👤 Dashboard Citoyen</h1>
         </div>
-
         <div class="header-right">
-            <span class="user-badge">
-                <span>👋</span>
-                <span sec:authentication="principal.username"></span>
-            </span>
+            <div class="user-badge">
+                <span th:text="${utilisateur.email}">user@email.com</span>
+                <span th:text="${nomComplet}">Nom Complet</span>
+            </div>
             <form th:action="@{/logout}" method="post" style="display:inline;">
-                <button class="logout-btn">🚪 Déconnexion</button>
+                <button class="logout-btn">👋 🚪 Déconnexion</button>
             </form>
         </div>
     </div>

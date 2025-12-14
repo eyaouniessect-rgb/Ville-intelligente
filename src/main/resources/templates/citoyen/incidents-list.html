@@ -354,7 +354,7 @@
     <h1>📋 Mes Incidents</h1>
 
     <div class="user-info">
-        <span class="user-badge" sec:authentication="principal.username"></span>
+        <span class="user-badge" th:text="${utilisateur.email}"></span>
         <a th:href="@{/citoyen/home}" class="btn back-btn">🏠 Retour Dashboard</a>
         <form th:action="@{/logout}" method="post" style="margin:0;">
             <button class="btn logout-btn">🚪 Déconnexion</button>

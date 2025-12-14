@@ -4,6 +4,7 @@ import com.ville.gestionincidents.dto.utilisateur.superAdmin.CreateUtilisateurBy
 import com.ville.gestionincidents.dto.utilisateur.superAdmin.UpdateUtilisateurByAdminDto;
 import com.ville.gestionincidents.entity.Utilisateur;
 import com.ville.gestionincidents.enumeration.Role;
+import com.ville.gestionincidents.security.CurrentUserService;
 import com.ville.gestionincidents.service.departement.DepartementService;
 import com.ville.gestionincidents.service.utilisateur.UtilisateurService;
 import javax.validation.Valid;
@@ -27,6 +28,9 @@ public class SuperAdminController {
     private UtilisateurService utilisateurService;
     @Autowired
     private DepartementService departementService;
+    @Autowired
+    private CurrentUserService currentUserService;
+
 
     // ==================== DASHBOARD ====================
 
@@ -35,6 +39,10 @@ public class SuperAdminController {
      */
     @GetMapping("/dashboard")
     public String dashboard(Model model) {
+
+        // 👇 AJOUT CRUCIAL
+        model.addAttribute("utilisateur", currentUserService.getCurrentUser());
+
         model.addAttribute("totalUsers", utilisateurService.countAllUsers());
         model.addAttribute("totalAdmins", utilisateurService.countByRole(Role.ADMIN));
         model.addAttribute("totalAgents", utilisateurService.countByRole(Role.AGENT));
@@ -43,6 +51,7 @@ public class SuperAdminController {
 
         return "superadmin/dashboard";
     }
+
 
     // ==================== LISTE DES UTILISATEURS ====================
 
