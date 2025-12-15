@@ -3,117 +3,399 @@
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Citoyen</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
+
     <style>
-        /* --- même style superadmin --- */
-        * { margin:0; padding:0; box-sizing:border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg,#667eea,#764ba2);
-            min-height:100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
         }
-        .container { max-width:1200px; margin:0 auto; padding:25px; }
 
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* HEADER */
         .header {
-            background:white; padding:20px; border-radius:12px;
-            display:flex; justify-content:space-between; align-items:center;
-            box-shadow:0 4px 6px rgba(0,0,0,.1);
+            background: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, .1);
+            margin-bottom: 30px;
         }
-        .header h1 { color:#667eea; }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
         .user-badge {
-            background: linear-gradient(135deg,#667eea,#764ba2);
-            color:white; padding:8px 16px; border-radius:20px;
-            font-weight:bold;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
+
         .logout-btn {
-            background:#ef4444; color:white; border:none;
-            padding:10px 20px; border-radius:5px; cursor:pointer;
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all .3s;
         }
-        .logout-btn:hover { background:#dc2626; }
 
+        .logout-btn:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+        }
+
+        /* STATISTIQUES */
         .stats-grid {
-            margin-top:25px;
-            display:grid; gap:20px;
-            grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+            display: grid;
+            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            margin-bottom: 30px;
         }
+
         .stat-card {
-            background:white; border-radius:12px; padding:25px;
-            box-shadow:0 4px 6px rgba(0,0,0,.1);
-            transition:0.3s;
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, .1);
+            transition: all .3s;
+            position: relative;
+            overflow: hidden;
         }
-        .stat-card:hover { transform:translateY(-5px); }
 
-        .stat-card h3 { color:#6b7280; text-transform:uppercase; font-size:14px; margin-bottom:10px; }
-        .number { font-size:36px; font-weight:bold; color:#1f2937; }
-        .reported { border-left:4px solid #3b82f6; }
-        .inprogress { border-left:4px solid #f59e0b; }
-        .resolved { border-left:4px solid #10b981; }
-
-        .actions {
-            margin-top:30px;
-            display:flex;
-            gap:20px;
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 5px;
+            transition: width .3s;
         }
+
+        .stat-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, .15);
+        }
+
+        .stat-card:hover::before {
+            width: 100%;
+            opacity: 0.05;
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .stat-card h3 {
+            color: #6b7280;
+            text-transform: uppercase;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-icon {
+            font-size: 32px;
+            opacity: 0.8;
+        }
+
+        .number {
+            font-size: 42px;
+            font-weight: 700;
+            color: #1f2937;
+            line-height: 1;
+        }
+
+        /* Couleurs spécifiques */
+        .signale::before { background: #3b82f6; }
+        .signale .number { color: #3b82f6; }
+
+        .pris-charge::before { background: #8b5cf6; }
+        .pris-charge .number { color: #8b5cf6; }
+
+        .resolution::before { background: #f59e0b; }
+        .resolution .number { color: #f59e0b; }
+
+        .resolu::before { background: #10b981; }
+        .resolu .number { color: #10b981; }
+
+        .cloture::before { background: #6b7280; }
+        .cloture .number { color: #6b7280; }
+
+        /* ACTIONS RAPIDES */
+        .actions-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, .1);
+        }
+
+        .section-title {
+            color: #667eea;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .actions-grid {
+            display: grid;
+            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        }
+
         .action-btn {
-            padding:14px 24px; border-radius:8px; text-decoration:none; color:white;
-            font-weight:bold; background:linear-gradient(135deg,#667eea,#764ba2);
-            box-shadow:0 4px 6px rgba(0,0,0,.15);
+            padding: 18px 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            color: white;
+            font-weight: 600;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all .3s;
+            position: relative;
+            overflow: hidden;
         }
-        .action-btn:hover { opacity:0.85; }
+
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: left .3s;
+        }
+
+        .action-btn:hover::before {
+            left: 100%;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, .2);
+        }
+
+        .action-btn-icon {
+            font-size: 24px;
+        }
+
+        /* Couleurs des boutons */
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+        }
+
+        .btn-purple {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .actions-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .number {
+                font-size: 36px;
+            }
+        }
+
+        /* ANIMATIONS */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .stat-card {
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        .stat-card:nth-child(1) { animation-delay: 0.1s; }
+        .stat-card:nth-child(2) { animation-delay: 0.2s; }
+        .stat-card:nth-child(3) { animation-delay: 0.3s; }
+        .stat-card:nth-child(4) { animation-delay: 0.4s; }
+        .stat-card:nth-child(5) { animation-delay: 0.5s; }
     </style>
 </head>
 
 <body>
 <div class="container">
 
-    <!-- Header -->
+    <!-- HEADER -->
     <div class="header">
-        <h1>👤 Dashboard Citoyen</h1>
-        <div>
-            <span class="user-badge" sec:authentication="principal.username"></span>
+        <div class="header-left">
+            <h1>👤 Dashboard Citoyen</h1>
+        </div>
+        <div class="header-right">
+            <div class="user-badge">
+                <span th:text="${utilisateur.email}">user@email.com</span>
+                <span th:text="${nomComplet}">Nom Complet</span>
+            </div>
             <form th:action="@{/logout}" method="post" style="display:inline;">
-                <button class="logout-btn">Déconnexion</button>
+                <button class="logout-btn">👋 🚪 Déconnexion</button>
             </form>
         </div>
     </div>
 
+    <!-- STATISTIQUES -->
     <div class="stats-grid">
 
-        <div class="stat-card reported">
-            <h3>Signalés</h3>
+        <div class="stat-card signale">
+            <div class="stat-header">
+                <h3>Signalés</h3>
+                <span class="stat-icon">📋</span>
+            </div>
             <div class="number" th:text="${countSignale}">0</div>
         </div>
 
-        <div class="stat-card" style="border-left:4px solid #8b5cf6;">
-            <h3>Pris en charge</h3>
+        <div class="stat-card pris-charge">
+            <div class="stat-header">
+                <h3>Pris en charge</h3>
+                <span class="stat-icon">🔄</span>
+            </div>
             <div class="number" th:text="${countPrisEnCharge}">0</div>
         </div>
 
-        <div class="stat-card inprogress">
-            <h3>En résolution</h3>
+        <div class="stat-card resolution">
+            <div class="stat-header">
+                <h3>En résolution</h3>
+                <span class="stat-icon">⚙️</span>
+            </div>
             <div class="number" th:text="${countEnResolution}">0</div>
         </div>
 
-        <div class="stat-card resolved">
-            <h3>Résolus</h3>
+        <div class="stat-card resolu">
+            <div class="stat-header">
+                <h3>Résolus</h3>
+                <span class="stat-icon">✅</span>
+            </div>
             <div class="number" th:text="${countResolu}">0</div>
         </div>
 
-        <div class="stat-card" style="border-left:4px solid #6b7280;">
-            <h3>Clôturés</h3>
+        <div class="stat-card cloture">
+            <div class="stat-header">
+                <h3>Clôturés</h3>
+                <span class="stat-icon">🔒</span>
+            </div>
             <div class="number" th:text="${countCloture}">0</div>
         </div>
 
     </div>
 
-    <!-- Actions -->
-    <div class="actions">
-        <a th:href="@{/citoyen/incidents}" class="action-btn">📋 Voir mes incidents</a>
-        <a th:href="@{/citoyen/getFormIncident}" class="action-btn">➕ Déclarer un incident</a>
-        <a th:href="@{/citoyen/notifications}" class="action-btn">🔔 Notifications</a>
-        <a th:href="@{/citoyen/profil}" class="action-btn">👤 Mon profil</a>
+    <!-- ACTIONS RAPIDES -->
+    <div class="actions-section">
+        <h2 class="section-title">
+            <span>⚡</span>
+            Actions rapides
+        </h2>
 
+        <div class="actions-grid">
+
+            <a th:href="@{/citoyen/incidents}" class="action-btn btn-primary">
+                <span class="action-btn-icon">📋</span>
+                <span>Voir mes incidents</span>
+            </a>
+
+            <a th:href="@{/citoyen/getFormIncident}" class="action-btn btn-success">
+                <span class="action-btn-icon">➕</span>
+                <span>Déclarer un incident</span>
+            </a>
+
+            <a th:href="@{/citoyen/notifications}" class="action-btn btn-warning">
+                <span class="action-btn-icon">🔔</span>
+                <span>Notifications</span>
+            </a>
+
+            <a th:href="@{/citoyen/preferences-notifications}" class="action-btn btn-info">
+                <span class="action-btn-icon">⚙️</span>
+                <span>Préférences notifications</span>
+            </a>
+
+            <a th:href="@{/citoyen/profil}" class="action-btn btn-purple">
+                <span class="action-btn-icon">👤</span>
+                <span>Mon profil</span>
+            </a>
+
+        </div>
     </div>
 
 </div>

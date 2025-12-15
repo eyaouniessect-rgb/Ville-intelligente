@@ -13,7 +13,7 @@
     <h3>Informations de connexion :</h3>
 
     <p>📧 <strong>Email :</strong>
-        <span sec:authentication="name">Utilisateur</span>
+        <span th:text="${utilisateur.prenom + ' ' + utilisateur.nom}">Utilisateur</span>
     </p>
 
     <p>🎭 <strong>Rôle :</strong>

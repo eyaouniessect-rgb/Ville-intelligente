@@ -347,7 +347,7 @@
     <h1>➕ Déclarer un incident</h1>
 
     <div class="user-info">
-        <span class="user-badge" sec:authentication="principal.username"></span>
+        <span class="user-badge" th:text="${utilisateur.email}"></span>
 
         <a th:href="@{/citoyen/incidents}" class="btn back-btn">
             ⬅️ Mes incidents

@@ -1,11 +1,14 @@
-package com.ville.gestionincidents.controller;
+package com.ville.gestionincidents.controller.incident;
 
 import com.ville.gestionincidents.dto.incident.IncidentCreateDto;
+import com.ville.gestionincidents.entity.Utilisateur;
 import com.ville.gestionincidents.enumeration.CategorieIncident;
 import com.ville.gestionincidents.service.incident.IncidentService;
+import com.ville.gestionincidents.service.utilisateur.UtilisateurService;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -16,14 +19,30 @@ import org.springframework.web.bind.annotation.*;
 public class IncidentController {
 
     private final IncidentService incidentService;
+    private final UtilisateurService utilisateurService;
 
     /**
      * Affiche le formulaire de déclaration
      */
     @GetMapping("/getFormIncident")
-    public String afficherFormulaire(Model model) {
+    public String afficherFormulaire(Model model, Authentication authentication) {
+
+        // 🔐 Sécurité minimale
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "redirect:/auth/login";
+        }
+
+        // 📧 Email depuis OAuth2 / login classique
+        String email = authentication.getName();
+
+        // 👤 Charger utilisateur métier pour la vue
+        Utilisateur utilisateur = utilisateurService.findByEmail(email);
+
+        // 📦 Données pour Thymeleaf
+        model.addAttribute("utilisateur", utilisateur);
         model.addAttribute("incident", new IncidentCreateDto());
         model.addAttribute("categories", CategorieIncident.values());
+
         return "citoyen/incident_form";
     }
 
@@ -33,6 +52,7 @@ public class IncidentController {
     @PostMapping("/incident/ajouter")
     public String ajouterIncident(@ModelAttribute IncidentCreateDto dto) {
 
+        // ✅ Le service récupère l'utilisateur via CurrentUserService
         incidentService.creerIncident(dto);
 
         return "redirect:/citoyen/incident/success";
@@ -45,7 +65,4 @@ public class IncidentController {
     public String success() {
         return "citoyen/incident_success";
     }
-
-
-
 }

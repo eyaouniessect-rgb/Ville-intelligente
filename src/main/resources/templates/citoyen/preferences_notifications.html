@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Préférences de notifications</title>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg,#667eea,#764ba2);
+            min-height:100vh;
+            padding:30px;
+        }
+
+        .container { max-width:800px; margin:auto; }
+
+        /* HEADER AVEC BOUTON RETOUR */
+        .header {
+            background:white;
+            border-radius:15px;
+            padding:20px 30px;
+            margin-bottom:20px;
+            box-shadow:0 4px 6px rgba(0,0,0,.1);
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+        }
+
+        .header h1 {
+            color:#667eea;
+            font-size:24px;
+            margin:0;
+        }
+
+        .back-btn {
+            background:#667eea;
+            color:white;
+            padding:10px 20px;
+            border-radius:8px;
+            text-decoration:none;
+            font-size:14px;
+            transition:.3s;
+        }
+
+        .back-btn:hover {
+            background:#5568d3;
+            transform:translateY(-2px);
+        }
+
+        /* MESSAGES DE CONFIRMATION */
+        .alert {
+            padding:15px 20px;
+            border-radius:10px;
+            margin-bottom:20px;
+            display:flex;
+            align-items:center;
+            gap:10px;
+            animation:slideDown 0.5s ease;
+        }
+
+        .alert-success {
+            background:#d4edda;
+            color:#155724;
+            border-left:4px solid #28a745;
+        }
+
+        .alert-error {
+            background:#f8d7da;
+            color:#721c24;
+            border-left:4px solid #dc3545;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity:0;
+                transform:translateY(-20px);
+            }
+            to {
+                opacity:1;
+                transform:translateY(0);
+            }
+        }
+
+        .card {
+            background:white;
+            border-radius:15px;
+            padding:30px;
+            box-shadow:0 4px 6px rgba(0,0,0,.1);
+        }
+
+        .section-title {
+            margin:25px 0 15px;
+            color:#667eea;
+            font-weight:600;
+            border-bottom:2px solid #eee;
+            padding-bottom:8px;
+        }
+
+        .row {
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            padding:15px;
+            background:#f8f9fa;
+            border-radius:12px;
+            margin-bottom:12px;
+            transition:.3s;
+        }
+
+        .row:hover {
+            background:#e9ecef;
+            transform:translateX(3px);
+        }
+
+        /* TOGGLE */
+        .switch {
+            position:relative;
+            width:60px;
+            height:30px;
+        }
+
+        .switch input {
+            display:none;
+        }
+
+        .slider {
+            position:absolute;
+            inset:0;
+            background:#ccc;
+            border-radius:30px;
+            cursor:pointer;
+            transition:.4s;
+        }
+
+        .slider:before {
+            content:"";
+            position:absolute;
+            width:22px;
+            height:22px;
+            left:4px;
+            bottom:4px;
+            background:white;
+            border-radius:50%;
+            transition:.4s;
+            box-shadow:0 2px 4px rgba(0,0,0,.2);
+        }
+
+        input:checked + .slider {
+            background:linear-gradient(135deg,#667eea,#764ba2);
+        }
+
+        input:checked + .slider:before {
+            transform:translateX(30px);
+        }
+
+        button {
+            width:100%;
+            margin-top:20px;
+            padding:14px;
+            border:none;
+            border-radius:10px;
+            font-size:16px;
+            font-weight:600;
+            background:linear-gradient(135deg,#667eea,#764ba2);
+            color:white;
+            cursor:pointer;
+            transition:.3s;
+        }
+
+        button:hover {
+            box-shadow:0 6px 12px rgba(102,126,234,.4);
+            transform:translateY(-2px);
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- HEADER AVEC BOUTON RETOUR -->
+    <div class="header">
+        <h1>⚙️ Préférences de notifications</h1>
+        <a th:href="@{/citoyen/home}" class="back-btn">← Retour au tableau de bord</a>
+    </div>
+
+    <div class="card">
+
+        <!-- MESSAGE DE SUCCÈS -->
+        <div th:if="${message}" class="alert alert-success">
+            <span style="font-size:20px;">✓</span>
+            <span th:text="${message}"></span>
+        </div>
+
+        <!-- MESSAGE D'ERREUR -->
+        <div th:if="${error}" class="alert alert-error">
+            <span style="font-size:20px;">✕</span>
+            <span th:text="${error}"></span>
+        </div>
+
+        <form th:action="@{/citoyen/preferences-notifications}" method="post">
+
+            <div class="section-title">📧 Notifications Email</div>
+
+            <div class="row">
+                <span>Activer les emails</span>
+                <label class="switch">
+                    <input type="checkbox"
+                           name="emailActif"
+                           th:checked="${preferences.emailActif}">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="row">
+                <span>Changement de statut</span>
+                <label class="switch">
+                    <input type="checkbox"
+                           name="emailChangementStatut"
+                           th:checked="${preferences.emailChangementStatut}">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="section-title">🔔 Notifications Push</div>
+
+            <div class="row">
+                <span>Notifications push</span>
+                <label class="switch">
+                    <input type="checkbox"
+                           name="pushActif"
+                           th:checked="${preferences.pushActif}">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <button type="submit">💾 Enregistrer</button>
+        </form>
+
+    </div>
+</div>
+
+</body>
+</html>
