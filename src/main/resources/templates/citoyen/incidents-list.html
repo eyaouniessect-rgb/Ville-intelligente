@@ -426,25 +426,21 @@
 
             <!-- Image principale -->
             <div class="incident-image">
-                <!-- Si l'incident a des photos -->
-                <div th:if="${!#lists.isEmpty(inc.photos)}">
-                    <!-- Afficher la photo principale -->
-                    <img th:each="photo : ${inc.photos}"
-                         th:if="${photo.principale}"
-                         th:src="@{'/' + ${photo.cheminStockage}}"
+                <div th:if="${inc.photoPrincipale != null}">
+                    <img th:src="@{'/' + ${inc.photoPrincipale}}"
                          th:alt="${inc.categorie}">
 
                     <!-- Badge "Photo principale" -->
                     <span class="image-badge">📸 Photo principale</span>
 
                     <!-- Compteur de photos si > 1 -->
-                    <span class="image-count" th:if="${#lists.size(inc.photos) > 1}">
-                        🖼️ <span th:text="${#lists.size(inc.photos)}"></span> photos
+                    <span class="image-count" th:if="${inc.nombrePhotos > 1}">
+                        🖼️ <span th:text="${inc.nombrePhotos}"></span> photos
                     </span>
                 </div>
 
                 <!-- Si pas de photos -->
-                <div class="no-image" th:unless="${!#lists.isEmpty(inc.photos)}">
+                <div class="no-image" th:if="${inc.photoPrincipale == null}">
                     📷
                 </div>
             </div>

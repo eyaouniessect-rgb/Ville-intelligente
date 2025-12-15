@@ -1,13 +1,15 @@
 package com.ville.gestionincidents.controller.citoyen;
 
+import com.ville.gestionincidents.dto.incident.IncidentDetailsDto;
+import com.ville.gestionincidents.dto.incident.IncidentListDto;
 import com.ville.gestionincidents.dto.utilisateur.citoyen.ChangePasswordDto;
 import com.ville.gestionincidents.dto.utilisateur.citoyen.CitoyenProfilDto;
 import com.ville.gestionincidents.dto.utilisateur.citoyen.CitoyenUpdateProfilDto;
-import com.ville.gestionincidents.entity.Incident;
 import com.ville.gestionincidents.entity.Utilisateur;
+import com.ville.gestionincidents.enumeration.StatutIncident;
 import com.ville.gestionincidents.security.AuthenticationHelper;
+import com.ville.gestionincidents.security.CurrentUserService;
 import com.ville.gestionincidents.service.incident.IncidentService;
-import com.ville.gestionincidents.service.notification.NotificationService;
 import com.ville.gestionincidents.service.utilisateur.UtilisateurService;
 import lombok.RequiredArgsConstructor;
 
@@ -22,6 +24,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
+
 import javax.validation.Valid;
 
 @Controller
@@ -30,9 +34,9 @@ import javax.validation.Valid;
 public class CitoyenController {
 
     private final IncidentService incidentService;
-    private final NotificationService notificationService;
     private final UtilisateurService utilisateurService;
     private final AuthenticationHelper authHelper; //
+    private final CurrentUserService currentUserService;
 
     // -------------------------
     // Dashboard Citoyen
@@ -40,17 +44,16 @@ public class CitoyenController {
     @GetMapping("/home")
     public String dashboard(Model model, Authentication authentication) {
 
-        String email = authHelper.getEmailOrThrow(authentication);
-        Utilisateur utilisateur = utilisateurService.findByEmail(email);
+        Utilisateur utilisateur = currentUserService.getCurrentUser();
 
         //  Ajouter l'utilisateur au modèle (pour le header)
         model.addAttribute("utilisateur", utilisateur);
 
-        model.addAttribute("countSignale", incidentService.countSignale(email));
-        model.addAttribute("countPrisEnCharge", incidentService.countPrisEnCharge(email));
-        model.addAttribute("countEnResolution", incidentService.countEnResolution(email));
-        model.addAttribute("countResolu", incidentService.countResolu(email));
-        model.addAttribute("countCloture", incidentService.countCloture(email));
+        model.addAttribute("countSignale", incidentService.countSignaleForCurrentUser());
+        model.addAttribute("countPrisEnCharge", incidentService.countPrisEnChargeForCurrentUser());
+        model.addAttribute("countEnResolution", incidentService.countEnResolutionForCurrentUser());
+        model.addAttribute("countResolu", incidentService.countResoluForCurrentUser());
+        model.addAttribute("countCloture", incidentService.countClotureForCurrentUser());
 
         return "citoyen/home";
     }
@@ -67,27 +70,35 @@ public class CitoyenController {
             Model model,
             Authentication authentication) {
 
-        String email = authHelper.getEmailOrThrow(authentication);
-        Utilisateur utilisateur = utilisateurService.findByEmail(email);
+        Utilisateur utilisateur = currentUserService.getCurrentUser();
 
         // ✅ Ajouter l'utilisateur au modèle (pour le header)
         model.addAttribute("utilisateur", utilisateur);
-        boolean isFiltering = (statut != null && !statut.isEmpty());
+        boolean hasStatutParam = (statut != null && !statut.isEmpty());
 
-        // 🔹 Liste filtrée OU non filtrée
-        if (!isFiltering) {
-            model.addAttribute("incidents", incidentService.getIncidentsForCurrentUser());
-        } else {
-            model.addAttribute("incidents", incidentService.getIncidentsByStatutForUser(email, statut));
+        StatutIncident statutFiltre = null;
+        if (hasStatutParam) {
+            try {
+                statutFiltre = StatutIncident.valueOf(statut);
+            } catch (IllegalArgumentException e) {
+                statutFiltre = null; // statut invalide -> pas de filtre
+            }
         }
 
-        // 🔹 Vérifier SI l'utilisateur possède AU MOINS un incident (tous statuts confondus)
-        boolean hasAnyIncident = !incidentService.getIncidentsForCurrentUser().isEmpty();
+        // 🔹 Liste filtrée OU non filtrée
+        List<IncidentListDto> allIncidents = incidentService.getIncidentsForCurrentUser();
+        List<IncidentListDto> incidents = (statutFiltre == null)
+                ? allIncidents
+                : incidentService.getIncidentsByStatutForCurrentUser(statutFiltre);
 
+        // 🔹 Vérifier SI l'utilisateur possède AU MOINS un incident (tous statuts confondus)
+        boolean hasAnyIncident = !allIncidents.isEmpty();
+
+        model.addAttribute("incidents", incidents);
         model.addAttribute("hasAnyIncident", hasAnyIncident);
-        model.addAttribute("isFiltering", isFiltering);
-        model.addAttribute("statuts", com.ville.gestionincidents.enumeration.StatutIncident.values());
-        model.addAttribute("statutActuel", statut);
+        model.addAttribute("isFiltering", statutFiltre != null);
+        model.addAttribute("statuts", StatutIncident.values());
+        model.addAttribute("statutActuel", statutFiltre != null ? statutFiltre.name() : null);
 
         return "citoyen/incidents-list";
     }
@@ -102,10 +113,9 @@ public class CitoyenController {
     public String incidentDetails(@PathVariable Long id,
                                   Model model,
                                   Authentication authentication) {
-        String email = authHelper.getEmailOrThrow(authentication);
-        Utilisateur utilisateur = utilisateurService.findByEmail(email);
+        Utilisateur utilisateur = currentUserService.getCurrentUser();
 
-        Incident inc = incidentService.findByIdAndCheckOwner(id, email);
+        IncidentDetailsDto inc = incidentService.getIncidentDetailsForCurrentUser(id);
 
         model.addAttribute("incident", inc);
         // ✅ Ajouter l'utilisateur au modèle (pour le header)
