@@ -25,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import com.ville.gestionincidents.repository.UtilisateurRepository;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -40,6 +41,7 @@ public class IncidentServiceImpl implements IncidentService {
     private final CurrentUserService currentUserService;
     private final NotificationService notificationService;
     private final ServiceMunicipalRepository serviceMunicipalRepository;
+    private final UtilisateurRepository utilisateurRepository;
 
     /* ===================== CRÉATION ===================== */
 
