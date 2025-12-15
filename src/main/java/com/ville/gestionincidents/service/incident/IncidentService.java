@@ -1,7 +1,9 @@
 package com.ville.gestionincidents.service.incident;
 
 import com.ville.gestionincidents.dto.incident.IncidentCreateDto;
-import com.ville.gestionincidents.entity.Incident;
+import com.ville.gestionincidents.dto.incident.IncidentDetailsDto;
+import com.ville.gestionincidents.dto.incident.IncidentListDto;
+import com.ville.gestionincidents.enumeration.StatutIncident;
 
 import java.util.List;
 
@@ -13,28 +15,23 @@ public interface IncidentService {
     //declarer un incident cree par eya
     void creerIncident(IncidentCreateDto dto);
      //recuperer les incident d'un citoyen donnee creer par eya
-    List<Incident> getIncidentsForCurrentUser();
+    List<IncidentListDto> getIncidentsForCurrentUser();
 
     //recuperer les incidents par status d'un citoyen connecte
-    List<Incident> getIncidentsByStatutForUser(String email, String statut);
+    List<IncidentListDto> getIncidentsByStatutForCurrentUser(StatutIncident statut);
 
-
+    IncidentDetailsDto getIncidentDetailsForCurrentUser(Long id); // Vérification propriétaire
 
     //developper par mayssa
-    int countByEmail(String email); // Total incidents
+    int countForCurrentUser(); // Total incidents
 
-    int countSignale(String email);
+    int countSignaleForCurrentUser();
 
-    int countPrisEnCharge(String email);
+    int countPrisEnChargeForCurrentUser();
 
-    int countEnResolution(String email);
+    int countEnResolutionForCurrentUser();
 
-    int countResolu(String email);
+    int countResoluForCurrentUser();
 
-    int countCloture(String email);
-
-
-    List<Incident> findByCitoyenEmail(String email); // Liste incidents
-
-    Incident findByIdAndCheckOwner(Long id, String email); // Vérification propriétaire
+    int countClotureForCurrentUser();
 }

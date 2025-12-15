@@ -1,6 +1,8 @@
 package com.ville.gestionincidents.service.incident;
 
 import com.ville.gestionincidents.dto.incident.IncidentCreateDto;
+import com.ville.gestionincidents.dto.incident.IncidentDetailsDto;
+import com.ville.gestionincidents.dto.incident.IncidentListDto;
 import com.ville.gestionincidents.entity.Incident;
 import com.ville.gestionincidents.entity.Photo;
 import com.ville.gestionincidents.entity.Utilisateur;
@@ -8,7 +10,6 @@ import com.ville.gestionincidents.enumeration.StatutIncident;
 import com.ville.gestionincidents.mapper.IncidentMapper;
 import com.ville.gestionincidents.repository.IncidentRepository;
 import com.ville.gestionincidents.repository.PhotoRepository;
-import com.ville.gestionincidents.repository.UtilisateurRepository;
 import com.ville.gestionincidents.security.CurrentUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,7 +27,6 @@ import java.util.List;
 public class IncidentServiceImpl implements IncidentService {
 
     private final IncidentRepository incidentRepository;
-    private final UtilisateurRepository utilisateurRepository;
     private final PhotoRepository photoRepository;
     private final IncidentMapper incidentMapper;
     private final PhotoStorageService photoStorageService;
@@ -113,73 +113,68 @@ public class IncidentServiceImpl implements IncidentService {
     }
     //pour recuperer les incidents d'un utlisateur connecte
     @Override
-    public List<Incident> getIncidentsForCurrentUser() {
+    public List<IncidentListDto> getIncidentsForCurrentUser() {
         Utilisateur user = currentUserService.getCurrentUser();
-        return incidentRepository.findByCitoyen(user);
+        List<Incident> incidents = incidentRepository.findByCitoyen(user);
+        return incidentMapper.toListDtos(incidents);
     }
 
 
     //recuperee les incidents d'un utlisateur connnecte par status
     @Override
-    public List<Incident> getIncidentsByStatutForUser(String email, String statut) {
-        Utilisateur user = utilisateurRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
-
-        return incidentRepository.findByCitoyenIdAndStatut(user.getId(),
-                StatutIncident.valueOf(statut));
+    public List<IncidentListDto> getIncidentsByStatutForCurrentUser(StatutIncident statut) {
+        Utilisateur user = currentUserService.getCurrentUser();
+        List<Incident> incidents = incidentRepository.findByCitoyenIdAndStatut(user.getId(), statut);
+        return incidentMapper.toListDtos(incidents);
     }
 
 
     @Override
-    public int countByEmail(String email) {
+    public IncidentDetailsDto getIncidentDetailsForCurrentUser(Long id) {
+        Incident inc = incidentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Incident introuvable"));
+
+        if (!inc.getCitoyen().getId().equals(currentUserService.getCurrentUserId())) {
+            throw new RuntimeException("Accès non autorisé à cet incident !");
+        }
+
+        return incidentMapper.toDetailsDto(inc);
+    }
+
+
+    @Override
+    public int countForCurrentUser() {
+        String email = currentUserService.getCurrentUser().getEmail();
         return incidentRepository.countByCitoyenEmail(email);
     }
 
     @Override
-    public int countSignale(String email) {
+    public int countSignaleForCurrentUser() {
+        String email = currentUserService.getCurrentUser().getEmail();
         return incidentRepository.countByCitoyenEmailAndStatut(email, StatutIncident.SIGNALE);
     }
 
     @Override
-    public int countPrisEnCharge(String email) {
+    public int countPrisEnChargeForCurrentUser() {
+        String email = currentUserService.getCurrentUser().getEmail();
         return incidentRepository.countByCitoyenEmailAndStatut(email, StatutIncident.PRIS_EN_CHARGE);
     }
 
     @Override
-    public int countEnResolution(String email) {
+    public int countEnResolutionForCurrentUser() {
+        String email = currentUserService.getCurrentUser().getEmail();
         return incidentRepository.countByCitoyenEmailAndStatut(email, StatutIncident.EN_RESOLUTION);
     }
 
     @Override
-    public int countResolu(String email) {
+    public int countResoluForCurrentUser() {
+        String email = currentUserService.getCurrentUser().getEmail();
         return incidentRepository.countByCitoyenEmailAndStatut(email, StatutIncident.RESOLU);
     }
 
     @Override
-    public int countCloture(String email) {
+    public int countClotureForCurrentUser() {
+        String email = currentUserService.getCurrentUser().getEmail();
         return incidentRepository.countByCitoyenEmailAndStatut(email, StatutIncident.CLOTURE);
     }
-
-
-    @Override
-    public List<Incident> findByCitoyenEmail(String email) {
-        return incidentRepository.findByCitoyenEmail(email);
-    }
-
-    @Override
-    public Incident findByIdAndCheckOwner(Long id, String email) {
-
-        // Récupérer incident ou erreur si non trouvé
-        Incident inc = incidentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Incident introuvable"));
-
-        // Vérification propriétaire
-        if (!inc.getCitoyen().getEmail().equals(email)) {
-            throw new RuntimeException("Accès non autorisé à cet incident !");
-        }
-
-        return inc;
-    }
-
-
 }
