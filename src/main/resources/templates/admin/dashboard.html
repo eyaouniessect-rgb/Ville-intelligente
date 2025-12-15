@@ -1,60 +1,109 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Admin - Ville Intelligente</title>
-
-    <!-- Chart.js depuis CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f7fa;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             padding: 20px;
         }
 
-        .container { max-width: 1400px; margin: 0 auto; }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
 
+        /* Header */
         .header {
             background: white;
-            padding: 25px;
-            border-radius: 10px;
-            margin-bottom: 25px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .header h1 {
-            color: #1f2937;
-            margin-bottom: 20px;
-        }
-
-        .filters {
+            border-radius: 15px;
+            padding: 25px 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             display: flex;
-            gap: 15px;
+            justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
+            animation: slideDown 0.5s ease;
         }
 
-        .filters input {
-            padding: 10px;
-            border: 2px solid #e5e7eb;
-            border-radius: 5px;
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header-left h1 {
+            color: #1f2937;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .header-left p {
+            color: #6b7280;
             font-size: 14px;
         }
 
-        .filters button {
-            padding: 10px 20px;
-            background: #667eea;
+        .department-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 20px;
             font-weight: bold;
+            font-size: 14px;
         }
 
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-badge {
+            background: #f3f4f6;
+            color: #374151;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .logout-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        /* Stats Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -64,320 +113,353 @@
 
         .stat-card {
             background: white;
+            border-radius: 15px;
             padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            animation: fadeIn 0.5s ease;
         }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            transition: width 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .stat-card:hover::before {
+            width: 100%;
+            opacity: 0.1;
+        }
+
+        .stat-card.total::before { background: #3b82f6; }
+        .stat-card.resolus::before { background: #10b981; }
+        .stat-card.en-cours::before { background: #f59e0b; }
+        .stat-card.agents::before { background: #8b5cf6; }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .stat-card.total .stat-icon { background: rgba(59, 130, 246, 0.1); }
+        .stat-card.resolus .stat-icon { background: rgba(16, 185, 129, 0.1); }
+        .stat-card.en-cours .stat-icon { background: rgba(245, 158, 11, 0.1); }
+        .stat-card.agents .stat-icon { background: rgba(139, 92, 246, 0.1); }
 
         .stat-card h3 {
             color: #6b7280;
             font-size: 14px;
             margin-bottom: 10px;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
         }
 
-        .stat-card .value {
-            font-size: 32px;
+        .stat-card .number {
+            font-size: 36px;
             font-weight: bold;
             color: #1f2937;
+            line-height: 1;
         }
 
-        .charts-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-            gap: 25px;
-            margin-bottom: 30px;
-        }
-
-        .chart-container {
+        /* Filters */
+        .filters {
             background: white;
+            border-radius: 15px;
             padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
         }
 
-        .chart-container h2 {
+        .filters h3 {
             color: #1f2937;
             margin-bottom: 20px;
             font-size: 18px;
         }
 
-        .chart-wrapper {
-            position: relative;
-            height: 300px;
+        .filter-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            align-items: end;
         }
 
-        .export-buttons {
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            color: #374151;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .filter-group select:focus,
+        .filter-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .filter-btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .filter-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Actions */
+        .actions {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+
+        .actions h3 {
+            color: #1f2937;
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        .action-buttons {
             display: flex;
             gap: 15px;
-            justify-content: center;
-            margin-top: 30px;
+            flex-wrap: wrap;
         }
 
-        .btn-export {
-            padding: 12px 30px;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
+        .action-btn {
+            padding: 12px 24px;
+            border-radius: 8px;
             text-decoration: none;
-            display: inline-block;
-        }
-
-        .btn-csv {
-            background: #10b981;
             color: white;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .btn-pdf {
-            background: #ef4444;
-            color: white;
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
         }
 
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        /* Responsive */
         @media (max-width: 768px) {
-            .charts-grid {
+            .header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+
+            .stats-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .filter-row {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .action-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .incidents-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            .incidents-table {
+                font-size: 12px;
+            }
+
+            .incidents-table th,
+            .incidents-table td {
+                padding: 10px 5px;
             }
         }
     </style>
+
+    <!-- Inclure les styles du fragment -->
+    <th:block th:replace="~{fragments/incidents-table :: incidentsStyles}"></th:block>
 </head>
 <body>
 <div class="container">
-    <!-- Header avec Filtres -->
+    <!-- Header -->
     <div class="header">
-        <h1>📊 Dashboard Analytique</h1>
-        <form method="get" th:action="@{/admin/dashboard}" class="filters">
-            <label>Date début :</label>
-            <input type="date" name="dateDebut" th:value="${dateDebut != null ? #temporals.format(dateDebut, 'yyyy-MM-dd') : ''}">
-            <label>Date fin :</label>
-            <input type="date" name="dateFin" th:value="${dateFin != null ? #temporals.format(dateFin, 'yyyy-MM-dd') : ''}">
-            <button type="submit">Filtrer</button>
+        <div class="header-left">
+            <h1>🏛️ Dashboard Administrateur</h1>
+            <p>Gestion des incidents - <span class="department-badge" th:text="${admin.departement.nom}">Département</span></p>
+        </div>
+        <div class="user-info">
+            <span class="user-badge" th:text="${admin.prenom + ' ' + admin.nom}">Admin</span>
+            <form th:action="@{/logout}" method="post" style="margin: 0;">
+                <button type="submit" class="logout-btn">Déconnexion</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="stats-grid">
+        <div class="stat-card total">
+            <div class="stat-icon">📊</div>
+            <h3>Total Incidents</h3>
+            <div class="number" th:text="${totalIncidents}">0</div>
+        </div>
+        <div class="stat-card resolus">
+            <div class="stat-icon">✅</div>
+            <h3>Incidents Résolus</h3>
+            <div class="number" th:text="${incidentsResolus}">0</div>
+        </div>
+        <div class="stat-card en-cours">
+            <div class="stat-icon">⏳</div>
+            <h3>En Cours</h3>
+            <div class="number" th:text="${incidentsEnCours}">0</div>
+        </div>
+        <div class="stat-card agents">
+            <div class="stat-icon">👮</div>
+            <h3>Agents Actifs</h3>
+            <div class="number" th:text="${totalAgents}">0</div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+        <h3>🔍 Filtrer les incidents</h3>
+        <form th:action="@{/admin/dashboard}" method="get">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label>Service</label>
+                    <select name="serviceId">
+                        <option value="">Tous les services</option>
+                        <option th:each="service : ${services}"
+                                th:value="${service.id}"
+                                th:text="${service.nom}"
+                                th:selected="${serviceId == service.id}">Service</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Statut</label>
+                    <select name="statut">
+                        <option value="">Tous les statuts</option>
+                        <option value="SIGNALE" th:selected="${statut == 'SIGNALE'}">Signalé</option>
+                        <option value="PRIS_EN_CHARGE" th:selected="${statut == 'PRIS_EN_CHARGE'}">Pris en charge</option>
+                        <option value="EN_RESOLUTION" th:selected="${statut == 'EN_RESOLUTION'}">En résolution</option>
+                        <option value="RESOLU" th:selected="${statut == 'RESOLU'}">Résolu</option>
+                        <option value="CLOTURE" th:selected="${statut == 'CLOTURE'}">Clôturé</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Date début</label>
+                    <input type="date" name="dateDebut" th:value="${dateDebut}">
+                </div>
+                <div class="filter-group">
+                    <label>Date fin</label>
+                    <input type="date" name="dateFin" th:value="${dateFin}">
+                </div>
+                <div class="filter-group">
+                    <button type="submit" class="filter-btn">Filtrer</button>
+                </div>
+            </div>
         </form>
     </div>
 
-    <!-- Cartes Statistiques -->
-    <div class="stats-grid">
-        <div class="stat-card">
-            <h3>Total Incidents</h3>
-            <div class="value" th:text="${totalIncidents}">0</div>
-        </div>
-        <div class="stat-card">
-            <h3>Incidents Résolus</h3>
-            <div class="value" th:text="${incidentsResolus}">0</div>
-        </div>
-        <div class="stat-card">
-            <h3>Incidents en Cours</h3>
-            <div class="value" th:text="${incidentsEnCours}">0</div>
-        </div>
-        <div class="stat-card">
-            <h3>Délai Moyen (jours)</h3>
-            <div class="value" th:text="${#numbers.formatDecimal(delaiMoyenResolution, 1, 1)}">0</div>
+    <!-- Actions -->
+    <div class="actions">
+        <h3>⚡ Actions rapides</h3>
+        <div class="action-buttons">
+            <a th:href="@{/admin/dashboard/rapport}" class="action-btn btn-primary">
+                📈 Voir les Rapports Analytiques
+            </a>
+            <a th:href="@{/admin/agents}" class="action-btn btn-success">
+                👥 Gérer les Agents
+            </a>
+            <a th:href="@{/admin/incidents/signales}" class="action-btn btn-warning">
+                🔔 Incidents Non Assignés (<span th:text="${incidentsNonAssignes}">0</span>)
+            </a>
         </div>
     </div>
 
-    <!-- Graphiques -->
-    <div class="charts-grid">
-        <!-- Graphique 1 : Incidents par Service -->
-        <div class="chart-container">
-            <h2>Incidents par Service</h2>
-            <div class="chart-wrapper">
-                <canvas id="chartService"></canvas>
-            </div>
-        </div>
-
-        <!-- Graphique 2 : Incidents par Quartier -->
-        <div class="chart-container">
-            <h2>Incidents par Quartier</h2>
-            <div class="chart-wrapper">
-                <canvas id="chartQuartier"></canvas>
-            </div>
-        </div>
-
-        <!-- Graphique 3 : Délai Moyen de Résolution -->
-        <div class="chart-container">
-            <h2>Délai Moyen de Résolution par Service</h2>
-            <div class="chart-wrapper">
-                <canvas id="chartDelai"></canvas>
-            </div>
-        </div>
-
-        <!-- Graphique 4 : Incidents par Statut -->
-        <div class="chart-container">
-            <h2>Répartition par Statut</h2>
-            <div class="chart-wrapper">
-                <canvas id="chartStatut"></canvas>
-            </div>
-        </div>
-
-        <!-- Graphique 5 : Évolution Mensuelle -->
-        <div class="chart-container" style="grid-column: 1 / -1;">
-            <h2>Évolution Mensuelle des Incidents</h2>
-            <div class="chart-wrapper" style="height: 400px;">
-                <canvas id="chartMois"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- Boutons d'Export -->
-    <div class="export-buttons">
-        <a th:href="@{/admin/dashboard/export/csv(dateDebut=${dateDebut != null ? #temporals.format(dateDebut, 'yyyy-MM-dd') : ''}, dateFin=${dateFin != null ? #temporals.format(dateFin, 'yyyy-MM-dd') : ''})}"
-           class="btn-export btn-csv">
-            📥 Exporter en CSV
-        </a>
-        <a th:href="@{/admin/dashboard/export/pdf(dateDebut=${dateDebut != null ? #temporals.format(dateDebut, 'yyyy-MM-dd') : ''}, dateFin=${dateFin != null ? #temporals.format(dateFin, 'yyyy-MM-dd') : ''})}"
-           class="btn-export btn-pdf">
-            📥 Exporter en PDF
-        </a>
-    </div>
+    <!-- Incidents Table (Fragment) -->
+    <div th:replace="~{fragments/incidents-table :: incidentsTable(${incidents}, true, ${totalPages}, ${currentPage}, '/admin/dashboard')}"></div>
 </div>
 
-<script>
-    // ==================== CONFIGURATION DES DONNÉES ====================
+<!-- Modal d'assignation (Fragment) -->
+<div th:replace="~{fragments/incidents-table :: assignModal(${services}, ${priorites})}"></div>
 
-    // Données injectées depuis Thymeleaf
-    const incidentsParService = /*[[${incidentsParService}]]*/ [];
-    const incidentsParQuartier = /*[[${incidentsParQuartier}]]*/ [];
-    const delaiResolution = /*[[${delaiResolutionParService}]]*/ [];
-    const incidentsParStatut = /*[[${incidentsParStatut}]]*/ {};
-    const incidentsParMois = /*[[${incidentsParMois}]]*/ {};
+<!-- Scripts (Fragment) -->
+<script th:replace="~{fragments/incidents-table :: incidentsScripts}"></script>
 
-    // ==================== GRAPHIQUE 1 : INCIDENTS PAR SERVICE ====================
-    const ctxService = document.getElementById('chartService').getContext('2d');
-    new Chart(ctxService, {
-        type: 'bar',
-        data: {
-            labels: incidentsParService.map(item => item.nomService),
-            datasets: [{
-                label: 'Nombre d\'incidents',
-                data: incidentsParService.map(item => item.nombre),
-                backgroundColor: 'rgba(102, 126, 234, 0.8)',
-                borderColor: 'rgba(102, 126, 234, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false }
-            },
-            scales: {
-                y: { beginAtZero: true }
-            }
-        }
-    });
-
-    // ==================== GRAPHIQUE 2 : INCIDENTS PAR QUARTIER ====================
-    const ctxQuartier = document.getElementById('chartQuartier').getContext('2d');
-    new Chart(ctxQuartier, {
-        type: 'bar',
-        data: {
-            labels: incidentsParQuartier.map(item => item.nomQuartier),
-            datasets: [{
-                label: 'Nombre d\'incidents',
-                data: incidentsParQuartier.map(item => item.nombre),
-                backgroundColor: 'rgba(16, 185, 129, 0.8)',
-                borderColor: 'rgba(16, 185, 129, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false }
-            },
-            scales: {
-                y: { beginAtZero: true }
-            }
-        }
-    });
-
-    // ==================== GRAPHIQUE 3 : DÉLAI MOYEN DE RÉSOLUTION ====================
-    const ctxDelai = document.getElementById('chartDelai').getContext('2d');
-    new Chart(ctxDelai, {
-        type: 'line',
-        data: {
-            labels: delaiResolution.map(item => item.nomService),
-            datasets: [{
-                label: 'Délai moyen (jours)',
-                data: delaiResolution.map(item => item.delaiMoyen),
-                borderColor: 'rgba(239, 68, 68, 1)',
-                backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                borderWidth: 2,
-                fill: true,
-                tension: 0.4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: true }
-            },
-            scales: {
-                y: { beginAtZero: true }
-            }
-        }
-    });
-
-    // ==================== GRAPHIQUE 4 : INCIDENTS PAR STATUT (CAMEMBERT) ====================
-    const ctxStatut = document.getElementById('chartStatut').getContext('2d');
-    new Chart(ctxStatut, {
-        type: 'pie',
-        data: {
-            labels: Object.keys(incidentsParStatut),
-            datasets: [{
-                data: Object.values(incidentsParStatut),
-                backgroundColor: [
-                    'rgba(239, 68, 68, 0.8)',
-                    'rgba(245, 158, 11, 0.8)',
-                    'rgba(59, 130, 246, 0.8)',
-                    'rgba(16, 185, 129, 0.8)',
-                    'rgba(139, 92, 246, 0.8)'
-                ]
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom'
-                }
-            }
-        }
-    });
-
-    // ==================== GRAPHIQUE 5 : ÉVOLUTION MENSUELLE ====================
-    const ctxMois = document.getElementById('chartMois').getContext('2d');
-    const moisLabels = Object.keys(incidentsParMois).sort();
-    new Chart(ctxMois, {
-        type: 'line',
-        data: {
-            labels: moisLabels,
-            datasets: [{
-                label: 'Nombre d\'incidents',
-                data: moisLabels.map(mois => incidentsParMois[mois]),
-                borderColor: 'rgba(102, 126, 234, 1)',
-                backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                borderWidth: 2,
-                fill: true,
-                tension: 0.4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: true }
-            },
-            scales: {
-                y: { beginAtZero: true }
-            }
-        }
-    });
-</script>
 </body>
 </html>
-

@@ -1,5 +1,6 @@
 package com.ville.gestionincidents.repository;
 
+import com.ville.gestionincidents.entity.Departement;
 import com.ville.gestionincidents.entity.Utilisateur;
 import org.springframework.data.jpa.repository.JpaRepository;
 import com.ville.gestionincidents.enumeration.Role;
@@ -27,4 +28,8 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur, Long> 
      * Vérifie si un email existe déjà
      */
     boolean existsByEmail(String email);
+
+    List<Utilisateur> findByServiceMunicipalIdAndRole(Long serviceId, Role role);
+
+    long countByDepartementAndRole(Departement departement, Role role);
 }
