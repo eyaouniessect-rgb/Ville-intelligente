@@ -27,4 +27,9 @@ public interface EmailService {
      *  Envoie une notification après réinitialisation du mot de passe par admin
      */
     void sendPasswordResetNotification(String to);
+
+    // === Nouvelle méthode générique ===
+    void sendSimpleEmail(String to, String subject, String message);
 }
+
+
