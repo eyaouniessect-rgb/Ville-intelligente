@@ -101,19 +101,19 @@ public class CitoyenController {
     @GetMapping("/incidents/{id}")
     public String incidentDetails(@PathVariable Long id,
                                   Model model,
-                                  @AuthenticationPrincipal UserDetails userDetails) {
+                                  Authentication authentication) {
+        String email = authHelper.getEmailOrThrow(authentication);
+        Utilisateur utilisateur = utilisateurService.findByEmail(email);
 
-        Incident inc = incidentService.findByIdAndCheckOwner(id, userDetails.getUsername());
+        Incident inc = incidentService.findByIdAndCheckOwner(id, email);
 
         model.addAttribute("incident", inc);
-
+        // ✅ Ajouter l'utilisateur au modèle (pour le header)
+        model.addAttribute("utilisateur", utilisateur);
         return "citoyen/incident-details";
     }
 
 
-    // -------------------------
-    // Notifications
-    // -------------------------
 
 
 

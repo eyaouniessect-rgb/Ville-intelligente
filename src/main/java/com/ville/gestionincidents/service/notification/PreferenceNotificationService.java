@@ -1,28 +1,27 @@
 package com.ville.gestionincidents.service.notification;
 
-import com.ville.gestionincidents.entity.PreferenceNotification;
-import com.ville.gestionincidents.entity.Utilisateur;
+import com.ville.gestionincidents.dto.notification.PreferenceNotificationDTO;
 
 /**
  * Interface métier des préférences de notification
- * Elle définit CE QU’ON PEUT FAIRE, pas COMMENT
+ * Elle définit CE QU'ON PEUT FAIRE, pas COMMENT
  */
 public interface PreferenceNotificationService {
 
     /**
-     * Récupérer les préférences d’un utilisateur
+     * Récupérer les préférences d'un utilisateur par son ID
      * (peut retourner null)
      */
-    PreferenceNotification getByUtilisateur(Utilisateur utilisateur);
+    PreferenceNotificationDTO getByUtilisateurId(Long utilisateurId);
 
     /**
      * Récupérer les préférences OU les créer automatiquement
-     * si elles n’existent pas encore
+     * si elles n'existent pas encore
      */
-    PreferenceNotification getOrCreate(Utilisateur utilisateur);
+    PreferenceNotificationDTO getOrCreate(Long utilisateurId);
 
     /**
-     * Mettre à jour les préférences de l’utilisateur
+     * Mettre à jour les préférences de l'utilisateur
      */
-    void updatePreferences(PreferenceNotification preferences);
+    PreferenceNotificationDTO updatePreferences(PreferenceNotificationDTO preferences);
 }
