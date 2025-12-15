@@ -1,7 +1,7 @@
 package com.ville.gestionincidents.service.serviceMunicipal;
 
-import com.ville.gestionincidents.entity.ServiceMunicipal;
 import com.ville.gestionincidents.entity.Departement;
+import com.ville.gestionincidents.entity.ServiceMunicipal;
 import com.ville.gestionincidents.repository.DepartementRepository;
 import com.ville.gestionincidents.repository.ServiceMunicipalRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,85 +12,88 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class ServiceMunicipalServiceImpl implements ServiceMunicipalService{
-        private final ServiceMunicipalRepository serviceMunicipalRepository;
-        private final DepartementRepository departementRepository;
+public class ServiceMunicipalServiceImpl implements ServiceMunicipalService {
 
-        @Override
-        @Transactional
-        public ServiceMunicipal addServiceToDepartement(Long departementId, ServiceMunicipal service) {
+    private final ServiceMunicipalRepository serviceMunicipalRepository;
+    private final DepartementRepository departementRepository;
 
-            Departement departement = departementRepository.findById(departementId)
-                    .orElseThrow(() -> new RuntimeException("Département introuvable"));
+    @Override
+    @Transactional
+    public ServiceMunicipal addServiceToDepartement(Long departementId, ServiceMunicipal service) {
 
-            // Vérifier si le service existe déjà dans ce département
-            if (serviceMunicipalRepository.findByNomAndDepartement(service.getNom(), departement).isPresent()) {
-                throw new RuntimeException("Un service avec ce nom existe déjà dans ce département");
-            }
+        Departement departement = departementRepository.findById(departementId)
+                .orElseThrow(() -> new RuntimeException("Département introuvable"));
 
-            service.setDepartement(departement);
-            ServiceMunicipal saved = serviceMunicipalRepository.save(service);
-            return saved;
+        if (serviceMunicipalRepository
+                .findByNomAndDepartement(service.getNom(), departement)
+                .isPresent()) {
+            throw new RuntimeException("Un service avec ce nom existe déjà dans ce département");
         }
 
-        @Override
-        @Transactional
-        public ServiceMunicipal updateService(Long serviceId, ServiceMunicipal service) {
+        service.setDepartement(departement);
+        return serviceMunicipalRepository.save(service);
+    }
 
-            ServiceMunicipal existing = findServiceById(serviceId);
+    @Override
+    @Transactional
+    public ServiceMunicipal updateService(Long serviceId, ServiceMunicipal service) {
 
-            // Vérifier si le nouveau nom existe déjà dans le département
-            if (!existing.getNom().equals(service.getNom()) &&
-                    serviceMunicipalRepository.findByNomAndDepartement(service.getNom(), existing.getDepartement()).isPresent()) {
-                throw new RuntimeException("Un service avec ce nom existe déjà dans ce département");
-            }
+        ServiceMunicipal existing = findServiceById(serviceId);
 
-            existing.setNom(service.getNom());
-            existing.setDescription(service.getDescription());
-
-            ServiceMunicipal updated = serviceMunicipalRepository.save(existing);
-            return updated;
+        if (!existing.getNom().equals(service.getNom()) &&
+                serviceMunicipalRepository
+                        .findByNomAndDepartement(service.getNom(), existing.getDepartement())
+                        .isPresent()) {
+            throw new RuntimeException("Un service avec ce nom existe déjà dans ce département");
         }
 
-        @Override
-        @Transactional
-        public void deleteService(Long serviceId) {
+        existing.setNom(service.getNom());
+        existing.setDescription(service.getDescription());
 
-            ServiceMunicipal service = findServiceById(serviceId);
+        return serviceMunicipalRepository.save(existing);
+    }
 
-            // Vérifier s'il y a des incidents associés
-            if (!service.getIncidents().isEmpty()) {
-                throw new RuntimeException("Impossible de supprimer ce service. Il contient " + service.getIncidents().size() + " incident(s).");
-            }
+    @Override
+    @Transactional
+    public void deleteService(Long serviceId) {
 
-            serviceMunicipalRepository.deleteById(serviceId);
+        ServiceMunicipal service = findServiceById(serviceId);
+
+        if (!service.getIncidents().isEmpty()) {
+            throw new RuntimeException(
+                    "Impossible de supprimer ce service. Il contient "
+                            + service.getIncidents().size() + " incident(s).");
         }
 
-        @Override
-        public ServiceMunicipal findServiceById(Long serviceId) {
-            return serviceMunicipalRepository.findById(serviceId)
-                    .orElseThrow(() -> new RuntimeException("Service introuvable avec l'ID : " + serviceId));
-        }
+        serviceMunicipalRepository.delete(service);
+    }
 
-        @Override
-        public List<ServiceMunicipal> findServicesByDepartement(Long departementId) {
-            Departement departement = departementRepository.findById(departementId)
-                    .orElseThrow(() -> new RuntimeException("Département introuvable"));
-            return serviceMunicipalRepository.findByDepartement(departement);
-        }
+    @Override
+    public ServiceMunicipal findServiceById(Long serviceId) {
+        return serviceMunicipalRepository.findById(serviceId)
+                .orElseThrow(() ->
+                        new RuntimeException("Service introuvable avec l'ID : " + serviceId));
+    }
 
-        @Override
-        public List<ServiceMunicipal> findAllServices() {
-            return serviceMunicipalRepository.findAll();
-        }
+    @Override
+    public List<ServiceMunicipal> findServicesByDepartement(Long departementId) {
+        Departement departement = departementRepository.findById(departementId)
+                .orElseThrow(() -> new RuntimeException("Département introuvable"));
+        return serviceMunicipalRepository.findByDepartement(departement);
+    }
 
-        // ==================== STATISTIQUES ====================
+    @Override
+    public List<ServiceMunicipal> findByDepartement(Departement departement) {
+        return serviceMunicipalRepository.findByDepartement(departement);
+    }
 
+    @Override
+    public List<ServiceMunicipal> findAllServices() {
+        return serviceMunicipalRepository.findAll();
+    }
 
-
-        @Override
-        public long countServices() {
-            return serviceMunicipalRepository.count();
-        }
-
+    @Override
+    public long countServices() {
+        return serviceMunicipalRepository.count();
+    }
 }

@@ -3,6 +3,7 @@ package com.ville.gestionincidents.service.dashboardAdmin;
 import com.ville.gestionincidents.dto.dashboardAdmin.DelaiResolutionDto;
 import com.ville.gestionincidents.dto.dashboardAdmin.IncidentParQuartierDto;
 import com.ville.gestionincidents.dto.dashboardAdmin.IncidentParServiceDto;
+import com.ville.gestionincidents.entity.Departement;
 
 import java.io.OutputStream;
 import java.io.Writer;
@@ -13,17 +14,17 @@ import java.util.Map;
 public interface DashboardService {
 
     // ==================== COMPTEURS ====================
-    long countTotalIncidents(LocalDate dateDebut, LocalDate dateFin);
-    long countIncidentsResolus(LocalDate dateDebut, LocalDate dateFin);
-    long countIncidentsEnCours(LocalDate dateDebut, LocalDate dateFin);
-    double calculerDelaiMoyenResolution(LocalDate dateDebut, LocalDate dateFin);
+    long countTotalIncidentsByDepartement(Departement departement, LocalDate dateDebut, LocalDate dateFin);
+    long countIncidentsResolusByDepartement(Departement departement, LocalDate dateDebut, LocalDate dateFin);
+    long countIncidentsEnCoursByDepartement(Departement departement, LocalDate dateDebut, LocalDate dateFin);
+    double calculerDelaiMoyenResolutionByDepartement(Departement departement, LocalDate dateDebut, LocalDate dateFin);
 
     // ==================== DONNÉES POUR GRAPHIQUES ====================
-    List<IncidentParServiceDto> getIncidentsParService(LocalDate dateDebut, LocalDate dateFin);
-    List<IncidentParQuartierDto> getIncidentsParQuartier(LocalDate dateDebut, LocalDate dateFin);
-    List<DelaiResolutionDto> getDelaiResolutionParService(LocalDate dateDebut, LocalDate dateFin);
-    Map<String, Long> getIncidentsParStatut(LocalDate dateDebut, LocalDate dateFin);
-    Map<String, Long> getIncidentsParMois(LocalDate dateDebut, LocalDate dateFin);
+    List<IncidentParServiceDto> getIncidentsParServiceByDepartement(Departement departement, LocalDate dateDebut, LocalDate dateFin);
+    List<IncidentParQuartierDto> getIncidentsParQuartierByDepartement(Departement departement, LocalDate dateDebut, LocalDate dateFin);
+    List<DelaiResolutionDto> getDelaiResolutionParServiceByDepartement(Departement departement, LocalDate dateDebut, LocalDate dateFin);
+    Map<String, Long> getIncidentsParStatutByDepartement(Departement departement, LocalDate dateDebut, LocalDate dateFin);
+    Map<String, Long> getIncidentsParMoisByDepartement(Departement departement, LocalDate dateDebut, LocalDate dateFin);
 
     // ==================== EXPORTS ====================
     void exportCsv(LocalDate dateDebut, LocalDate dateFin, Writer writer) throws Exception;
