@@ -138,6 +138,47 @@
             box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
         }
 
+        /* ===== DEBUG PANEL ===== */
+        .debug-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-width: 400px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 10001;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .debug-panel h4 {
+            color: #fff;
+            margin: 0 0 10px 0;
+            border-bottom: 1px solid #00ff00;
+            padding-bottom: 5px;
+        }
+
+        .debug-log {
+            margin: 5px 0;
+        }
+
+        .debug-error {
+            color: #ff4444;
+        }
+
+        .debug-success {
+            color: #00ff00;
+        }
+
+        .debug-warning {
+            color: #ffaa00;
+        }
+
         /* ===== NOTIFICATION TOAST STYLES ===== */
         .notification-toast {
             position: fixed;
@@ -250,7 +291,7 @@
             to { width: 0%; }
         }
 
-        /* Notification variants - Types métier */
+        /* Notification variants */
         .notification-toast.CREATION_INCIDENT {
             border-left-color: #10b981;
         }
@@ -274,34 +315,6 @@
         .notification-toast.ASSIGNATION .toast-icon {
             color: #8b5cf6;
         }
-
-        /* Fallback pour anciens types (si jamais utilisé) */
-        .notification-toast.info {
-            border-left-color: #3b82f6;
-        }
-
-        .notification-toast.info .toast-icon {
-            color: #3b82f6;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .header-container {
-                padding: 15px 20px;
-                flex-wrap: wrap;
-                gap: 15px;
-            }
-
-            .header-title {
-                font-size: 22px;
-            }
-
-            .notification-toast {
-                min-width: 300px;
-                right: 10px;
-                top: 10px;
-            }
-        }
     </style>
 
     <!-- Header Container -->
@@ -318,7 +331,6 @@
                 Nom Utilisateur
             </span>
 
-            <!-- Notification Icon -->
             <div class="notification-icon-container" onclick="toggleNotifications()" th:if="${utilisateur != null}">
                 <div class="notification-icon">🔔</div>
                 <span class="notification-badge hidden" id="notificationBadge">0</span>
@@ -329,6 +341,8 @@
             </form>
         </div>
     </div>
+
+
 
     <!-- Notification Toast Container -->
     <div id="notificationToast" class="notification-toast CREATION_INCIDENT">
@@ -347,136 +361,86 @@
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
 
-    <script th:if="${utilisateur != null}">
-        let notificationCount = 0;
-        let stompClient = null;
+    <script th:if="${utilisateur != null}" th:inline="javascript">
 
-        // Initialize WebSocket connection
+        let stompClient = null;
+        let notificationCount = 0;
+
+        // 👉 THYMELEAF FONCTIONNE MAINTENANT
+        const userId = [[${utilisateur.id}]];
+
+        function debug(msg) { console.log("WS >> " + msg); }
+
         function initWebSocket() {
+
+            if (!userId) {
+                debug("❌ UTILISATEUR ID NULL → WebSocket ignoré");
+                return;
+            }
+
+            debug("🔌 Connexion WebSocket pour user " + userId);
+
             const socket = new SockJS('/ws-notifications');
             stompClient = Stomp.over(socket);
 
-            stompClient.connect({}, function(frame) {
-                console.log('WebSocket Connected:', frame);
-                let userId = /*[[${utilisateur != null ? utilisateur.id : null}]]*/ null;
-                
-                if (!userId) {
-                    console.warn('User ID not available, skipping WebSocket subscription');
-                    return;
-                }
-                
-                // Subscribe to user-specific notifications
-                stompClient.subscribe('/topic/notifications/' + userId, function(message) {
+            stompClient.connect({}, function () {
+
+                debug("✅ WebSocket CONNECTÉ");
+
+                const topic = "/topic/notifications/" + userId;
+                debug("📡 Souscription : " + topic);
+
+                stompClient.subscribe(topic, function (msg) {
+
+                    debug("📨 MESSAGE REÇU : " + msg.body);
+
+                    let data;
+
                     try {
-                        const notificationData = JSON.parse(message.body);
-                        // Utiliser le type métier (CREATION_INCIDENT, CHANGEMENT_STATUT, ASSIGNATION)
-                        const type = notificationData.type || 'CREATION_INCIDENT';
-                        showNotification(notificationData.message || message.body, type);
-                        updateNotificationBadge();
+                        data = JSON.parse(msg.body);
                     } catch (e) {
-                        // Si ce n'est pas du JSON, afficher comme message simple
-                        showNotification(message.body, 'CREATION_INCIDENT');
-                        updateNotificationBadge();
+                        data = { message: msg.body, type: "CREATION_INCIDENT" };
                     }
+
+                    showNotification(data.message, data.type);
                 });
-            }, function(error) {
-                console.error('WebSocket Connection Error:', error);
-                // Retry connection after 5 seconds
+
+            }, function (error) {
+                debug("❌ Erreur WebSocket : " + error);
                 setTimeout(initWebSocket, 5000);
             });
         }
 
-        // Show notification toast
-        function showNotification(message, type = 'CREATION_INCIDENT') {
-            const toast = document.getElementById('notificationToast');
-            const toastMessage = document.getElementById('toastMessage');
-            const toastIcon = toast.querySelector('.toast-icon');
-            
-            // Remove all type classes (types métier + fallback)
-            toast.classList.remove(
-                'CREATION_INCIDENT', 'CHANGEMENT_STATUT', 'ASSIGNATION',
-                'success', 'error', 'warning', 'info'
-            );
-            // Add the new type class (type métier)
+        function showNotification(message, type) {
+            debug("🔔 Notification : " + message);
+
+            const toast = document.getElementById("notificationToast");
+            const msg = document.getElementById("toastMessage");
+
+            toast.classList.remove("CREATION_INCIDENT", "CHANGEMENT_STATUT", "ASSIGNATION");
             toast.classList.add(type);
 
-            // Set icon and title based on type métier
-            const notificationConfig = {
-                'CREATION_INCIDENT': {
-                    icon: '✅',
-                    title: 'Incident créé'
-                },
-                'CHANGEMENT_STATUT': {
-                    icon: '🔄',
-                    title: 'Changement de statut'
-                },
-                'ASSIGNATION': {
-                    icon: '👤',
-                    title: 'Assignation'
-                }
-            };
+            msg.textContent = message;
 
-            const config = notificationConfig[type] || notificationConfig['CREATION_INCIDENT'];
-            toastIcon.textContent = config.icon;
-            
-            // Mettre à jour le titre si nécessaire
-            const toastTitle = toast.querySelector('.toast-title span:last-child');
-            if (toastTitle) {
-                toastTitle.textContent = config.title;
-            }
+            toast.classList.add("show");
 
-            // Set message
-            toastMessage.textContent = message;
+            notificationCount++;
+            updateNotificationBadge();
 
-            // Show toast with animation
-            toast.classList.remove('show');
-            setTimeout(() => {
-                toast.classList.add('show');
-                notificationCount++;
-                updateNotificationBadge();
-            }, 100);
-
-            // Auto-hide after 5 seconds
-            setTimeout(() => {
-                closeNotification();
-            }, 5000);
+            setTimeout(() => toast.classList.remove("show"), 5000);
         }
 
-        // Close notification
-        function closeNotification() {
-            const toast = document.getElementById('notificationToast');
-            toast.classList.remove('show');
-        }
-
-        // Update notification badge
         function updateNotificationBadge() {
-            const badge = document.getElementById('notificationBadge');
-            if (notificationCount > 0) {
-                badge.textContent = notificationCount > 99 ? '99+' : notificationCount;
-                badge.classList.remove('hidden');
-            } else {
-                badge.classList.add('hidden');
-            }
+            const badge = document.getElementById("notificationBadge");
+            badge.textContent = notificationCount;
+            badge.classList.remove("hidden");
         }
 
-        // Reset notification count (when user clicks on notifications icon)
-        function toggleNotifications() {
-            // Navigate to notifications page or show dropdown
-            window.location.href = '/citoyen/notifications';
-        }
+        document.addEventListener("DOMContentLoaded", initWebSocket);
 
-        // Initialize WebSocket when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            initWebSocket();
-        });
-
-        // Cleanup on page unload
-        window.addEventListener('beforeunload', function() {
-            if (stompClient) {
-                stompClient.disconnect();
-            }
-        });
     </script>
+
+
 
 </div>
 
