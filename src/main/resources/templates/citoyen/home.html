@@ -298,23 +298,16 @@
 </head>
 
 <body>
-<div class="container">
 
-    <!-- HEADER -->
-    <div class="header">
-        <div class="header-left">
-            <h1>👤 Dashboard Citoyen</h1>
-        </div>
-        <div class="header-right">
-            <div class="user-badge">
-                <span th:text="${utilisateur.email}">user@email.com</span>
-                <span th:text="${nomComplet}">Nom Complet</span>
-            </div>
-            <form th:action="@{/logout}" method="post" style="display:inline;">
-                <button class="logout-btn">👋 🚪 Déconnexion</button>
-            </form>
-        </div>
-    </div>
+
+
+<div class="container">
+    <div th:replace="fragments/header_citoyen :: citoyen-header"></div>
+
+
+
+
+
 
     <!-- STATISTIQUES -->
     <div class="stats-grid">
