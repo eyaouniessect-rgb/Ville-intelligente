@@ -152,10 +152,7 @@
 <div class="container">
 
     <!-- HEADER -->
-    <div class="header">
-        <h1>👤 Mon Profil</h1>
-        <a th:href="@{/citoyen/home}" class="back-btn">← Retour Dashboard</a>
-    </div>
+    <div th:replace="fragments/header_citoyen :: citoyen-header"></div>
 
     <div class="profile-grid">
 
@@ -188,7 +185,7 @@
         <div class="card">
             <h2>Modifier mes informations</h2>
 
-            <form th:object="${utilisateur}"
+            <form th:object="${utilisateurForm}"
                   th:action="@{/citoyen/profil}"
                   method="post">
 
@@ -218,7 +215,7 @@
     <!-- ACTIONS -->
     <div class="actions">
         <a th:href="@{/citoyen/incidents}">📋 Mes incidents</a>
-        <a th:href="@{/citoyen/change-password}" class="action-btn">
+        <a th:href="@{/citoyen/change-password}" class="secondary">
             🔑 Changer mot de passe
         </a>
     </div>

@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import com.ville.gestionincidents.entity.PreferenceNotification;
 import com.ville.gestionincidents.service.email.EmailService;
+import com.ville.gestionincidents.service.notification.WebSocketNotificationService;
 
 
 
@@ -25,6 +26,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final UtilisateurRepository utilisateurRepository;
     private final PreferenceNotificationRepository preferenceNotificationRepository;
     private final EmailService emailService;
+    private final WebSocketNotificationService webSocketNotificationService;
 
 
     @Override
@@ -78,9 +80,25 @@ public class NotificationServiceImpl implements NotificationService {
             }
         }
 
-        // 🔹 4) Envoi push si activé (plus tard)
+        // 🔹 4) Envoi push si activé
         if (pref.isPushActif()) {
-            // websocketService.sendNotification(utilisateur, message);
+            // Envoyer selon le type de notification métier (CREATION_INCIDENT, CHANGEMENT_STATUT, ASSIGNATION)
+            switch (type) {
+                case CREATION_INCIDENT:
+                    // Toujours envoyer pour création d'incident si push est actif
+                    webSocketNotificationService.sendNotification(utilisateur.getId(), message, type);
+                    break;
+                case CHANGEMENT_STATUT:
+                    // Envoyer seulement si l'utilisateur a activé les notifications de changement de statut
+                    if (pref.isEmailChangementStatut()) {
+                        webSocketNotificationService.sendNotification(utilisateur.getId(), message, type);
+                    }
+                    break;
+                case ASSIGNATION:
+                    // Envoyer pour assignation si push est actif
+                    webSocketNotificationService.sendNotification(utilisateur.getId(), message, type);
+                    break;
+            }
         }
     }
 

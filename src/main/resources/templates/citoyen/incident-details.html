@@ -314,21 +314,7 @@
 <body>
 
 <!-- ===== HEADER ===== -->
-<div class="header">
-    <h1>📌 Détails de l'incident</h1>
-
-    <div class="user-info">
-        <span class="user-badge" th:text="${utilisateur.email}"></span>
-
-        <a th:href="@{/citoyen/incidents}" class="btn back-btn">
-            ⬅️ Retour
-        </a>
-
-        <form th:action="@{/logout}" method="post" style="margin:0;">
-            <button class="btn logout-btn">🚪 Déconnexion</button>
-        </form>
-    </div>
-</div>
+<div th:replace="fragments/header_citoyen :: citoyen-header"></div>
 
 <!-- ===== CONTENT ===== -->
 <div class="card">

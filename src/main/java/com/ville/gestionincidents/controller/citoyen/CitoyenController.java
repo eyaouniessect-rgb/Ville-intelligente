@@ -135,7 +135,9 @@ public class CitoyenController {
     @GetMapping("/profil")
     public String profil(Model model, Authentication authentication) {
 
-        String email = authHelper.getEmailOrThrow(authentication);
+        Utilisateur utilisateur = currentUserService.getCurrentUser();
+        String email = utilisateur.getEmail();
+        
         CitoyenProfilDto profil = utilisateurService.getProfilCitoyen(email);
 
         CitoyenUpdateProfilDto form = new CitoyenUpdateProfilDto();
@@ -146,7 +148,8 @@ public class CitoyenController {
         form.setAdresse(profil.getAdresse());
 
         model.addAttribute("profil", profil);
-        model.addAttribute("utilisateur", form);
+        model.addAttribute("utilisateur", utilisateur); // Entité Utilisateur pour le header
+        model.addAttribute("utilisateurForm", form); // DTO pour le formulaire
 
         return "citoyen/profil_citoyen";
     }
