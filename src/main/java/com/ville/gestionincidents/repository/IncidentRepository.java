@@ -2,6 +2,7 @@ package com.ville.gestionincidents.repository;
 
 import com.ville.gestionincidents.entity.Incident;
 import com.ville.gestionincidents.entity.Utilisateur;
+import com.ville.gestionincidents.entity.Quartier;
 import com.ville.gestionincidents.enumeration.StatutIncident;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -27,5 +28,7 @@ public interface IncidentRepository extends JpaRepository<Incident, Long> {
 
     //recuperre les incidents par statut qui correspond a un citoyen donne
     List<Incident> findByCitoyenIdAndStatut(Long citoyenId, StatutIncident statut);
+
+    long countByQuartier(com.ville.gestionincidents.entity.Quartier quartier);
 
 }
