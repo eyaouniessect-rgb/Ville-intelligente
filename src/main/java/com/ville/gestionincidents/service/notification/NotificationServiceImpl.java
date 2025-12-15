@@ -122,9 +122,7 @@ public class NotificationServiceImpl implements NotificationService {
                     break;
 
                 case CHANGEMENT_STATUT:
-                    // ✅ CORRECTION: Vérifier la préférence push pour changement de statut
-                    // Si vous avez un champ spécifique pour push changement statut, utilisez-le
-                    // Sinon, utilisez la même préférence que l'email
+
                     shouldSend = pref.isEmailChangementStatut();
                     break;
 
