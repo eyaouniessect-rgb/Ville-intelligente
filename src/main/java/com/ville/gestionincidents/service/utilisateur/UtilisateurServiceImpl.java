@@ -197,43 +197,32 @@ public class UtilisateurServiceImpl implements UtilisateurService {
         return savedUser;
     }
 
-    // ==================== MODIFICATION PAR SUPERADMIN ( REFACTORISÉ AVEC DTO) ====================
+    // ==================== MODIFICATION PAR SUPERADMIN  ====================
 
     @Override
     @Transactional
     public Utilisateur updateUserByAdmin(Long id, UpdateUtilisateurByAdminDto dto) {
-        System.out.println("✏️ Modification d'utilisateur #" + id);
 
         // 1. Récupérer l'utilisateur existant
         Utilisateur existingUser = findById(id);
 
         // 2. Empêcher la modification d'un SUPERADMIN
         if (existingUser.getRole() == Role.SUPERADMIN) {
-            System.out.println("❌ Tentative de modification d'un SUPERADMIN refusée");
             throw new RuntimeException("Impossible de modifier un SUPERADMIN");
-        }
-
-        // 3. Empêcher de promouvoir quelqu'un en SUPERADMIN
-        if (dto.getRole() == Role.SUPERADMIN) {
-            System.out.println("❌ Tentative de promotion en SUPERADMIN refusée");
-            throw new RuntimeException("Impossible de promouvoir un utilisateur en SUPERADMIN");
         }
 
         // 4. Vérifier si l'email a changé et s'il est disponible
         if (!existingUser.getEmail().equals(dto.getEmail())) {
             if (utilisateurRepository.findByEmail(dto.getEmail()).isPresent()) {
-                System.out.println("❌ Le nouvel email est déjà utilisé");
                 throw new RuntimeException("Cet email est déjà utilisé");
             }
         }
 
-        // 5. ✅ Mettre à jour l'entité via le MAPPER
         // Le mapper s'occupe de copier tous les champs du DTO vers l'entité
         utilisateurMapper.updateEntityFromDto(existingUser, dto);
 
         // 6. Sauvegarder les modifications
         Utilisateur updated = utilisateurRepository.save(existingUser);
-        System.out.println("✅ Utilisateur modifié avec succès");
         return updated;
     }
 

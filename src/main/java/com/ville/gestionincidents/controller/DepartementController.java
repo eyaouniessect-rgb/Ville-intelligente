@@ -104,8 +104,12 @@ public class DepartementController {
     public String editDepartement(@PathVariable Long id,
                                   @Valid @ModelAttribute Departement departement,
                                   BindingResult result,
+                                  Model model,
                                   RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
+            // Réinjecter le département avec l'ID pour éviter les erreurs
+            departement.setId(id);
+            model.addAttribute("departement", departement);
             return "superadmin/departements/edit";
         }
 
@@ -199,8 +203,20 @@ public class DepartementController {
     public String editService(@PathVariable Long serviceId,
                               @Valid @ModelAttribute ServiceMunicipal service,
                               BindingResult result,
+                              Model model,
                               RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
+            // Réinjecter le service et le département pour éviter les erreurs
+            try {
+                ServiceMunicipal existing = serviceMunicipalService.findServiceById(serviceId);
+                service.setId(serviceId);
+                service.setDepartement(existing.getDepartement());
+                model.addAttribute("service", service);
+                model.addAttribute("departement", existing.getDepartement());
+            } catch (Exception e) {
+                redirectAttributes.addFlashAttribute("error", "Service introuvable");
+                return "redirect:/superadmin/departements";
+            }
             return "superadmin/departements/edit-service";
         }
 

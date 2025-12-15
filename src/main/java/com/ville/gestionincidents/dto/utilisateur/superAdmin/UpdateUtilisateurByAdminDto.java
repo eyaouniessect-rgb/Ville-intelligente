@@ -30,13 +30,6 @@ public class UpdateUtilisateurByAdminDto {
     @Email(message = "Format d'email invalide")
     private String email;
 
-    /**
-     * Le rôle peut être modifié par le SuperAdmin
-     * IMPORTANT : La validation du rôle (pas SUPERADMIN) se fait dans le service
-     */
-    @NotNull(message = "Le rôle est obligatoire")
-    private Role role;
-
     // ==================== CHAMPS OPTIONNELS ====================
 
     /**

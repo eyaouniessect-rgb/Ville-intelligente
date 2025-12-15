@@ -1,10 +1,8 @@
 package com.ville.gestionincidents.service.departement;
 
 import com.ville.gestionincidents.entity.Departement;
-import com.ville.gestionincidents.entity.ServiceMunicipal;
 import com.ville.gestionincidents.repository.DepartementRepository;
 import com.ville.gestionincidents.repository.ServiceMunicipalRepository;
-import com.ville.gestionincidents.service.serviceMunicipal.ServiceMunicipalServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,6 +45,8 @@ public class DepartementServiceImpl implements DepartementService {
 
         existing.setNom(departement.getNom());
         existing.setDescription(departement.getDescription());
+        existing.setEmail(departement.getEmail());
+        existing.setTelephone(departement.getTelephone());
 
         Departement updated = departementRepository.save(existing);
         return updated;

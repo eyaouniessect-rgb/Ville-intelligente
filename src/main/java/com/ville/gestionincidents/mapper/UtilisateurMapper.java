@@ -94,7 +94,6 @@ public class UtilisateurMapper {
         utilisateur.setNom(dto.getNom());
         utilisateur.setPrenom(dto.getPrenom());
         utilisateur.setEmail(dto.getEmail());
-        utilisateur.setRole(dto.getRole());
 
     }
 }

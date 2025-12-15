@@ -131,12 +131,6 @@
         </div>
 
         <div class="form-group">
-            <label for="motDePasse">Mot de passe *</label>
-            <input type="password" id="motDePasse" name="motDePasse" th:field="*{motDePasse}" required>
-            <div class="password-hint">Minimum 12 caractères, avec majuscule, minuscule, chiffre et caractère spécial</div>
-            <div class="error" th:if="${#fields.hasErrors('motDePasse')}" th:errors="*{motDePasse}"></div>
-        </div>
-        <div class="form-group">
             <label for="departementId">Département *</label>
 
             <select id="departementId"
@@ -157,6 +151,27 @@
                  th:errors="*{departementId}">
             </div>
         </div>
+        <div class="form-group">
+            <label for="serviceId">Service Municipal (Optionnel)</label>
+
+            <select id="serviceId"
+                    name="serviceId"
+                    th:field="*{serviceId}"
+                    disabled
+                    style="width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #e5e7eb;">
+
+                <option value="">-- Sélectionnez d'abord un département --</option>
+            </select>
+
+            <div class="error"
+                 th:if="${#fields.hasErrors('serviceId')}"
+                 th:errors="*{serviceId}">
+            </div>
+
+            <small style="color: #6b7280; font-size: 12px; margin-top: 5px; display: block;">
+                💡 Sélectionnez un service du département choisi pour assigner l'agent à ce service.
+            </small>
+        </div>
 
 
         <button type="submit" class="submit-btn">
@@ -165,5 +180,59 @@
     </form>
 </div>
 
+<script>
+    // Attendre que le DOM soit chargé
+    document.addEventListener('DOMContentLoaded', function() {
+        const departementSelect = document.getElementById('departementId');
+        const serviceSelect = document.getElementById('serviceId');
+
+        // Écouter les changements du département
+        departementSelect.addEventListener('change', function() {
+            const departementId = this.value;
+
+            // Réinitialiser le select des services
+            serviceSelect.innerHTML = '<option value="">-- Chargement... --</option>';
+            serviceSelect.disabled = true;
+
+            if (departementId) {
+                // Appel AJAX pour charger les services du département
+                fetch('/superadmin/departements/' + departementId + '/services')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Erreur HTTP: ' + response.status);
+                        }
+                        return response.json();
+                    })
+                    .then(services => {
+                        // Réinitialiser le select
+                        serviceSelect.innerHTML = '<option value="">-- Aucun service (optionnel) --</option>';
+
+                        // Ajouter chaque service
+                        if (services && services.length > 0) {
+                            services.forEach(service => {
+                                const option = document.createElement('option');
+                                option.value = service.id;
+                                option.textContent = service.nom;
+                                serviceSelect.appendChild(option);
+                            });
+                        } else {
+                            serviceSelect.innerHTML = '<option value="">-- Aucun service disponible pour ce département --</option>';
+                        }
+
+                        serviceSelect.disabled = false;
+                    })
+                    .catch(error => {
+                        console.error('Erreur lors du chargement des services:', error);
+                        serviceSelect.innerHTML = '<option value="">-- Erreur de chargement --</option>';
+                        serviceSelect.disabled = false;
+                    });
+            } else {
+                // Aucun département sélectionné
+                serviceSelect.innerHTML = '<option value="">-- Sélectionnez d\'abord un département --</option>';
+                serviceSelect.disabled = true;
+            }
+        });
+    });
+</script>
 </body>
 </html>

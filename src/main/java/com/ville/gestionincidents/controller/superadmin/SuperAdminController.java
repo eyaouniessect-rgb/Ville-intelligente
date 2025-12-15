@@ -3,9 +3,11 @@ package com.ville.gestionincidents.controller.superadmin;
 import com.ville.gestionincidents.dto.utilisateur.superAdmin.CreateUtilisateurByAdminDto;
 import com.ville.gestionincidents.dto.utilisateur.superAdmin.UpdateUtilisateurByAdminDto;
 import com.ville.gestionincidents.entity.Utilisateur;
+import com.ville.gestionincidents.entity.ServiceMunicipal;
 import com.ville.gestionincidents.enumeration.Role;
 import com.ville.gestionincidents.security.CurrentUserService;
 import com.ville.gestionincidents.service.departement.DepartementService;
+import com.ville.gestionincidents.service.serviceMunicipal.ServiceMunicipalService;
 import com.ville.gestionincidents.service.utilisateur.UtilisateurService;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +17,9 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
+import com.ville.gestionincidents.dto.service.ServiceMunicipalDto;
 import java.util.List;
+
 
 
 @Controller
@@ -29,8 +32,9 @@ public class SuperAdminController {
     @Autowired
     private DepartementService departementService;
     @Autowired
-    private CurrentUserService currentUserService;
+    private ServiceMunicipalService serviceMunicipalService;
 
+    private CurrentUserService currentUserService;
 
     // ==================== DASHBOARD ====================
 
@@ -117,7 +121,7 @@ public class SuperAdminController {
     }
 
 
-    // ==================== CRÉER UN AGENT ) ====================
+    // ==================== CRÉER UN AGENT ====================
 
     @GetMapping("/create-agent")
     public String createAgentForm(Model model) {
@@ -132,8 +136,9 @@ public class SuperAdminController {
     @PostMapping("/create-agent")
     public String createAgent(@Valid @ModelAttribute("utilisateur") CreateUtilisateurByAdminDto dto,
                               BindingResult result,
-                              RedirectAttributes redirectAttributes) {
+                              RedirectAttributes redirectAttributes,Model model) {
         if (result.hasErrors()) {
+            model.addAttribute("departements", departementService.findAll());
             return "superadmin/users/create-agent";
         }
 
@@ -152,11 +157,25 @@ public class SuperAdminController {
         }
     }
 
+    @GetMapping("/departements/{departementId}/services")
+    @ResponseBody
+    public List<ServiceMunicipalDto> getServicesByDepartement(@PathVariable Long departementId) {
+        List<ServiceMunicipal> services = serviceMunicipalService.findServicesByDepartement(departementId);
+
+        // Convertir en DTO pour éviter les références circulaires
+        return services.stream()
+                .map(service -> new ServiceMunicipalDto(
+                        service.getId(),
+                        service.getNom(),
+                        service.getDescription(),
+                        service.getDepartement().getId(),
+                        service.getDepartement().getNom()
+                ))
+                .collect(java.util.stream.Collectors.toList());
+    }
+
     // ==================== VOIR DÉTAILS D'UN UTILISATEUR ====================
 
-    /**
-     * Affiche les détails complets d'un utilisateur
-     */
     @GetMapping("/users/{id}")
     public String viewUser(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
         try {
@@ -169,12 +188,8 @@ public class SuperAdminController {
         }
     }
 
-    // ==================== MODIFIER UN UTILISATEUR (REFACTORISÉ) ====================
+    // ==================== MODIFIER UN UTILISATEUR  ====================
 
-    /**
-     * ✅ REFACTORISÉ : Utilise maintenant un DTO
-     * Affiche le formulaire de modification
-     */
     @GetMapping("/users/{id}/edit")
     public String editUserForm(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
         try {
@@ -187,20 +202,13 @@ public class SuperAdminController {
                 return "redirect:/superadmin/users";
             }
 
-            // ✅ Créer un DTO à partir de l'utilisateur existant
             UpdateUtilisateurByAdminDto dto = new UpdateUtilisateurByAdminDto();
             dto.setNom(user.getNom());
             dto.setPrenom(user.getPrenom());
             dto.setEmail(user.getEmail());
-            dto.setRole(user.getRole());
-            // Ajoutez les autres champs si disponibles
-            // dto.setTelephone(user.getTelephone());
-            // dto.setAdresse(user.getAdresse());
-            // dto.setDepartement(user.getDepartement());
 
             model.addAttribute("utilisateur", dto);
             model.addAttribute("userId", id); // Pour le formulaire
-            model.addAttribute("roles", new Role[]{Role.AGENT, Role.ADMIN}); // Pas de SUPERADMIN
             return "superadmin/users/edit-user";
 
         } catch (Exception e) {
@@ -209,10 +217,6 @@ public class SuperAdminController {
         }
     }
 
-    /**
-     * ✅ REFACTORISÉ : Utilise maintenant un DTO avec validation
-     * Traite la soumission du formulaire de modification
-     */
     @PostMapping("/users/{id}/edit")
     public String editUser(@PathVariable Long id,
                            @Valid @ModelAttribute("utilisateur") UpdateUtilisateurByAdminDto dto,
@@ -222,7 +226,6 @@ public class SuperAdminController {
         if (result.hasErrors()) {
             // En cas d'erreur, conserver l'ID pour le formulaire
             model.addAttribute("userId", id);
-            model.addAttribute("roles", new Role[]{Role.AGENT, Role.ADMIN});
             return "superadmin/users/edit-user";
         }
 
@@ -243,9 +246,6 @@ public class SuperAdminController {
 
     // ==================== ACTIVER/DÉSACTIVER UN UTILISATEUR ====================
 
-    /**
-     * Active ou désactive un utilisateur
-     */
     @PostMapping("/users/{id}/toggle-status")
     public String toggleUserStatus(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
@@ -260,7 +260,7 @@ public class SuperAdminController {
 
             utilisateurService.toggleUserStatus(id);
 
-            String status = user.isEmailVerifie() ? "désactivé" : "activé";
+            String status = user.isEmailVerifie() ? "activé" : "désactivé";
             redirectAttributes.addFlashAttribute("success",
                     "Utilisateur " + status + " avec succès");
 
@@ -274,9 +274,6 @@ public class SuperAdminController {
 
     // ==================== SUPPRIMER UN UTILISATEUR ====================
 
-    /**
-     * Supprime définitivement un utilisateur
-     */
     @PostMapping("/users/{id}/delete")
     public String deleteUser(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
@@ -303,10 +300,6 @@ public class SuperAdminController {
 
     // ==================== RÉINITIALISER LE MOT DE PASSE ====================
 
-    /**
-     * Réinitialise le mot de passe d'un utilisateur
-     * ⚠️ Le nouveau mot de passe doit respecter les critères de sécurité
-     */
     @PostMapping("/users/{id}/reset-password")
     public String resetPassword(@PathVariable Long id,
                                 @RequestParam String newPassword,
