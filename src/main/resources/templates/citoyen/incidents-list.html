@@ -350,17 +350,7 @@
 <body>
 
 <!-- ===== HEADER ===== -->
-<div class="header">
-    <h1>📋 Mes Incidents</h1>
-
-    <div class="user-info">
-        <span class="user-badge" th:text="${utilisateur.email}"></span>
-        <a th:href="@{/citoyen/home}" class="btn back-btn">🏠 Retour Dashboard</a>
-        <form th:action="@{/logout}" method="post" style="margin:0;">
-            <button class="btn logout-btn">🚪 Déconnexion</button>
-        </form>
-    </div>
-</div>
+<div th:replace="fragments/header_citoyen :: citoyen-header"></div>
 
 <!-- Barre de filtre -->
 <form method="get" class="filter-bar" style="
@@ -426,25 +416,21 @@
 
             <!-- Image principale -->
             <div class="incident-image">
-                <!-- Si l'incident a des photos -->
-                <div th:if="${!#lists.isEmpty(inc.photos)}">
-                    <!-- Afficher la photo principale -->
-                    <img th:each="photo : ${inc.photos}"
-                         th:if="${photo.principale}"
-                         th:src="@{'/' + ${photo.cheminStockage}}"
+                <div th:if="${inc.photoPrincipale != null}">
+                    <img th:src="@{'/' + ${inc.photoPrincipale}}"
                          th:alt="${inc.categorie}">
 
                     <!-- Badge "Photo principale" -->
                     <span class="image-badge">📸 Photo principale</span>
 
                     <!-- Compteur de photos si > 1 -->
-                    <span class="image-count" th:if="${#lists.size(inc.photos) > 1}">
-                        🖼️ <span th:text="${#lists.size(inc.photos)}"></span> photos
+                    <span class="image-count" th:if="${inc.nombrePhotos > 1}">
+                        🖼️ <span th:text="${inc.nombrePhotos}"></span> photos
                     </span>
                 </div>
 
                 <!-- Si pas de photos -->
-                <div class="no-image" th:unless="${!#lists.isEmpty(inc.photos)}">
+                <div class="no-image" th:if="${inc.photoPrincipale == null}">
                     📷
                 </div>
             </div>

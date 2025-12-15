@@ -5,9 +5,15 @@ import com.ville.gestionincidents.entity.Notification;
 import com.ville.gestionincidents.entity.Utilisateur;
 import com.ville.gestionincidents.enumeration.TypeNotification;
 import com.ville.gestionincidents.repository.NotificationRepository;
+import com.ville.gestionincidents.repository.PreferenceNotificationRepository;
 import com.ville.gestionincidents.repository.UtilisateurRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import com.ville.gestionincidents.entity.PreferenceNotification;
+import com.ville.gestionincidents.service.email.EmailService;
+import com.ville.gestionincidents.service.notification.WebSocketNotificationService;
+
+
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,6 +24,10 @@ public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final UtilisateurRepository utilisateurRepository;
+    private final PreferenceNotificationRepository preferenceNotificationRepository;
+    private final EmailService emailService;
+    private final WebSocketNotificationService webSocketNotificationService;
+
 
     @Override
     public void creerNotification(
@@ -25,12 +35,12 @@ public class NotificationServiceImpl implements NotificationService {
             TypeNotification type,
             String message,
             Incident incident
-    )
-    {
+    ){
         Utilisateur utilisateur = utilisateurRepository
                 .findByEmail(emailUtilisateur)
                 .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
 
+        // 🔹 1) Toujours enregistrer une notification interne
         Notification notification = new Notification();
         notification.setUtilisateur(utilisateur);
         notification.setType(type);
@@ -40,7 +50,58 @@ public class NotificationServiceImpl implements NotificationService {
         notification.setLu(false);
 
         notificationRepository.save(notification);
+
+        // 🔹 2) Charger les préférences utilisateur
+        PreferenceNotification pref =
+                preferenceNotificationRepository.findByUtilisateur(utilisateur);
+
+        if (pref == null) return; // (ne devrait jamais arriver)
+
+        // 🔹 3) Envoi email si activé
+        if (pref.isEmailActif()) {
+            switch (type) {
+                case CREATION_INCIDENT:
+                    emailService.sendSimpleEmail(
+                            utilisateur.getEmail(),
+                            "Incident créé",
+                            message
+                    );
+                    break;
+
+                case CHANGEMENT_STATUT:
+                    if (pref.isEmailChangementStatut()) {
+                        emailService.sendSimpleEmail(
+                                utilisateur.getEmail(),
+                                "Mise à jour de votre incident",
+                                message
+                        );
+                    }
+                    break;
+            }
+        }
+
+        // 🔹 4) Envoi push si activé
+        if (pref.isPushActif()) {
+            // Envoyer selon le type de notification métier (CREATION_INCIDENT, CHANGEMENT_STATUT, ASSIGNATION)
+            switch (type) {
+                case CREATION_INCIDENT:
+                    // Toujours envoyer pour création d'incident si push est actif
+                    webSocketNotificationService.sendNotification(utilisateur.getId(), message, type);
+                    break;
+                case CHANGEMENT_STATUT:
+                    // Envoyer seulement si l'utilisateur a activé les notifications de changement de statut
+                    if (pref.isEmailChangementStatut()) {
+                        webSocketNotificationService.sendNotification(utilisateur.getId(), message, type);
+                    }
+                    break;
+                case ASSIGNATION:
+                    // Envoyer pour assignation si push est actif
+                    webSocketNotificationService.sendNotification(utilisateur.getId(), message, type);
+                    break;
+            }
+        }
     }
+
 
     @Override
     public List<Notification> getNotificationsByEmail(String email) {

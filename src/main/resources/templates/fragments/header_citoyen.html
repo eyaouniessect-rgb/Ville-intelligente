@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+
+<div th:fragment="citoyen-header">
+
+    <style>
+        /* ===== HEADER STYLES ===== */
+        .header-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px 40px;
+            border-radius: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 1000;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-title {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 28px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .header-left a {
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-left a:hover .header-title {
+            opacity: 0.8;
+            transform: scale(1.02);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-name {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .notification-icon-container {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .notification-icon {
+            font-size: 24px;
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+            padding: 10px;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .notification-icon:hover {
+            background: rgba(102, 126, 234, 0.2);
+            transform: scale(1.1);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+            animation: pulse 2s infinite;
+        }
+
+        .notification-badge.hidden {
+            display: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .logout-btn {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+        }
+
+        /* ===== NOTIFICATION TOAST STYLES ===== */
+        .notification-toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 16px;
+            padding: 20px 25px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            min-width: 350px;
+            max-width: 450px;
+            z-index: 10000;
+            display: none;
+            animation: slideInRight 0.5s ease-out, fadeOut 0.5s ease-out 4.5s;
+            border-left: 5px solid #667eea;
+            transform: translateX(500px);
+            opacity: 0;
+        }
+
+        .notification-toast.show {
+            display: block;
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(500px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(500px);
+            }
+        }
+
+        .toast-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .toast-icon {
+            font-size: 28px;
+            margin-right: 12px;
+        }
+
+        .toast-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #9ca3af;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .toast-close:hover {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .toast-message {
+            color: #4b5563;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-left: 40px;
+        }
+
+        .toast-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 0 0 16px 16px;
+            animation: progress 5s linear;
+        }
+
+        @keyframes progress {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+
+        /* Notification variants - Types métier */
+        .notification-toast.CREATION_INCIDENT {
+            border-left-color: #10b981;
+        }
+
+        .notification-toast.CREATION_INCIDENT .toast-icon {
+            color: #10b981;
+        }
+
+        .notification-toast.CHANGEMENT_STATUT {
+            border-left-color: #3b82f6;
+        }
+
+        .notification-toast.CHANGEMENT_STATUT .toast-icon {
+            color: #3b82f6;
+        }
+
+        .notification-toast.ASSIGNATION {
+            border-left-color: #8b5cf6;
+        }
+
+        .notification-toast.ASSIGNATION .toast-icon {
+            color: #8b5cf6;
+        }
+
+        /* Fallback pour anciens types (si jamais utilisé) */
+        .notification-toast.info {
+            border-left-color: #3b82f6;
+        }
+
+        .notification-toast.info .toast-icon {
+            color: #3b82f6;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-container {
+                padding: 15px 20px;
+                flex-wrap: wrap;
+                gap: 15px;
+            }
+
+            .header-title {
+                font-size: 22px;
+            }
+
+            .notification-toast {
+                min-width: 300px;
+                right: 10px;
+                top: 10px;
+            }
+        }
+    </style>
+
+    <!-- Header Container -->
+    <div class="header-container">
+        <div class="header-left">
+            <a th:href="@{/citoyen/home}">
+                <span class="header-title">👤 Dashboard Citoyen</span>
+            </a>
+        </div>
+
+        <div class="header-right">
+            <span class="user-name"
+                  th:text="${utilisateur != null ? utilisateur.prenom + ' ' + utilisateur.nom : 'Utilisateur'}">
+                Nom Utilisateur
+            </span>
+
+            <!-- Notification Icon -->
+            <div class="notification-icon-container" onclick="toggleNotifications()" th:if="${utilisateur != null}">
+                <div class="notification-icon">🔔</div>
+                <span class="notification-badge hidden" id="notificationBadge">0</span>
+            </div>
+
+            <form th:action="@{/logout}" method="post" style="margin: 0;">
+                <button type="submit" class="logout-btn">🚪 Déconnexion</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification Toast Container -->
+    <div id="notificationToast" class="notification-toast CREATION_INCIDENT">
+        <div class="toast-progress"></div>
+        <div class="toast-header">
+            <div class="toast-title">
+                <span class="toast-icon">✅</span>
+                <span>Incident créé</span>
+            </div>
+            <button class="toast-close" onclick="closeNotification()">×</button>
+        </div>
+        <div class="toast-message" id="toastMessage"></div>
+    </div>
+
+    <!-- WebSocket Notifications Script -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
+    <script th:if="${utilisateur != null}">
+        let notificationCount = 0;
+        let stompClient = null;
+
+        // Initialize WebSocket connection
+        function initWebSocket() {
+            const socket = new SockJS('/ws-notifications');
+            stompClient = Stomp.over(socket);
+
+            stompClient.connect({}, function(frame) {
+                console.log('WebSocket Connected:', frame);
+                let userId = /*[[${utilisateur != null ? utilisateur.id : null}]]*/ null;
+                
+                if (!userId) {
+                    console.warn('User ID not available, skipping WebSocket subscription');
+                    return;
+                }
+                
+                // Subscribe to user-specific notifications
+                stompClient.subscribe('/topic/notifications/' + userId, function(message) {
+                    try {
+                        const notificationData = JSON.parse(message.body);
+                        // Utiliser le type métier (CREATION_INCIDENT, CHANGEMENT_STATUT, ASSIGNATION)
+                        const type = notificationData.type || 'CREATION_INCIDENT';
+                        showNotification(notificationData.message || message.body, type);
+                        updateNotificationBadge();
+                    } catch (e) {
+                        // Si ce n'est pas du JSON, afficher comme message simple
+                        showNotification(message.body, 'CREATION_INCIDENT');
+                        updateNotificationBadge();
+                    }
+                });
+            }, function(error) {
+                console.error('WebSocket Connection Error:', error);
+                // Retry connection after 5 seconds
+                setTimeout(initWebSocket, 5000);
+            });
+        }
+
+        // Show notification toast
+        function showNotification(message, type = 'CREATION_INCIDENT') {
+            const toast = document.getElementById('notificationToast');
+            const toastMessage = document.getElementById('toastMessage');
+            const toastIcon = toast.querySelector('.toast-icon');
+            
+            // Remove all type classes (types métier + fallback)
+            toast.classList.remove(
+                'CREATION_INCIDENT', 'CHANGEMENT_STATUT', 'ASSIGNATION',
+                'success', 'error', 'warning', 'info'
+            );
+            // Add the new type class (type métier)
+            toast.classList.add(type);
+
+            // Set icon and title based on type métier
+            const notificationConfig = {
+                'CREATION_INCIDENT': {
+                    icon: '✅',
+                    title: 'Incident créé'
+                },
+                'CHANGEMENT_STATUT': {
+                    icon: '🔄',
+                    title: 'Changement de statut'
+                },
+                'ASSIGNATION': {
+                    icon: '👤',
+                    title: 'Assignation'
+                }
+            };
+
+            const config = notificationConfig[type] || notificationConfig['CREATION_INCIDENT'];
+            toastIcon.textContent = config.icon;
+            
+            // Mettre à jour le titre si nécessaire
+            const toastTitle = toast.querySelector('.toast-title span:last-child');
+            if (toastTitle) {
+                toastTitle.textContent = config.title;
+            }
+
+            // Set message
+            toastMessage.textContent = message;
+
+            // Show toast with animation
+            toast.classList.remove('show');
+            setTimeout(() => {
+                toast.classList.add('show');
+                notificationCount++;
+                updateNotificationBadge();
+            }, 100);
+
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                closeNotification();
+            }, 5000);
+        }
+
+        // Close notification
+        function closeNotification() {
+            const toast = document.getElementById('notificationToast');
+            toast.classList.remove('show');
+        }
+
+        // Update notification badge
+        function updateNotificationBadge() {
+            const badge = document.getElementById('notificationBadge');
+            if (notificationCount > 0) {
+                badge.textContent = notificationCount > 99 ? '99+' : notificationCount;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        // Reset notification count (when user clicks on notifications icon)
+        function toggleNotifications() {
+            // Navigate to notifications page or show dropdown
+            window.location.href = '/citoyen/notifications';
+        }
+
+        // Initialize WebSocket when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initWebSocket();
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            if (stompClient) {
+                stompClient.disconnect();
+            }
+        });
+    </script>
+
+</div>
+
+</body>
+</html>

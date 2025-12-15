@@ -4,7 +4,5 @@ public enum TypeNotification {
     CREATION_INCIDENT,
     CHANGEMENT_STATUT,
     ASSIGNATION,
-    CLOTURE,
-    RAPPEL,
-    REOUVERTURE
+
 }

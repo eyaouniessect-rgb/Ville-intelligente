@@ -1,12 +1,24 @@
 package com.ville.gestionincidents.service.incident;
 
 import com.ville.gestionincidents.dto.incident.IncidentCreateDto;
+
 import com.ville.gestionincidents.entity.*;
 import com.ville.gestionincidents.enumeration.PrioriteIncident;
+
+import com.ville.gestionincidents.dto.incident.IncidentDetailsDto;
+import com.ville.gestionincidents.dto.incident.IncidentListDto;
+import com.ville.gestionincidents.entity.Incident;
+import com.ville.gestionincidents.entity.Photo;
+import com.ville.gestionincidents.entity.Utilisateur;
+
 import com.ville.gestionincidents.enumeration.StatutIncident;
 import com.ville.gestionincidents.enumeration.TypeNotification;
 import com.ville.gestionincidents.mapper.IncidentMapper;
+
 import com.ville.gestionincidents.repository.*;
+
+import com.ville.gestionincidents.repository.IncidentRepository;
+import com.ville.gestionincidents.repository.PhotoRepository;
 import com.ville.gestionincidents.security.CurrentUserService;
 import com.ville.gestionincidents.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +34,6 @@ import java.util.List;
 public class IncidentServiceImpl implements IncidentService {
 
     private final IncidentRepository incidentRepository;
-    private final UtilisateurRepository utilisateurRepository;
     private final PhotoRepository photoRepository;
     private final IncidentMapper incidentMapper;
     private final PhotoStorageService photoStorageService;
@@ -73,49 +84,38 @@ public class IncidentServiceImpl implements IncidentService {
     /* ===================== CITOYEN ===================== */
 
     @Override
-    public List<Incident> getIncidentsForCurrentUser() {
-        return incidentRepository.findByCitoyen(currentUserService.getCurrentUser());
+
+    public List<IncidentListDto> getIncidentsForCurrentUser() {
+        Utilisateur user = currentUserService.getCurrentUser();
+        List<Incident> incidents = incidentRepository.findByCitoyen(user);
+        return incidentMapper.toListDtos(incidents);
+
     }
 
     @Override
-    public List<Incident> getIncidentsByStatutForUser(String email, String statut) {
-        Utilisateur u = utilisateurRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
 
-        return incidentRepository.findByCitoyenIdAndStatut(
-                u.getId(),
-                StatutIncident.valueOf(statut)
-        );
+    public List<IncidentListDto> getIncidentsByStatutForCurrentUser(StatutIncident statut) {
+        Utilisateur user = currentUserService.getCurrentUser();
+        List<Incident> incidents = incidentRepository.findByCitoyenIdAndStatut(user.getId(), statut);
+        return incidentMapper.toListDtos(incidents);
     }
+
 
     @Override
-    public List<Incident> findByCitoyenEmail(String email) {
-        return incidentRepository.findByCitoyenEmail(email);
+    public IncidentDetailsDto getIncidentDetailsForCurrentUser(Long id) {
+        Incident inc = incidentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Incident introuvable"));
+
+        if (!inc.getCitoyen().getId().equals(currentUserService.getCurrentUserId())) {
+            throw new RuntimeException("Accès non autorisé à cet incident !");
+        }
+
+        return incidentMapper.toDetailsDto(inc);
+
     }
 
-    @Override public int countByEmail(String email) {
-        return incidentRepository.countByCitoyenEmail(email);
-    }
+   
 
-    @Override public int countSignale(String email) {
-        return incidentRepository.countByCitoyenEmailAndStatut(email, StatutIncident.SIGNALE);
-    }
-
-    @Override public int countPrisEnCharge(String email) {
-        return incidentRepository.countByCitoyenEmailAndStatut(email, StatutIncident.PRIS_EN_CHARGE);
-    }
-
-    @Override public int countEnResolution(String email) {
-        return incidentRepository.countByCitoyenEmailAndStatut(email, StatutIncident.EN_RESOLUTION);
-    }
-
-    @Override public int countResolu(String email) {
-        return incidentRepository.countByCitoyenEmailAndStatut(email, StatutIncident.RESOLU);
-    }
-
-    @Override public int countCloture(String email) {
-        return incidentRepository.countByCitoyenEmailAndStatut(email, StatutIncident.CLOTURE);
-    }
 
     @Override
     public Incident findByIdAndCheckOwner(Long id, String email) {
@@ -233,4 +233,40 @@ public class IncidentServiceImpl implements IncidentService {
 
         incidentRepository.save(incident);
     }
+
+    public int countForCurrentUser() {
+        String email = currentUserService.getCurrentUser().getEmail();
+        return incidentRepository.countByCitoyenEmail(email);
+    }
+
+    @Override
+    public int countSignaleForCurrentUser() {
+        String email = currentUserService.getCurrentUser().getEmail();
+        return incidentRepository.countByCitoyenEmailAndStatut(email, StatutIncident.SIGNALE);
+    }
+
+    @Override
+    public int countPrisEnChargeForCurrentUser() {
+        String email = currentUserService.getCurrentUser().getEmail();
+        return incidentRepository.countByCitoyenEmailAndStatut(email, StatutIncident.PRIS_EN_CHARGE);
+    }
+
+    @Override
+    public int countEnResolutionForCurrentUser() {
+        String email = currentUserService.getCurrentUser().getEmail();
+        return incidentRepository.countByCitoyenEmailAndStatut(email, StatutIncident.EN_RESOLUTION);
+    }
+
+    @Override
+    public int countResoluForCurrentUser() {
+        String email = currentUserService.getCurrentUser().getEmail();
+        return incidentRepository.countByCitoyenEmailAndStatut(email, StatutIncident.RESOLU);
+    }
+
+    @Override
+    public int countClotureForCurrentUser() {
+        String email = currentUserService.getCurrentUser().getEmail();
+        return incidentRepository.countByCitoyenEmailAndStatut(email, StatutIncident.CLOTURE);
+    }
+
 }

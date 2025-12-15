@@ -293,10 +293,7 @@
 <div class="container">
 
     <!-- HEADER AVEC RETOUR -->
-    <div class="top-header">
-        <h1>🔔 Mes notifications</h1>
-        <a th:href="@{/citoyen/home}" class="back-btn">← Retour au tableau de bord</a>
-    </div>
+    <div th:replace="fragments/header_citoyen :: citoyen-header"></div>
 
     <!-- CARD PRINCIPALE -->
     <div class="card">

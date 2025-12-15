@@ -135,6 +135,23 @@ public class EmailServiceImpl implements EmailService {
         }
     }
 
+
+    @Override
+    public void sendSimpleEmail(String to, String subject, String messageText) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(to);
+        message.setSubject(subject);
+        message.setText(messageText);
+
+        try {
+            mailSender.send(message);
+            System.out.println("📧 Email envoyé à : " + to + " | Sujet : " + subject);
+        } catch (Exception e) {
+            System.err.println("❌ Erreur envoi email simple : " + e.getMessage());
+        }
+    }
+
+
     // ==================== MÉTHODES UTILITAIRES ====================
 
     /**
@@ -154,4 +171,6 @@ public class EmailServiceImpl implements EmailService {
                 return "Utilisateur";
         }
     }
+
+
 }
