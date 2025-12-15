@@ -44,6 +44,9 @@ public class SecurityConfig {
                 // 🔐 ACCÈS SUPERADMIN
                 .antMatchers("/superadmin/**").hasRole("SUPERADMIN")
 
+                // ACCÈS ADMIN
+                .antMatchers("/admin/**").hasRole("ADMIN")
+
                 // 🔐 ACCÈS CITOYEN
                 .antMatchers("/citoyen/**").hasRole("CITOYEN")
 

@@ -33,7 +33,7 @@ public class SuperAdminController {
     private DepartementService departementService;
     @Autowired
     private ServiceMunicipalService serviceMunicipalService;
-
+    @Autowired
     private CurrentUserService currentUserService;
 
     // ==================== DASHBOARD ====================
@@ -44,7 +44,6 @@ public class SuperAdminController {
     @GetMapping("/dashboard")
     public String dashboard(Model model) {
 
-        // 👇 AJOUT CRUCIAL
         model.addAttribute("utilisateur", currentUserService.getCurrentUser());
 
         model.addAttribute("totalUsers", utilisateurService.countAllUsers());
