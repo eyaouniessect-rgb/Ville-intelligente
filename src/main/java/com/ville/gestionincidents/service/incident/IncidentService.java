@@ -1,10 +1,18 @@
 package com.ville.gestionincidents.service.incident;
 
 import com.ville.gestionincidents.dto.incident.IncidentCreateDto;
+
+import com.ville.gestionincidents.entity.Departement;
+import com.ville.gestionincidents.entity.Incident;
+import com.ville.gestionincidents.enumeration.PrioriteIncident;
+import com.ville.gestionincidents.enumeration.StatutIncident;
+import org.springframework.data.domain.Page;
+
 import com.ville.gestionincidents.dto.incident.IncidentDetailsDto;
 import com.ville.gestionincidents.dto.incident.IncidentListDto;
-import com.ville.gestionincidents.enumeration.StatutIncident;
 
+
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -33,5 +41,33 @@ public interface IncidentService {
 
     int countResoluForCurrentUser();
 
+
+    Incident findByIdAndCheckOwner(Long id, String email); // Vérification propriétaire
+
+
+    long countByDepartement(Departement departement);
+
+    long countByDepartementAndStatut(Departement departement, StatutIncident statut);
+
+    long countByDepartementAndStatutsEnCours(Departement departement);
+
+    long countByDepartementAndServiceIsNull(Departement departement);
+
+    long countNonAssignesByDepartement(Departement departement);
+
+
+    Page<Incident> findByDepartementWithFilters(
+            Departement departement,
+            Long serviceId,
+            String statut,
+            LocalDate dateDebut,
+            LocalDate dateFin,
+            int page,
+            int size
+    );
+
+    void assignerIncident(Long incidentId, Long serviceId, Long agentId, String commentaire, PrioriteIncident priorite);
+
     int countClotureForCurrentUser();
+
 }

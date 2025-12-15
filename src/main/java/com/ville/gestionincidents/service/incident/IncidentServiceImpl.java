@@ -1,27 +1,35 @@
 package com.ville.gestionincidents.service.incident;
 
 import com.ville.gestionincidents.dto.incident.IncidentCreateDto;
+
+import com.ville.gestionincidents.entity.*;
+import com.ville.gestionincidents.enumeration.PrioriteIncident;
+
 import com.ville.gestionincidents.dto.incident.IncidentDetailsDto;
 import com.ville.gestionincidents.dto.incident.IncidentListDto;
 import com.ville.gestionincidents.entity.Incident;
 import com.ville.gestionincidents.entity.Photo;
 import com.ville.gestionincidents.entity.Utilisateur;
+
 import com.ville.gestionincidents.enumeration.StatutIncident;
+import com.ville.gestionincidents.enumeration.TypeNotification;
 import com.ville.gestionincidents.mapper.IncidentMapper;
+
+import com.ville.gestionincidents.repository.*;
+
 import com.ville.gestionincidents.repository.IncidentRepository;
 import com.ville.gestionincidents.repository.PhotoRepository;
 import com.ville.gestionincidents.security.CurrentUserService;
+import com.ville.gestionincidents.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import com.ville.gestionincidents.service.notification.NotificationService;
-import com.ville.gestionincidents.enumeration.TypeNotification;
+import com.ville.gestionincidents.repository.UtilisateurRepository;
 
+import java.time.LocalDate;
 import java.util.List;
 
-/**
- * Service métier : gère la déclaration d'incident par un citoyen.
- */
 @Service
 @RequiredArgsConstructor
 public class IncidentServiceImpl implements IncidentService {
@@ -32,36 +40,22 @@ public class IncidentServiceImpl implements IncidentService {
     private final PhotoStorageService photoStorageService;
     private final CurrentUserService currentUserService;
     private final NotificationService notificationService;
+    private final ServiceMunicipalRepository serviceMunicipalRepository;
+    private final UtilisateurRepository utilisateurRepository;
 
+    /* ===================== CRÉATION ===================== */
 
     @Override
     public void creerIncident(IncidentCreateDto dto) {
 
-        // LOG POUR DÉBOGAGE
-        System.out.println("=== CRÉATION INCIDENT ===");
-        System.out.println("Description: " + dto.getDescription());
-        System.out.println("Nombre de photos reçues: " +
-                (dto.getPhotos() != null ? dto.getPhotos().size() : 0));
-
-        if (dto.getPhotos() != null) {
-            for (MultipartFile f : dto.getPhotos()) {
-                System.out.println("  - Fichier: " + f.getOriginalFilename() +
-                        " | Taille: " + f.getSize() + " bytes");
-            }
-        }
-
-        // 1️⃣ Convertir le DTO en entité Incident
         Incident incident = incidentMapper.toEntity(dto);
 
-        // 2️⃣ Associer automatiquement le citoyen connecté
         Utilisateur citoyen = currentUserService.getCurrentUser();
         incident.setCitoyen(citoyen);
         incident.setStatut(StatutIncident.SIGNALE);
 
-        // 3️⃣ Sauvegarder l'incident
-        incident = incidentRepository.save(incident); // ✅ Récupérer l'incident sauvegardé
+        incident = incidentRepository.save(incident);
 
-        // 🔔 Notification : création d'incident
         notificationService.creerNotification(
                 citoyen.getEmail(),
                 TypeNotification.CREATION_INCIDENT,
@@ -69,59 +63,39 @@ public class IncidentServiceImpl implements IncidentService {
                 incident
         );
 
+        if (dto.getPhotos() != null) {
+            boolean principale = true;
+            for (MultipartFile f : dto.getPhotos()) {
+                if (f == null || f.isEmpty()) continue;
 
-        // 4️⃣ Gérer plusieurs photos
-        if (dto.getPhotos() != null && !dto.getPhotos().isEmpty()) {
+                String nom = photoStorageService.save(f);
 
-            boolean isFirst = true;
+                Photo photo = new Photo();
+                photo.setNomFichier(nom);
+                photo.setTypeContenu(f.getContentType());
+                photo.setCheminStockage("uploads/" + nom);
+                photo.setPrincipale(principale);
+                photo.setIncident(incident);
 
-            for (MultipartFile fichier : dto.getPhotos()) {
-                // ✅ Vérifier que le fichier n'est pas vide
-                if (fichier == null || fichier.isEmpty()) {
-                    System.out.println("  ⚠️ Fichier vide ou null, ignoré");
-                    continue;
-                }
-
-                try {
-                    // 4.1 Sauvegarde dans /uploads/
-                    String nomFichier = photoStorageService.save(fichier);
-                    System.out.println("  ✅ Photo sauvegardée: " + nomFichier);
-
-                    // 4.2 Enregistrement BD
-                    Photo photo = new Photo();
-                    photo.setNomFichier(nomFichier);
-                    photo.setTypeContenu(fichier.getContentType());
-                    photo.setCheminStockage("uploads/" + nomFichier);
-                    photo.setPrincipale(isFirst);
-                    photo.setIncident(incident);
-
-                    photoRepository.save(photo);
-                    System.out.println("  ✅ Photo enregistrée en BD: ID=" + photo.getId());
-
-                    isFirst = false;
-
-                } catch (Exception e) {
-                    System.err.println("  ❌ Erreur lors du traitement de la photo: " + e.getMessage());
-                    e.printStackTrace();
-                }
+                photoRepository.save(photo);
+                principale = false;
             }
-        } else {
-            System.out.println("⚠️ Aucune photo à traiter");
         }
-
-        System.out.println("=== FIN CRÉATION INCIDENT ===");
     }
-    //pour recuperer les incidents d'un utlisateur connecte
+
+    /* ===================== CITOYEN ===================== */
+
     @Override
+
     public List<IncidentListDto> getIncidentsForCurrentUser() {
         Utilisateur user = currentUserService.getCurrentUser();
         List<Incident> incidents = incidentRepository.findByCitoyen(user);
         return incidentMapper.toListDtos(incidents);
+
     }
 
-
-    //recuperee les incidents d'un utlisateur connnecte par status
     @Override
+
     public List<IncidentListDto> getIncidentsByStatutForCurrentUser(StatutIncident statut) {
         Utilisateur user = currentUserService.getCurrentUser();
         List<Incident> incidents = incidentRepository.findByCitoyenIdAndStatut(user.getId(), statut);
@@ -139,10 +113,129 @@ public class IncidentServiceImpl implements IncidentService {
         }
 
         return incidentMapper.toDetailsDto(inc);
+
     }
+
+   
 
 
     @Override
+    public Incident findByIdAndCheckOwner(Long id, String email) {
+        Incident inc = incidentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Incident introuvable"));
+
+        if (!inc.getCitoyen().getEmail().equals(email)) {
+            throw new RuntimeException("Accès non autorisé");
+        }
+        return inc;
+    }
+
+    /* ===================== ADMIN ===================== */
+
+    @Override
+    public long countByDepartement(Departement d) {
+        return incidentRepository
+                .countByService_DepartementAndDateDeclarationBetween(
+                        d,
+                        LocalDate.now().minusYears(50).atStartOfDay(),
+                        LocalDate.now().atTime(23, 59, 59)
+                );
+    }
+
+    @Override
+    public long countByDepartementAndStatut(Departement d, StatutIncident s) {
+        return incidentRepository
+                .countByService_DepartementAndDateDeclarationBetweenAndStatut(
+                        d,
+                        LocalDate.now().minusYears(50).atStartOfDay(),
+                        LocalDate.now().atTime(23, 59, 59),
+                        s
+                );
+    }
+
+    @Override
+    public long countByDepartementAndStatutsEnCours(Departement d) {
+        return incidentRepository
+                .countByService_DepartementAndDateDeclarationBetweenAndStatutIn(
+                        d,
+                        LocalDate.now().minusYears(50).atStartOfDay(),
+                        LocalDate.now().atTime(23, 59, 59),
+                        List.of(
+                                StatutIncident.PRIS_EN_CHARGE,
+                                StatutIncident.EN_RESOLUTION
+                        )
+                );
+    }
+    @Override
+    public long countNonAssignesByDepartement(Departement departement) {
+        return incidentRepository.countNonAssignesByDepartement(departement);
+    }
+
+    @Override
+    public long countByDepartementAndServiceIsNull(Departement d) {
+        return incidentRepository.findByDateDeclarationBetween(
+                        LocalDate.now().minusYears(50).atStartOfDay(),
+                        LocalDate.now().atTime(23, 59, 59)
+                )
+                .stream()
+                .filter(i -> i.getService() == null ||
+                        i.getService().getDepartement().equals(d))
+                .count();
+    }
+
+    @Override
+    public Page<Incident> findByDepartementWithFilters(
+            Departement d,
+            Long serviceId,
+            String statut,
+            LocalDate dd,
+            LocalDate df,
+            int page,
+            int size
+    ) {
+
+        StatutIncident s = (statut == null || statut.isBlank())
+                ? null
+                : StatutIncident.valueOf(statut);
+
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by("dateDeclaration").descending()
+        );
+
+        return incidentRepository.findByFilters(
+                d,
+                serviceId,
+                s,
+                dd.atStartOfDay(),
+                df.atTime(23, 59, 59),
+                pageable
+        );
+    }
+
+    /* ===================== ASSIGNATION (FIX FINAL) ===================== */
+
+    @Override
+    public void assignerIncident(Long incidentId, Long serviceId, Long agentId, String commentaire, PrioriteIncident priorite   ) {
+
+        Incident incident = incidentRepository.findById(incidentId)
+                .orElseThrow(() -> new RuntimeException("Incident introuvable"));
+
+        ServiceMunicipal service = serviceMunicipalRepository.findById(serviceId)
+                .orElseThrow(() -> new RuntimeException("Service introuvable"));
+
+        Utilisateur agent = utilisateurRepository.findById(agentId)
+                .orElseThrow(() -> new RuntimeException("Agent introuvable"));
+
+        incident.setService(service);
+        incident.setAgent(agent);
+        incident.setStatut(StatutIncident.PRIS_EN_CHARGE);
+        incident.setPriorite(priorite);
+
+        incidentRepository.save(incident);
+    }
+
     public int countForCurrentUser() {
         String email = currentUserService.getCurrentUser().getEmail();
         return incidentRepository.countByCitoyenEmail(email);
@@ -177,4 +270,5 @@ public class IncidentServiceImpl implements IncidentService {
         String email = currentUserService.getCurrentUser().getEmail();
         return incidentRepository.countByCitoyenEmailAndStatut(email, StatutIncident.CLOTURE);
     }
+
 }

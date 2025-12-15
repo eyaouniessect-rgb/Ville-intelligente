@@ -427,4 +427,16 @@ public class UtilisateurServiceImpl implements UtilisateurService {
         utilisateurRepository.save(user);
     }
 
+    @Override
+    public List<Utilisateur> findAgentsByService(Long serviceId) {
+        return utilisateurRepository
+                .findByServiceMunicipalIdAndRole(serviceId, Role.AGENT);
+    }
+
+    @Override
+    public long countAgentsByDepartement(Departement departement) {
+        return utilisateurRepository
+                .countByDepartementAndRole(departement, Role.AGENT);
+    }
+
 }

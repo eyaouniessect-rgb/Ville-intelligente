@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Fragments Incidents</title>
+</head>
+<body>
+
+<!-- ==================== FRAGMENT: Styles CSS ==================== -->
+<th:block th:fragment="incidentsStyles">
+    <style>
+        /* Incidents Table */
+        .incidents-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+
+        .incidents-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .incidents-header h2 {
+            color: #1f2937;
+            font-size: 22px;
+        }
+
+        .search-box {
+            position: relative;
+            width: 300px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 40px 10px 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+        }
+
+        .incidents-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .incidents-table thead {
+            background: #f9fafb;
+        }
+
+        .incidents-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .incidents-table td {
+            padding: 15px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 14px;
+        }
+
+        .incidents-table tbody tr {
+            transition: background 0.2s;
+        }
+
+        .incidents-table tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-signale { background: #dbeafe; color: #1e40af; }
+        .status-pris-en-charge { background: #fef3c7; color: #92400e; }
+        .status-en-resolution { background: #fed7aa; color: #9a3412; }
+        .status-resolu { background: #d1fae5; color: #065f46; }
+        .status-cloture { background: #e5e7eb; color: #374151; }
+
+        .priority-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .priority-haute { background: #fee2e2; color: #991b1b; }
+        .priority-moyenne { background: #fed7aa; color: #9a3412; }
+        .priority-basse { background: #dbeafe; color: #1e40af; }
+
+        .action-icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            color: #6b7280;
+            font-size: 18px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .action-icon-btn:hover {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            color: #1f2937;
+            font-size: 20px;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #6b7280;
+            line-height: 1;
+        }
+
+        .close-modal:hover {
+            color: #374151;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #374151;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 25px;
+        }
+
+        .btn-cancel {
+            padding: 10px 20px;
+            background: #e5e7eb;
+            color: #374151;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-submit {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-submit:hover {
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .info-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .info-item {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .info-item label {
+            display: block;
+            color: #6b7280;
+            font-size: 12px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-item p {
+            color: #1f2937;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .pagination button {
+            padding: 8px 16px;
+            border: 2px solid #e5e7eb;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #374151;
+            transition: all 0.2s;
+        }
+
+        .pagination button:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .pagination button.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+    </style>
+</th:block>
+
+<!-- ==================== FRAGMENT: Tableau des incidents ==================== -->
+<div th:fragment="incidentsTable(incidents, showSearch, totalPages, currentPage, pageUrl)" class="incidents-section">
+    <div class="incidents-header">
+        <h2>📋 Incidents de votre département</h2>
+        <div class="search-box" th:if="${showSearch}">
+            <input type="text" id="searchInput" placeholder="Rechercher un incident...">
+            <span class="search-icon">🔍</span>
+        </div>
+    </div>
+
+    <table class="incidents-table">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Description</th>
+            <th>Service</th>
+            <th>Quartier</th>
+            <th>Statut</th>
+            <th>Priorité</th>
+            <th>Agent</th>
+            <th>Date</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="incident : ${incidents}">
+            <td th:text="${'#' + incident.id}">001</td>
+            <td>
+                <div style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    <span th:text="${incident.description}">Description</span>
+                </div>
+            </td>
+            <td th:text="${incident.service?.nom ?: 'Non assigné'}">Service</td>
+            <td th:text="${incident.quartier?.nom ?: 'Non défini'}">Quartier</td>
+            <td>
+                <span class="status-badge"
+                      th:classappend="${'status-' + #strings.toLowerCase(#strings.replace(incident.statut, '_', '-'))}"
+                      th:text="${incident.statut}">Statut</span>
+            </td>
+            <td>
+                <span th:if="${incident.priorite != null}"
+                      class="priority-badge"
+                      th:classappend="${incident.priorite.name() == 'HAUTE' ? ' priority-haute' :
+                                       incident.priorite.name() == 'MOYENNE' ? ' priority-moyenne' :
+                                       ' priority-basse'}"
+                      th:text="${incident.priorite.name()}">
+                </span>
+                <span th:if="${incident.priorite == null}">-</span>
+            </td>
+            <td th:text="${incident.agent != null ? incident.agent.prenom + ' ' + incident.agent.nom : 'Non assigné'}">Agent</td>
+            <td th:text="${#temporals.format(incident.dateDeclaration, 'dd/MM/yyyy')}">Date</td>
+            <td>
+                <button class="action-icon-btn" th:onclick="'openModal(' + ${incident.id} + ')'" title="Assigner">
+                    📝
+                </button>
+                <a th:href="@{/admin/incidents/{id}(id=${incident.id})}" class="action-icon-btn" title="Détails">
+                    👁️
+                </a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <div class="pagination" th:if="${totalPages != null && totalPages > 1}">
+        <button th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                th:text="${i + 1}"
+                th:classappend="${i == currentPage ? 'active' : ''}"
+                th:onclick="'window.location.href=\'' + ${pageUrl} + '?page=' + ${i} + '\''">1</button>
+    </div>
+</div>
+
+<!-- ==================== FRAGMENT: Modal d'assignation ==================== -->
+<div th:fragment="assignModal(services, priorites)" id="assignModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>📝 Assigner l'incident</h3>
+            <button class="close-modal" onclick="closeModal()">&times;</button>
+        </div>
+
+        <form id="assignForm" method="post">
+            <div class="info-row">
+                <div class="info-item">
+                    <label>Incident ID</label>
+                    <p id="modalIncidentId">#001</p>
+                </div>
+                <div class="info-item">
+                    <label>Statut actuel</label>
+                    <p id="modalStatut">Signalé</p>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Service Municipal *</label>
+                <select id="serviceSelect" name="serviceId" required onchange="loadAgents(this.value)">
+                    <option value="">Sélectionnez un service</option>
+                    <option th:each="service : ${services}"
+                            th:value="${service.id}"
+                            th:text="${service.nom}">Service</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Agent *</label>
+                <select id="agentSelect" name="agentId" required disabled>
+                    <option value="">Sélectionnez d'abord un service</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Priorité *</label>
+                <select name="priorite" required>
+                    <option value="">Sélectionnez une priorité</option>
+                    <option th:each="p : ${priorites}"
+                            th:value="${p}"
+                            th:text="${p}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Commentaire</label>
+                <textarea name="commentaire" rows="3" placeholder="Commentaire d'assignation..."></textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn-cancel" onclick="closeModal()">Annuler</button>
+                <button type="submit" class="btn-submit">Assigner</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ==================== FRAGMENT: Scripts JavaScript ==================== -->
+<script th:fragment="incidentsScripts">
+    let currentIncidentId = null;
+
+    function openModal(incidentId) {
+        currentIncidentId = incidentId;
+        document.getElementById('modalIncidentId').textContent = '#' + incidentId;
+        document.getElementById('assignModal').classList.add('active');
+        document.getElementById('assignForm').action = '/admin/incidents/' + incidentId + '/assigner';
+    }
+
+    function closeModal() {
+        document.getElementById('assignModal').classList.remove('active');
+        document.getElementById('assignForm').reset();
+        document.getElementById('agentSelect').disabled = true;
+    }
+
+    async function loadAgents(serviceId) {
+        const agentSelect = document.getElementById('agentSelect');
+
+        if (!serviceId) {
+            agentSelect.disabled = true;
+            agentSelect.innerHTML = '<option value="">Sélectionnez d\'abord un service</option>';
+            return;
+        }
+
+        try {
+            const response = await fetch(`/admin/services/${serviceId}/agents`);
+            const agents = await response.json();
+
+            agentSelect.innerHTML = '<option value="">Sélectionnez un agent</option>';
+            agents.forEach(agent => {
+                const option = document.createElement('option');
+                option.value = agent.id;
+                option.textContent = `${agent.prenom} ${agent.nom}`;
+                agentSelect.appendChild(option);
+            });
+
+            agentSelect.disabled = false;
+        } catch (error) {
+            console.error('Erreur lors du chargement des agents:', error);
+            agentSelect.innerHTML = '<option value="">Erreur de chargement</option>';
+        }
+    }
+
+    // Recherche dans le tableau (seulement si la barre de recherche existe)
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('.incidents-table tbody tr');
+
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+    }
+
+    // Fermer le modal en cliquant en dehors
+    window.onclick = function(event) {
+        const modal = document.getElementById('assignModal');
+        if (event.target === modal) {
+            closeModal();
+        }
+    }
+</script>
+
+</body>
+</html>

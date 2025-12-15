@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestion des Agents - Admin</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg,#667eea,#764ba2);
+            min-height:100vh;
+            padding:20px;
+        }
+
+        .container {
+            max-width:1400px;
+            margin:0 auto;
+        }
+
+        .header {
+            background:white;
+            border-radius:15px;
+            padding:25px 30px;
+            margin-bottom:30px;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            box-shadow:0 10px 30px rgba(0,0,0,.1);
+        }
+
+        .header h1 {
+            color:#1f2937;
+        }
+
+        .back-btn {
+            background:#e5e7eb;
+            color:#374151;
+            padding:10px 20px;
+            border-radius:8px;
+            text-decoration:none;
+            font-weight:600;
+        }
+
+        .back-btn:hover {
+            background:#d1d5db;
+        }
+
+        /* Table */
+        .card {
+            background:white;
+            border-radius:15px;
+            padding:25px;
+            box-shadow:0 5px 20px rgba(0,0,0,.08);
+        }
+
+        table {
+            width:100%;
+            border-collapse:collapse;
+            margin-top:20px;
+        }
+
+        thead {
+            background:#f9fafb;
+        }
+
+        th {
+            padding:15px;
+            text-align:left;
+            font-size:14px;
+            text-transform:uppercase;
+            color:#374151;
+        }
+
+        td {
+            padding:15px;
+            border-bottom:1px solid #e5e7eb;
+            font-size:14px;
+        }
+
+        tr:hover {
+            background:#f9fafb;
+        }
+
+        .badge {
+            padding:6px 12px;
+            border-radius:20px;
+            font-size:12px;
+            font-weight:600;
+        }
+
+        .badge-active {
+            background:#d1fae5;
+            color:#065f46;
+        }
+
+        .badge-inactive {
+            background:#fee2e2;
+            color:#991b1b;
+        }
+
+        .action-btn {
+            background:none;
+            border:none;
+            cursor:pointer;
+            font-size:18px;
+            padding:6px;
+        }
+
+        .action-btn:hover {
+            background:#f3f4f6;
+            border-radius:6px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- Header -->
+    <div class="header">
+        <h1>👮 Gestion des Agents Municipaux</h1>
+        <a th:href="@{/admin/dashboard}" class="back-btn">⬅ Retour Dashboard</a>
+    </div>
+
+    <!-- Agents Table -->
+    <div class="card">
+        <h3>Liste des agents</h3>
+
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nom</th>
+                <th>Email</th>
+                <th>Service</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+
+            <tr th:each="agent : ${agents}">
+                <td th:text="${agent.id}">1</td>
+                <td th:text="${agent.prenom + ' ' + agent.nom}">Nom</td>
+                <td th:text="${agent.email}">email</td>
+
+                <td th:text="${agent.serviceMunicipal != null
+                        ? agent.serviceMunicipal.nom
+                        : 'Non affecté'}">
+                    Service
+                </td>
+
+                <td>
+    <span class="badge badge-active"
+          th:if="${agent.emailVerifie}">
+        Actif
+    </span>
+
+                    <span class="badge badge-inactive"
+                          th:if="${!agent.emailVerifie}">
+        Inactif
+    </span>
+                </td>
+
+                <td>
+                    <a th:href="@{/admin/agents/{id}(id=${agent.id})}"
+                       class="action-btn"
+                       title="Voir">
+                        👁️
+                    </a>
+
+                    <a th:href="@{/admin/agents/{id}/edit(id=${agent.id})}"
+                       class="action-btn"
+                       title="Modifier">
+                        ✏️
+                    </a>
+                </td>
+            </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+</body>
+</html>

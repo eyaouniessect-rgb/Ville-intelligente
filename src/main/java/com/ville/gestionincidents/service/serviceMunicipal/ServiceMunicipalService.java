@@ -1,5 +1,6 @@
 package com.ville.gestionincidents.service.serviceMunicipal;
 
+import com.ville.gestionincidents.entity.Departement;
 import com.ville.gestionincidents.entity.ServiceMunicipal;
 import java.util.List;
 
@@ -14,4 +15,6 @@ public interface ServiceMunicipalService {
     List<ServiceMunicipal> findAllServices();
 
     long countServices();
+
+    List<ServiceMunicipal> findByDepartement(Departement departement);
 }

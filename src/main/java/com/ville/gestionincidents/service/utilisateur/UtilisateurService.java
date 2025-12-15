@@ -6,6 +6,7 @@ import com.ville.gestionincidents.dto.utilisateur.citoyen.CitoyenProfilDto;
 import com.ville.gestionincidents.dto.utilisateur.citoyen.CitoyenUpdateProfilDto;
 import com.ville.gestionincidents.dto.utilisateur.superAdmin.CreateUtilisateurByAdminDto;
 import com.ville.gestionincidents.dto.utilisateur.superAdmin.UpdateUtilisateurByAdminDto;
+import com.ville.gestionincidents.entity.Departement;
 import com.ville.gestionincidents.entity.Utilisateur;
 import com.ville.gestionincidents.enumeration.Role;
 
@@ -138,5 +139,15 @@ public interface UtilisateurService {
      */
     long countByRole(Role role);
     void changePasswordCitoyen(Long userId, ChangePasswordDto dto);
+
+
+   /* * Récupérer les agents d'un service municipal
+            */
+    List<Utilisateur> findAgentsByService(Long serviceId);
+
+    /**
+     * Compter les agents d'un département
+     */
+    long countAgentsByDepartement(Departement departement);
 
 }
