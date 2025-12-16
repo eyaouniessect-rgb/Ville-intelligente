@@ -39,6 +39,8 @@ public class CitoyenController {
     private final UtilisateurService utilisateurService;
     private final AuthenticationHelper authHelper; //
     private final CurrentUserService currentUserService;
+    private final PreferenceNotificationService preferenceNotificationService;
+
     // -------------------------
     // Dashboard Citoyen
     // -------------------------
@@ -46,6 +48,9 @@ public class CitoyenController {
     public String dashboard(Model model, Authentication authentication) {
 
         Utilisateur utilisateur = currentUserService.getCurrentUser();
+
+        // ✅ INITIALISATION DES PRÉFÉRENCES (UNE SEULE FOIS)
+        preferenceNotificationService.getOrCreate(utilisateur.getId());
         //  Ajouter l'utilisateur au modèle (pour le header)
         model.addAttribute("utilisateur", utilisateur);
 

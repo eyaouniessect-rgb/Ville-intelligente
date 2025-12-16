@@ -31,7 +31,7 @@ public class PreferenceNotificationController {
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
 
         // Récupérer ou créer les préférences (retourne maintenant un DTO)
-        PreferenceNotificationDTO pref = preferenceService.getOrCreate(utilisateur.getId());
+        PreferenceNotificationDTO pref = preferenceService.getByUtilisateurId(utilisateur.getId());
 
         model.addAttribute("preferences", pref);
 
