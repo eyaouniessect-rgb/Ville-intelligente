@@ -120,8 +120,31 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .alert-danger {
+            background: #fee2e2;
+            border-left: 4px solid #ef4444;
+            color: #991b1b;
+        }
+
+        .alert-danger ul {
+            margin: 8px 0 0 20px;
+        }
+
+        .alert-danger li {
+            margin: 4px 0;
+        }
+
         .form-group {
             margin-bottom: 25px;
+            position: relative;
         }
 
         .form-label {
@@ -130,6 +153,11 @@
             color: #374151;
             margin-bottom: 8px;
             font-size: 14px;
+        }
+
+        .form-label .required {
+            color: #ef4444;
+            margin-left: 2px;
         }
 
         .form-control {
@@ -146,6 +174,48 @@
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-control.is-invalid {
+            border-color: #ef4444;
+            background-color: #fef2f2;
+        }
+
+        .form-control.is-invalid:focus {
+            border-color: #ef4444;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+
+        .form-control.is-valid {
+            border-color: #10b981;
+            background-color: #f0fdf4;
+        }
+
+        .invalid-feedback {
+            display: none;
+            color: #dc2626;
+            font-size: 13px;
+            margin-top: 6px;
+            font-weight: 500;
+        }
+
+        .invalid-feedback.d-block {
+            display: block;
+        }
+
+        .char-counter {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 4px;
+            text-align: right;
+        }
+
+        .char-counter.warning {
+            color: #f59e0b;
+        }
+
+        .char-counter.danger {
+            color: #ef4444;
         }
 
         textarea.form-control {
@@ -182,6 +252,11 @@
             border-color: #667eea;
             background: linear-gradient(135deg, #ede9fe, #ddd6fe);
             color: #667eea;
+        }
+
+        .file-input-label.is-invalid {
+            border-color: #ef4444;
+            background-color: #fef2f2;
         }
 
         .photos-preview {
@@ -249,6 +324,10 @@
             border: 3px solid #e5e7eb;
         }
 
+        #map.is-invalid {
+            border-color: #ef4444;
+        }
+
         .map-hint {
             margin-top: 10px;
             padding: 12px;
@@ -274,13 +353,18 @@
             margin-top: 10px;
         }
 
-        .submit-btn:hover {
+        .submit-btn:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 6px 25px rgba(102, 126, 234, 0.5);
         }
 
-        .submit-btn:active {
+        .submit-btn:active:not(:disabled) {
             transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
         @media (max-width: 768px) {
@@ -347,72 +431,125 @@
 
 <div class="card">
 
+    <!-- ========== AFFICHAGE DES ERREURS SERVEUR ========== -->
+    <div th:if="${#fields.hasErrors('incident')}" class="alert alert-danger">
+        <strong>⚠️ Erreurs de validation :</strong>
+        <ul>
+            <li th:each="err : ${#fields.errors('incident')}" th:text="${err}"></li>
+        </ul>
+    </div>
+
     <form id="incidentForm"
           th:action="@{/citoyen/incident/ajouter}"
+          th:object="${incident}"
           method="post"
-          enctype="multipart/form-data">
+          enctype="multipart/form-data"
+          novalidate>
 
+        <!-- DESCRIPTION -->
         <div class="form-group">
-            <label class="form-label">📝 Description de l'incident *</label>
+            <label class="form-label">
+                📝 Description de l'incident
+                <span class="required">*</span>
+            </label>
             <textarea class="form-control"
-                      name="description"
+                      th:field="*{description}"
                       id="description"
                       placeholder="Décrivez l'incident en détail..."
+                      minlength="10"
+                      maxlength="1000"
                       required></textarea>
+            <div class="char-counter" id="descriptionCounter">0 / 1000 caractères</div>
+            <div class="invalid-feedback" th:errors="*{description}"></div>
         </div>
 
+        <!-- CATÉGORIE -->
         <div class="form-group">
-            <label class="form-label">🏷️ Catégorie *</label>
-            <select class="form-control" name="categorie" id="categorie" required>
+            <label class="form-label">
+                🏷️ Catégorie
+                <span class="required">*</span>
+            </label>
+            <select class="form-control"
+                    th:field="*{categorie}"
+                    id="categorie"
+                    required>
                 <option value="">-- Sélectionnez une catégorie --</option>
                 <option th:each="c : ${categories}"
                         th:value="${c}"
                         th:text="${c}"></option>
             </select>
+            <div class="invalid-feedback" th:errors="*{categorie}">
+                Veuillez sélectionner une catégorie
+            </div>
         </div>
 
+        <!-- ADRESSE -->
         <div class="form-group">
-            <label class="form-label">🏡 Adresse (optionnel)</label>
+            <label class="form-label">
+                🏡 Adresse
+                <span class="required">*</span>
+            </label>
             <input class="form-control"
                    type="text"
-                   name="adresse"
+                   th:field="*{adresse}"
                    id="adresse"
-                   placeholder="Ex: Avenue Habib Bourguiba, Tunis">
+                   placeholder="Ex: Avenue Habib Bourguiba, Tunis"
+                   minlength="5"
+                   maxlength="255"
+                   required>
+            <div class="invalid-feedback" th:errors="*{adresse}">
+                L'adresse doit contenir entre 5 et 255 caractères
+            </div>
         </div>
 
+        <!-- CARTE -->
         <div class="map-container">
-            <label class="form-label">📍 Localisation sur la carte *</label>
+            <label class="form-label">
+                📍 Localisation sur la carte
+                <span class="required">*</span>
+            </label>
             <div id="map"></div>
             <div class="map-hint">
                 💡 <strong>Astuce :</strong> Cliquez sur la carte pour placer un marqueur ou déplacez-le pour ajuster la position exacte de l'incident.
             </div>
+            <div class="invalid-feedback" id="mapError">
+                Veuillez sélectionner une position sur la carte
+            </div>
         </div>
 
-        <input type="hidden" name="latitude" id="latitude">
-        <input type="hidden" name="longitude" id="longitude">
+        <input type="hidden" th:field="*{latitude}" id="latitude">
+        <input type="hidden" th:field="*{longitude}" id="longitude">
 
-        <!-- SECTION PHOTOS CORRIGÉE -->
+        <!-- PHOTOS -->
         <div class="form-group">
-            <label class="form-label">📸 Photo(s) de l'incident (max 3)</label>
+            <label class="form-label">
+                📸 Photo(s) de l'incident
+                <span class="required">*</span>
+            </label>
             <div class="file-input-wrapper">
-                <label for="photoInput" class="file-input-label">
+                <label for="photoInput" class="file-input-label" id="photoInputLabel">
                     <span style="font-size: 24px;">📷</span>
-                    <span>Cliquez pour ajouter des photos (0/3)</span>
+                    <span id="photoLabel">Cliquez pour ajouter des photos (0/3)</span>
                 </label>
                 <input type="file"
                        id="photoInput"
                        name="photos"
                        accept="image/*"
                        multiple
-                       style="display: none;"
-                       onchange="handleFileSelect(this)">
+                       style="display: none;">
+            </div>
+            <div id="photosPreview" class="photos-preview"></div>
+
+            <!-- ✅ ERREUR BACKEND (Bean Validation) -->
+            <div class="invalid-feedback d-block"
+                 th:if="${#fields.hasErrors('photos')}"
+                 th:errors="*{photos}">
             </div>
 
-            <!-- Zone de prévisualisation -->
-            <div id="photosPreview" class="photos-preview"></div>
+            <div class="invalid-feedback" id="photoError"></div>
         </div>
 
-        <button type="button" class="submit-btn" onclick="submitForm()">
+        <button type="submit" class="submit-btn" id="submitBtn">
             ✅ Déclarer l'incident
         </button>
 
@@ -427,61 +564,134 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-    // ========== GESTION DES PHOTOS MULTIPLES ==========
-    const MAX_PHOTOS = 3; // Limite maximum de photos
+    // ========== CONFIGURATION ==========
+    const MAX_PHOTOS = 3;
+    const MIN_DESCRIPTION = 10;
+    const MAX_DESCRIPTION = 1000;
+    const MIN_ADRESSE = 5;
+    const MAX_ADRESSE = 255;
+
     let selectedFiles = [];
+    let formSubmitted = false;
 
-    function handleFileSelect(input) {
-        const newFiles = Array.from(input.files);
+    // ========== VALIDATION EN TEMPS RÉEL ==========
 
-        // Ajouter les nouveaux fichiers (sans doublons)
+    // Description avec compteur
+    const descriptionField = document.getElementById('description');
+    const descriptionCounter = document.getElementById('descriptionCounter');
+
+    descriptionField.addEventListener('input', function() {
+        const length = this.value.length;
+        descriptionCounter.textContent = `${length} / ${MAX_DESCRIPTION} caractères`;
+
+        if (length < MIN_DESCRIPTION) {
+            descriptionCounter.classList.add('danger');
+            descriptionCounter.classList.remove('warning');
+        } else if (length > MAX_DESCRIPTION - 50) {
+            descriptionCounter.classList.add('warning');
+            descriptionCounter.classList.remove('danger');
+        } else {
+            descriptionCounter.classList.remove('warning', 'danger');
+        }
+
+        validateField(this);
+    });
+
+    // Validation des autres champs
+    ['categorie', 'adresse'].forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.addEventListener('blur', function() {
+                validateField(this);
+            });
+            field.addEventListener('change', function() {
+                validateField(this);
+            });
+        }
+    });
+
+    function validateField(field) {
+        const errorDiv = field.parentElement.querySelector('.invalid-feedback');
+
+        if (!field.checkValidity()) {
+            field.classList.add('is-invalid');
+            field.classList.remove('is-valid');
+            if (errorDiv) errorDiv.classList.add('d-block');
+            return false;
+        } else {
+            field.classList.remove('is-invalid');
+            field.classList.add('is-valid');
+            if (errorDiv) errorDiv.classList.remove('d-block');
+            return true;
+        }
+    }
+
+    // ========== GESTION DES PHOTOS ==========
+    document.getElementById('photoInput').addEventListener('change', function(e) {
+        const newFiles = Array.from(e.target.files);
+
         newFiles.forEach(file => {
-            // Vérifier la limite
             if (selectedFiles.length >= MAX_PHOTOS) {
-                alert(`⚠️ Vous ne pouvez ajouter que ${MAX_PHOTOS} photos maximum.`);
+                showPhotoError(`⚠️ Maximum ${MAX_PHOTOS} photos autorisées`);
+                return;
+            }
+
+            // Vérifier le type
+            if (!file.type.startsWith('image/')) {
+                showPhotoError(`⚠️ ${file.name} n'est pas une image valide`);
+                return;
+            }
+
+            // Vérifier la taille (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                showPhotoError(`⚠️ ${file.name} est trop volumineux (max 5MB)`);
                 return;
             }
 
             const exists = selectedFiles.some(f =>
-                f.name === file.name && f.size === file.size && f.lastModified === file.lastModified
+                f.name === file.name && f.size === file.size
             );
+
             if (!exists && selectedFiles.length < MAX_PHOTOS) {
                 selectedFiles.push(file);
             }
         });
 
-        // Afficher les photos
         displayPhotos();
-        updateInputState();
+        updatePhotoLabel();
+        validatePhotos(); // ✅ VALIDATION AUTOMATIQUE
+        e.target.value = ''; // Reset input
+    });
 
-        console.log("📸 Fichiers sélectionnés:", selectedFiles.length);
-        selectedFiles.forEach((f, i) => {
-            console.log(`  ${i + 1}. ${f.name} (${(f.size / 1024).toFixed(1)} KB)`);
-        });
+    function showPhotoError(message) {
+        const errorDiv = document.getElementById('photoError');
+        errorDiv.textContent = message;
+        errorDiv.classList.add('d-block');
+        setTimeout(() => {
+            errorDiv.classList.remove('d-block');
+        }, 3000);
     }
 
-    function updateInputState() {
+    function updatePhotoLabel() {
         const input = document.getElementById('photoInput');
-        const label = document.querySelector('.file-input-label span:last-child');
+        const label = document.getElementById('photoLabel');
 
         if (selectedFiles.length >= MAX_PHOTOS) {
             input.disabled = true;
             label.textContent = `Maximum atteint (${MAX_PHOTOS}/${MAX_PHOTOS})`;
             document.querySelector('.file-input-label').style.opacity = '0.6';
-            document.querySelector('.file-input-label').style.cursor = 'not-allowed';
         } else {
             input.disabled = false;
             label.textContent = `Cliquez pour ajouter des photos (${selectedFiles.length}/${MAX_PHOTOS})`;
             document.querySelector('.file-input-label').style.opacity = '1';
-            document.querySelector('.file-input-label').style.cursor = 'pointer';
         }
     }
 
     function removePhoto(index) {
         selectedFiles.splice(index, 1);
         displayPhotos();
-        updateInputState();
-        console.log("🗑️ Photo supprimée. Reste:", selectedFiles.length);
+        updatePhotoLabel();
+        validatePhotos(); // ✅ RE-VALIDER après suppression
     }
 
     function displayPhotos() {
@@ -504,51 +714,131 @@
         }).join('');
     }
 
-    function submitForm() {
-        console.log("🚀 Soumission du formulaire...");
+    // ✅ NOUVELLE FONCTION : VALIDER LES PHOTOS
+    function validatePhotos() {
+        const photoError = document.getElementById('photoError');
+        const photoInputLabel = document.getElementById('photoInputLabel');
 
-        const form = document.getElementById('incidentForm');
+        if (selectedFiles.length === 0) {
+            photoInputLabel.classList.add('is-invalid');
+            photoError.textContent = '⚠️ Au moins une photo est obligatoire';
+            photoError.classList.add('d-block');
+            return false;
+        } else {
+            photoInputLabel.classList.remove('is-invalid');
+            photoError.classList.remove('d-block');
+            return true;
+        }
+    }
+
+    // ========== VALIDATION COMPLÈTE DU FORMULAIRE ==========
+    document.getElementById('incidentForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        if (formSubmitted) return;
+
+        let isValid = true;
+        const form = this;
+
+        // Valider tous les champs
+        ['description', 'categorie', 'adresse'].forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field && !validateField(field)) {
+                isValid = false;
+            }
+        });
+
+        // Valider la carte
+        const latitude = document.getElementById('latitude').value;
+        const longitude = document.getElementById('longitude').value;
+        const mapError = document.getElementById('mapError');
+        const mapElement = document.getElementById('map');
+
+        if (!latitude || !longitude) {
+            mapElement.classList.add('is-invalid');
+            mapError.classList.add('d-block');
+            isValid = false;
+        } else {
+            mapElement.classList.remove('is-invalid');
+            mapError.classList.remove('d-block');
+        }
+
+        // ✅ VALIDATION DES PHOTOS AVANT SOUMISSION
+        if (!validatePhotos()) {
+            isValid = false;
+        }
+
+        // Si invalide, scroll vers la première erreur
+        if (!isValid) {
+            const firstError = form.querySelector('.is-invalid');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            return;
+        }
+
+        // ✅ Formulaire valide → soumission
+        formSubmitted = true;
+        submitForm(form);
+    });
+
+    function submitForm(form) {
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = true;
+        submitBtn.textContent = '⏳ Envoi en cours...';
+
         const formData = new FormData(form);
 
         // Supprimer les anciennes photos et ajouter les nouvelles
         formData.delete('photos');
-
-        selectedFiles.forEach((file, index) => {
+        selectedFiles.forEach(file => {
             formData.append('photos', file);
-            console.log(`  ✅ Photo ${index + 1} ajoutée: ${file.name} (${file.size} bytes)`);
         });
 
         // Afficher le loading
-        showLoading();
+        document.getElementById('loadingOverlay').classList.add('active');
 
         // Envoyer avec fetch
         fetch(form.action, {
             method: 'POST',
             body: formData
-        })
-        .then(response => {
-            console.log("📡 Réponse reçue:", response.status);
-            if (response.redirected) {
-                window.location.href = response.url;
-            } else if (response.ok) {
-                window.location.href = '/citoyen/incident/success';
-            } else {
-                throw new Error('Erreur HTTP: ' + response.status);
-            }
-        })
+        }).then(response => {
+    if (!response.ok) {
+        throw new Error('Erreur HTTP: ' + response.status);
+    }
+
+    // ✅ SUCCÈS
+    console.log("✅ Incident créé avec succès");
+
+    // Réinitialiser le formulaire
+    form.reset();
+    selectedFiles = [];
+    displayPhotos();
+    updatePhotoLabel();
+
+    // 🔓 RÉACTIVER LE BOUTON
+    formSubmitted = false;
+    submitBtn.disabled = false;
+    submitBtn.textContent = '✅ Déclarer l\'incident';
+
+    // ❌ Enlever le loading
+    document.getElementById('loadingOverlay').classList.remove('active');
+
+    // (optionnel) feedback simple
+    // alert("✅ Incident déclaré avec succès");
+})
+
+
+
         .catch(error => {
             console.error('❌ Erreur:', error);
-            alert('Erreur lors de l\'envoi du formulaire. Veuillez réessayer.');
-            hideLoading();
+            alert('❌ Erreur lors de l\'envoi. Veuillez réessayer.');
+
+            formSubmitted = false;
+            submitBtn.disabled = false;
+            submitBtn.textContent = '✅ Déclarer l\'incident';
+            document.getElementById('loadingOverlay').classList.remove('active');
         });
-    }
-
-    function showLoading() {
-        document.getElementById('loadingOverlay').classList.add('active');
-    }
-
-    function hideLoading() {
-        document.getElementById('loadingOverlay').classList.remove('active');
     }
 
     // ========== CARTE LEAFLET ==========
@@ -560,6 +850,7 @@
 
     var marker;
 
+    // Géolocalisation automatique
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(position) {
             var lat = position.coords.latitude;
@@ -572,20 +863,19 @@
                 title: 'Position de l\'incident (déplaçable)'
             }).addTo(map);
 
-            document.getElementById("latitude").value = lat;
-            document.getElementById("longitude").value = lng;
+            updateCoordinates(lat, lng);
 
             marker.on('dragend', function(e) {
                 var newLatLng = e.target.getLatLng();
-                document.getElementById("latitude").value = newLatLng.lat;
-                document.getElementById("longitude").value = newLatLng.lng;
+                updateCoordinates(newLatLng.lat, newLatLng.lng);
             });
 
         }, function() {
-            console.log("⚠️ Impossible de récupérer la position GPS.");
+            console.log("⚠️ Géolocalisation refusée");
         });
     }
 
+    // Clic sur la carte
     map.on('click', function(e) {
         var lat = e.latlng.lat;
         var lng = e.latlng.lng;
@@ -595,13 +885,28 @@
                 draggable: true,
                 title: 'Position de l\'incident (déplaçable)'
             }).addTo(map);
+
+            marker.on('dragend', function(e) {
+                var newLatLng = e.target.getLatLng();
+                updateCoordinates(newLatLng.lat, newLatLng.lng);
+            });
         } else {
             marker.setLatLng([lat, lng]);
         }
 
+        updateCoordinates(lat, lng);
+    });
+
+    function updateCoordinates(lat, lng) {
         document.getElementById("latitude").value = lat;
         document.getElementById("longitude").value = lng;
-    });
+
+        // Retirer l'erreur si présente
+        const mapElement = document.getElementById('map');
+        const mapError = document.getElementById('mapError');
+        mapElement.classList.remove('is-invalid');
+        mapError.classList.remove('d-block');
+    }
 </script>
 
 </body>
