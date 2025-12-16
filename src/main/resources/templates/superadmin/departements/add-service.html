@@ -248,10 +248,10 @@
         <strong th:text="${departement.nom}">Département</strong>
     </div>
 
-    <form th:action="@{/superadmin/departements/{id}/services/add(id=${departement.id})}"
+    <form th:action="@{/superadmin/services/create}"
           method="post"
           th:object="${service}">
-
+        <input type="hidden" th:field="*{departementId}">
         <!-- Nom du service -->
         <div class="form-group">
             <label for="nom">Nom du service<span class="required">*</span></label>
