@@ -352,6 +352,27 @@
 <!-- ===== HEADER ===== -->
 <div th:replace="fragments/header_citoyen :: citoyen-header"></div>
 
+
+<!-- 🔔 Message succès création incident -->
+<div th:if="${successMessage}"
+     style="
+        margin: 20px auto;
+        max-width: 1200px;
+        background: linear-gradient(135deg, #d1fae5, #ecfdf5);
+        color: #065f46;
+        padding: 16px 24px;
+        border-radius: 14px;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(6, 95, 70, 0.2);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        animation: fadeInUp 0.4s ease-out;
+     ">
+    <span style="font-size: 22px;">✅</span>
+    <span th:text="${successMessage}"></span>
+</div>
+
 <!-- Barre de filtre -->
 <form method="get" class="filter-bar" style="
     margin-bottom:20px;
