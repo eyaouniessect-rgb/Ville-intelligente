@@ -91,7 +91,11 @@ public interface IncidentRepository extends JpaRepository<Incident, Long> {
     );
 
     List<Incident> findByAgentIsNull();
-
+//====================//
+long countByService_DepartementAndStatut(
+        Departement departement,
+        StatutIncident statut
+);
     // ===================== FILTRES DASHBOARD =====================
 
     @Query("""
@@ -118,5 +122,11 @@ public interface IncidentRepository extends JpaRepository<Incident, Long> {
       AND i.agent IS NULL
 """)
     long countNonAssignesByDepartement(@Param("departement") Departement departement);
+
+    // Tous les incidents résolus
+    List<Incident> findByStatut(StatutIncident statut);
+
+    // Incidents résolus par service
+    List<Incident> findByServiceAndStatut(ServiceMunicipal service, StatutIncident statut);
 
 }

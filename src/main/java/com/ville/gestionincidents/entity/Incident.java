@@ -37,6 +37,8 @@ public class Incident {
     private LocalDateTime dateDeclaration;
     private LocalDateTime dateDerniereMiseAJour;
     private LocalDateTime dateResolutionEstimee;
+    private LocalDateTime dateResolution;
+
 
     // Relations
     @ManyToOne
@@ -60,6 +62,8 @@ public class Incident {
 
     @OneToMany(mappedBy = "incident")
     private List<Rapport> rapports;
+
+
 
     // getters/setters
 }

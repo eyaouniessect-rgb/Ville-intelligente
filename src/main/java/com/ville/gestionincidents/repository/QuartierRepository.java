@@ -1,9 +1,11 @@
 package com.ville.gestionincidents.repository;
 
+import com.ville.gestionincidents.entity.Departement;
 import com.ville.gestionincidents.entity.Quartier;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -28,4 +30,6 @@ public interface QuartierRepository extends JpaRepository<Quartier, Long> {
      * Compter les quartiers
      */
     long count();
+    List<Quartier> findAllByDepartement(Departement departement);
+
 }

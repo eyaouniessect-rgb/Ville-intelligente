@@ -4,57 +4,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Admin - Ville Intelligente</title>
-
-    <!-- Chart.js depuis CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f7fa;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             padding: 20px;
         }
 
-        .container { max-width: 1400px; margin: 0 auto; }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
 
+        /* Header */
         .header {
             background: white;
-            padding: 25px;
-            border-radius: 10px;
-            margin-bottom: 25px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 15px;
+            padding: 25px 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            animation: slideDown 0.5s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .header h1 {
             color: #1f2937;
-            margin-bottom: 20px;
+            font-size: 28px;
+            margin-bottom: 15px;
         }
 
-        .filters {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .filters input {
-            padding: 10px;
-            border: 2px solid #e5e7eb;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-
-        .filters button {
-            padding: 10px 20px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
+        /* Stats Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -64,23 +61,64 @@
 
         .stat-card {
             background: white;
+            border-radius: 15px;
             padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: #667eea;
+            transition: width 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .stat-card:hover::before {
+            width: 100%;
+            opacity: 0.1;
         }
 
         .stat-card h3 {
             color: #6b7280;
             font-size: 14px;
             margin-bottom: 10px;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
         }
 
         .stat-card .value {
             font-size: 32px;
             font-weight: bold;
             color: #1f2937;
+            line-height: 1;
         }
 
+        /* Charts Grid */
         .charts-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
@@ -91,8 +129,9 @@
         .chart-container {
             background: white;
             padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            animation: fadeIn 0.5s ease;
         }
 
         .chart-container h2 {
@@ -106,6 +145,69 @@
             height: 300px;
         }
 
+        /* Filters */
+        .filters {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            align-items: end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            color: #374151;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .filter-group select:focus,
+        .filter-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .filters button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .filters button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Export Buttons */
         .export-buttons {
             display: flex;
             gap: 15px;
@@ -116,46 +218,141 @@
         .btn-export {
             padding: 12px 30px;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             font-size: 16px;
-            font-weight: bold;
+            font-weight: 600;
             cursor: pointer;
             text-decoration: none;
             display: inline-block;
+            transition: all 0.3s;
         }
 
         .btn-csv {
-            background: #10b981;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: white;
         }
 
         .btn-pdf {
-            background: #ef4444;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
             color: white;
         }
 
+        .btn-export:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        /* Empty Message */
+        .empty-message {
+            text-align: center;
+            color: #9ca3af;
+            padding: 40px;
+            font-size: 16px;
+        }
+
+        /* Responsive */
         @media (max-width: 768px) {
             .charts-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .filter-row {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .export-buttons {
+                flex-direction: column;
+            }
+
+            .btn-export {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .chart-container {
+                padding: 15px;
+            }
+
+            .chart-wrapper {
+                height: 250px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 24px;
             }
         }
     </style>
 </head>
 <body>
 <div class="container">
-    <!-- Header avec Filtres -->
+    <!-- Header -->
     <div class="header">
         <h1>📊 Dashboard Analytique</h1>
-        <form method="get" th:action="@{/admin/dashboard/rapport}" class="filters">
-            <label>Date début :</label>
-            <input type="date" name="dateDebut" th:value="${dateDebut != null ? #temporals.format(dateDebut, 'yyyy-MM-dd') : ''}">
-            <label>Date fin :</label>
-            <input type="date" name="dateFin" th:value="${dateFin != null ? #temporals.format(dateFin, 'yyyy-MM-dd') : ''}">
-            <button type="submit">Filtrer</button>
-        </form>
+
+        <!-- Filters -->
+        <div class="filters">
+            <form method="get" th:action="@{/admin/dashboard/rapport}">
+                <div class="filter-row">
+                    <!-- Date début -->
+                    <div class="filter-group">
+                        <label>Date début :</label>
+                        <input type="date" name="dateDebut"
+                               th:value="${dateDebut != null ? #temporals.format(dateDebut, 'yyyy-MM-dd') : ''}">
+                    </div>
+
+                    <!-- Date fin -->
+                    <div class="filter-group">
+                        <label>Date fin :</label>
+                        <input type="date" name="dateFin"
+                               th:value="${dateFin != null ? #temporals.format(dateFin, 'yyyy-MM-dd') : ''}">
+                    </div>
+
+                    <!-- Service -->
+                    <div class="filter-group">
+                        <label>Service :</label>
+                        <select name="serviceId">
+                            <option value="">Tous les services</option>
+                            <option th:each="service : ${services}"
+                                    th:value="${service.id}"
+                                    th:text="${service.nom}"
+                                    th:selected="${serviceId != null and serviceId == service.id}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- Quartier -->
+                    <div class="filter-group">
+                        <label>Quartier :</label>
+                        <select name="quartierId">
+                            <option value="">Tous les quartiers</option>
+                            <option th:each="quartier : ${quartiers}"
+                                    th:value="${quartier.id}"
+                                    th:text="${quartier.nom}"
+                                    th:selected="${quartierId != null and quartierId == quartier.id}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- Bouton Filtrer -->
+                    <div class="filter-group">
+                        <button type="submit">Filtrer</button>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
 
-    <!-- Cartes Statistiques -->
+    <!-- Statistics -->
     <div class="stats-grid">
         <div class="stat-card">
             <h3>Total Incidents</h3>
@@ -175,7 +372,7 @@
         </div>
     </div>
 
-    <!-- Graphiques -->
+    <!-- Charts -->
     <div class="charts-grid">
         <!-- Graphique 1 : Incidents par Service -->
         <div class="chart-container">
@@ -190,10 +387,13 @@
             <h2>Incidents par Quartier</h2>
             <div class="chart-wrapper">
                 <canvas id="chartQuartier"></canvas>
+                <div th:if="${incidentsParQuartier.isEmpty()}" class="empty-message">
+                    ⚠️ Aucun quartier assigné aux incidents
+                </div>
             </div>
         </div>
 
-        <!-- Graphique 3 : Délai Moyen de Résolution -->
+        <!-- Graphique 3 : Délai Moyen -->
         <div class="chart-container">
             <h2>Délai Moyen de Résolution par Service</h2>
             <div class="chart-wrapper">
@@ -201,7 +401,7 @@
             </div>
         </div>
 
-        <!-- Graphique 4 : Incidents par Statut -->
+        <!-- Graphique 4 : Statuts -->
         <div class="chart-container">
             <h2>Répartition par Statut</h2>
             <div class="chart-wrapper">
@@ -209,16 +409,10 @@
             </div>
         </div>
 
-        <!-- Graphique 5 : Évolution Mensuelle -->
-        <div class="chart-container" style="grid-column: 1 / -1;">
-            <h2>Évolution Mensuelle des Incidents</h2>
-            <div class="chart-wrapper" style="height: 400px;">
-                <canvas id="chartMois"></canvas>
-            </div>
-        </div>
+
     </div>
 
-    <!-- Boutons d'Export -->
+    <!-- Export Buttons -->
     <div class="export-buttons">
         <a th:href="@{/admin/dashboard/export/csv(dateDebut=${dateDebut != null ? #temporals.format(dateDebut, 'yyyy-MM-dd') : ''}, dateFin=${dateFin != null ? #temporals.format(dateFin, 'yyyy-MM-dd') : ''})}"
            class="btn-export btn-csv">
@@ -231,152 +425,163 @@
     </div>
 </div>
 
-<script>
-    // ==================== CONFIGURATION DES DONNÉES ====================
+<!-- ✅ INJECTION CORRECTE DES DONNÉES AVEC th:inline="javascript" -->
+<script th:inline="javascript">
+    // ==================== INJECTION DES DONNÉES ====================
 
-    // Données injectées depuis Thymeleaf
-    const incidentsParService = /*[[${incidentsParService}]]*/ [];
-    const incidentsParQuartier = /*[[${incidentsParQuartier}]]*/ [];
-    const delaiResolution = /*[[${delaiResolutionParService}]]*/ [];
+    // Incidents par Service
+    const incidentsParServiceData = /*[[${incidentsParService}]]*/ [];
+    const incidentsParService = incidentsParServiceData.map(item => ({
+        nomService: item.nomService || 'Service',
+        nombre: item.nombre || 0
+    }));
+
+    // Incidents par Quartier
+    const incidentsParQuartierData = /*[[${incidentsParQuartier}]]*/ [];
+    const incidentsParQuartier = incidentsParQuartierData.map(item => ({
+        nomQuartier: item.nomQuartier || 'Quartier',
+        nombre: item.nombre || 0
+    }));
+
+    // Délai de Résolution
+    const delaiResolutionData = /*[[${delaiResolutionParService}]]*/ [];
+    const delaiResolution = delaiResolutionData.map(item => ({
+        nomService: item.nomService || 'Service',
+        delaiMoyen: item.delaiMoyen || 0
+    }));
+
+    // Incidents par Statut
     const incidentsParStatut = /*[[${incidentsParStatut}]]*/ {};
+
+    // Incidents par Mois
     const incidentsParMois = /*[[${incidentsParMois}]]*/ {};
+
+    console.log('✅ Données chargées:');
+    console.log('Service:', incidentsParService);
+    console.log('Quartier:', incidentsParQuartier);
+    console.log('Statut:', incidentsParStatut);
+    console.log('Mois:', incidentsParMois);
 
     // ==================== GRAPHIQUE 1 : INCIDENTS PAR SERVICE ====================
     const ctxService = document.getElementById('chartService').getContext('2d');
-    new Chart(ctxService, {
-        type: 'bar',
-        data: {
-            labels: incidentsParService.map(item => item.nomService),
-            datasets: [{
-                label: 'Nombre d\'incidents',
-                data: incidentsParService.map(item => item.nombre),
-                backgroundColor: 'rgba(102, 126, 234, 0.8)',
-                borderColor: 'rgba(102, 126, 234, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false }
+    if (incidentsParService.length > 0) {
+        new Chart(ctxService, {
+            type: 'bar',
+            data: {
+                labels: incidentsParService.map(item => item.nomService),
+                datasets: [{
+                    label: "Nombre d'incidents",
+                    data: incidentsParService.map(item => item.nombre),
+                    backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                    borderColor: 'rgba(102, 126, 234, 1)',
+                    borderWidth: 1
+                }]
             },
-            scales: {
-                y: { beginAtZero: true }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
             }
-        }
-    });
+        });
+    }
 
     // ==================== GRAPHIQUE 2 : INCIDENTS PAR QUARTIER ====================
     const ctxQuartier = document.getElementById('chartQuartier').getContext('2d');
-    new Chart(ctxQuartier, {
-        type: 'bar',
-        data: {
-            labels: incidentsParQuartier.map(item => item.nomQuartier),
-            datasets: [{
-                label: 'Nombre d\'incidents',
-                data: incidentsParQuartier.map(item => item.nombre),
-                backgroundColor: 'rgba(16, 185, 129, 0.8)',
-                borderColor: 'rgba(16, 185, 129, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false }
+    if (incidentsParQuartier.length > 0) {
+        new Chart(ctxQuartier, {
+            type: 'bar',
+            data: {
+                labels: incidentsParQuartier.map(item => item.nomQuartier),
+                datasets: [{
+                    label: "Nombre d'incidents",
+                    data: incidentsParQuartier.map(item => item.nombre),
+                    backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                    borderColor: 'rgba(16, 185, 129, 1)',
+                    borderWidth: 1
+                }]
             },
-            scales: {
-                y: { beginAtZero: true }
-            }
-        }
-    });
-
-    // ==================== GRAPHIQUE 3 : DÉLAI MOYEN DE RÉSOLUTION ====================
-    const ctxDelai = document.getElementById('chartDelai').getContext('2d');
-    new Chart(ctxDelai, {
-        type: 'line',
-        data: {
-            labels: delaiResolution.map(item => item.nomService),
-            datasets: [{
-                label: 'Délai moyen (jours)',
-                data: delaiResolution.map(item => item.delaiMoyen),
-                borderColor: 'rgba(239, 68, 68, 1)',
-                backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                borderWidth: 2,
-                fill: true,
-                tension: 0.4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: true }
-            },
-            scales: {
-                y: { beginAtZero: true }
-            }
-        }
-    });
-
-    // ==================== GRAPHIQUE 4 : INCIDENTS PAR STATUT (CAMEMBERT) ====================
-    const ctxStatut = document.getElementById('chartStatut').getContext('2d');
-    new Chart(ctxStatut, {
-        type: 'pie',
-        data: {
-            labels: Object.keys(incidentsParStatut),
-            datasets: [{
-                data: Object.values(incidentsParStatut),
-                backgroundColor: [
-                    'rgba(239, 68, 68, 0.8)',
-                    'rgba(245, 158, 11, 0.8)',
-                    'rgba(59, 130, 246, 0.8)',
-                    'rgba(16, 185, 129, 0.8)',
-                    'rgba(139, 92, 246, 0.8)'
-                ]
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom'
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: true }
                 }
             }
-        }
-    });
+        });
+    }
 
-    // ==================== GRAPHIQUE 5 : ÉVOLUTION MENSUELLE ====================
-    const ctxMois = document.getElementById('chartMois').getContext('2d');
-    const moisLabels = Object.keys(incidentsParMois).sort();
-    new Chart(ctxMois, {
-        type: 'line',
-        data: {
-            labels: moisLabels,
-            datasets: [{
-                label: 'Nombre d\'incidents',
-                data: moisLabels.map(mois => incidentsParMois[mois]),
-                borderColor: 'rgba(102, 126, 234, 1)',
-                backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                borderWidth: 2,
-                fill: true,
-                tension: 0.4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: true }
+    // ==================== GRAPHIQUE 3 : DÉLAI MOYEN ====================
+    const ctxDelai = document.getElementById('chartDelai').getContext('2d');
+    if (delaiResolution.length > 0) {
+        new Chart(ctxDelai, {
+            type: 'line',
+            data: {
+                labels: delaiResolution.map(item => item.nomService),
+                datasets: [{
+                    label: 'Délai moyen (jours)',
+                    data: delaiResolution.map(item => item.delaiMoyen),
+                    borderColor: 'rgba(239, 68, 68, 1)',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
             },
-            scales: {
-                y: { beginAtZero: true }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: true }
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
             }
-        }
-    });
+        });
+    }
+
+    // ==================== GRAPHIQUE 4 : STATUTS (PIE) ====================
+    const ctxStatut = document.getElementById('chartStatut').getContext('2d');
+    const statutsKeys = Object.keys(incidentsParStatut);
+    const statutsValues = Object.values(incidentsParStatut);
+
+    if (statutsKeys.length > 0 && statutsValues.some(v => v > 0)) {
+        new Chart(ctxStatut, {
+            type: 'pie',
+            data: {
+                labels: statutsKeys,
+                datasets: [{
+                    data: statutsValues,
+                    backgroundColor: [
+                        'rgba(239, 68, 68, 0.8)',
+                        'rgba(245, 158, 11, 0.8)',
+                        'rgba(59, 130, 246, 0.8)',
+                        'rgba(16, 185, 129, 0.8)',
+                        'rgba(139, 92, 246, 0.8)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+
+
 </script>
 </body>
 </html>

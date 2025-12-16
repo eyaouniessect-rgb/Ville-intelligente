@@ -14,7 +14,7 @@ public class PreferenceNotification {
 
     private boolean emailActif= true;
     private boolean emailChangementStatut= true;
-    private boolean pushActif =false;
+    private boolean pushActif =true;
 
     @OneToOne
     @JoinColumn(

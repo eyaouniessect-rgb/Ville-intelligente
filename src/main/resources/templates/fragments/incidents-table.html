@@ -369,9 +369,13 @@
             <td th:text="${incident.agent != null ? incident.agent.prenom + ' ' + incident.agent.nom : 'Non assigné'}">Agent</td>
             <td th:text="${#temporals.format(incident.dateDeclaration, 'dd/MM/yyyy')}">Date</td>
             <td>
-                <button class="action-icon-btn" th:onclick="'openModal(' + ${incident.id} + ')'" title="Assigner">
+                <button class="action-icon-btn"
+                        th:if="${incident.agent == null}"
+                        th:onclick="'openModal(' + ${incident.id} + ')'"
+                        title="Assigner">
                     📝
                 </button>
+
                 <a th:href="@{/admin/incidents/{id}(id=${incident.id})}" class="action-icon-btn" title="Détails">
                     👁️
                 </a>

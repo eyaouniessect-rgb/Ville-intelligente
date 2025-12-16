@@ -5,6 +5,7 @@ import com.ville.gestionincidents.dto.dashboardAdmin.IncidentParQuartierDto;
 import com.ville.gestionincidents.dto.dashboardAdmin.IncidentParServiceDto;
 import com.ville.gestionincidents.entity.Departement;
 import com.ville.gestionincidents.entity.Incident;
+import com.ville.gestionincidents.entity.ServiceMunicipal;
 import com.ville.gestionincidents.enumeration.StatutIncident;
 import com.ville.gestionincidents.repository.IncidentRepository;
 import com.ville.gestionincidents.repository.QuartierRepository;
@@ -18,11 +19,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.OutputStream;
 import java.io.Writer;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
@@ -96,7 +99,7 @@ public class DashboardServiceImpl implements DashboardService {
                                 i.getService() != null &&
                                         i.getService().getDepartement().equals(d) &&
                                         i.getStatut() == StatutIncident.RESOLU &&
-                                        i.getDateDerniereMiseAJour() != null
+                                        i.getDateResolution() != null  // ✅ CORRECTION ICI
                         )
                         .collect(Collectors.toList());
 
@@ -106,21 +109,21 @@ public class DashboardServiceImpl implements DashboardService {
                 .mapToLong(i ->
                         ChronoUnit.DAYS.between(
                                 i.getDateDeclaration(),
-                                i.getDateDerniereMiseAJour()
+                                i.getDateResolution()  // ✅ CORRECTION ICI
                         )
                 )
                 .average()
                 .orElse(0);
     }
-
     /* ===================== GRAPHIQUES ===================== */
 
     @Override
     @Transactional(readOnly = true)
     public List<IncidentParServiceDto> getIncidentsParServiceByDepartement(
-            Departement d, LocalDate dd, LocalDate df) {
+            Departement d, LocalDate dd, LocalDate df, Long serviceId) {
 
         return serviceMunicipalRepository.findByDepartement(d).stream()
+                .filter(s -> serviceId == null || s.getId().equals(serviceId)) // filtre optionnel
                 .map(s -> new IncidentParServiceDto(
                         s.getNom(),
                         incidentRepository.countByServiceAndDateDeclarationBetween(
@@ -134,14 +137,14 @@ public class DashboardServiceImpl implements DashboardService {
     @Override
     @Transactional(readOnly = true)
     public List<IncidentParQuartierDto> getIncidentsParQuartierByDepartement(
-            Departement d, LocalDate dd, LocalDate df) {
+            Departement d, LocalDate dd, LocalDate df, Long quartierId) {
 
         return incidentRepository.findByDateDeclarationBetween(start(dd), end(df))
                 .stream()
-                .filter(i ->
-                        i.getService() != null &&
-                                i.getService().getDepartement().equals(d) &&
-                                i.getQuartier() != null
+                .filter(i -> i.getService() != null &&
+                        i.getService().getDepartement().equals(d) &&
+                        i.getQuartier() != null &&
+                        (quartierId == null || i.getQuartier().getId().equals(quartierId))
                 )
                 .collect(Collectors.groupingBy(
                         i -> i.getQuartier().getNom(),
@@ -153,8 +156,20 @@ public class DashboardServiceImpl implements DashboardService {
                 .collect(Collectors.toList());
     }
 
+
+    // Délai moyen global
     @Override
-    @Transactional(readOnly = true)
+    public double calculDelaiMoyenGlobal() {
+        List<Incident> incidentsResolus = incidentRepository.findByStatut(StatutIncident.RESOLU);
+        return incidentsResolus.stream()
+                .filter(i -> i.getDateResolution() != null && i.getDateDeclaration() != null)
+                .mapToLong(i -> Duration.between(i.getDateDeclaration(), i.getDateResolution()).toDays())
+                .average()
+                .orElse(0);
+    }
+
+    // Délai moyen par service
+    @Override
     public List<DelaiResolutionDto> getDelaiResolutionParServiceByDepartement(
             Departement d, LocalDate dd, LocalDate df) {
 
@@ -165,11 +180,11 @@ public class DashboardServiceImpl implements DashboardService {
                                     s, start(dd), end(df), StatutIncident.RESOLU);
 
                     double avg = list.stream()
-                            .filter(i -> i.getDateDerniereMiseAJour() != null)
+                            .filter(i -> i.getDateResolution() != null)
                             .mapToLong(i ->
                                     ChronoUnit.DAYS.between(
                                             i.getDateDeclaration(),
-                                            i.getDateDerniereMiseAJour()
+                                            i.getDateResolution() // <-- ici aussi
                                     )
                             )
                             .average()
@@ -180,6 +195,8 @@ public class DashboardServiceImpl implements DashboardService {
                 .filter(x -> x.getDelaiMoyen() > 0)
                 .collect(Collectors.toList());
     }
+
+
 
     @Override
     @Transactional(readOnly = true)
@@ -217,23 +234,22 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     /* ===================== EXPORTS ===================== */
-
     @Override
-    public void exportCsv(LocalDate dd, LocalDate df, Writer writer) throws Exception {
+    public void exportCsv(LocalDate dd, LocalDate df, Long serviceId, Long quartierId, Writer writer) throws Exception {
 
         Departement dept = currentUserService.getCurrentUser().getDepartement();
 
         csvExportService.exportDashboardData(
                 dd, df,
-                getIncidentsParServiceByDepartement(dept, dd, df),
-                getIncidentsParQuartierByDepartement(dept, dd, df),
+                getIncidentsParServiceByDepartement(dept, dd, df, serviceId),
+                getIncidentsParQuartierByDepartement(dept, dd, df, quartierId),
                 getDelaiResolutionParServiceByDepartement(dept, dd, df),
                 writer
         );
     }
 
     @Override
-    public void exportPdf(LocalDate dd, LocalDate df, OutputStream out) throws Exception {
+    public void exportPdf(LocalDate dd, LocalDate df, Long serviceId, Long quartierId, OutputStream out) throws Exception {
 
         Departement dept = currentUserService.getCurrentUser().getDepartement();
 
@@ -243,10 +259,12 @@ public class DashboardServiceImpl implements DashboardService {
                 countIncidentsResolusByDepartement(dept, dd, df),
                 countIncidentsEnCoursByDepartement(dept, dd, df),
                 calculerDelaiMoyenResolutionByDepartement(dept, dd, df),
-                getIncidentsParServiceByDepartement(dept, dd, df),
-                getIncidentsParQuartierByDepartement(dept, dd, df),
+                getIncidentsParServiceByDepartement(dept, dd, df, serviceId),
+                getIncidentsParQuartierByDepartement(dept, dd, df, quartierId),
                 getDelaiResolutionParServiceByDepartement(dept, dd, df),
                 out
         );
     }
+
+
 }
