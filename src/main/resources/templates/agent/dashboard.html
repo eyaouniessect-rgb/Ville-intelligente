@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Agent</title>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* HEADER STYLES */
+        .header-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px 40px;
+            border-radius: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-title {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 28px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-left a {
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-name {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .logout-btn {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+        }
+
+        /* STATISTIQUES */
+        .stats-grid {
+            display: grid;
+            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, .1);
+            transition: all .3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 5px;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, .15);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .stat-card h3 {
+            color: #6b7280;
+            text-transform: uppercase;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .stat-icon {
+            font-size: 32px;
+            opacity: 0.8;
+        }
+
+        .number {
+            font-size: 42px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .total::before { background: #667eea; }
+        .total .number { color: #667eea; }
+        .signale::before { background: #3b82f6; }
+        .signale .number { color: #3b82f6; }
+        .pris-charge::before { background: #8b5cf6; }
+        .pris-charge .number { color: #8b5cf6; }
+        .resolution::before { background: #f59e0b; }
+        .resolution .number { color: #f59e0b; }
+        .resolu::before { background: #10b981; }
+        .resolu .number { color: #10b981; }
+        .cloture::before { background: #6b7280; }
+        .cloture .number { color: #6b7280; }
+
+        /* SECTION INCIDENTS */
+        .incidents-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, .1);
+        }
+
+        .section-title {
+            color: #667eea;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .incident-card {
+            background: #f9fafb;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 5px solid #667eea;
+            transition: all .3s;
+        }
+
+        .incident-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, .1);
+        }
+
+        .incident-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .incident-id {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .incident-status {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-signale { background: #dbeafe; color: #1e40af; }
+        .status-pris-en-charge { background: #ede9fe; color: #6b21a8; }
+        .status-en-resolution { background: #fef3c7; color: #92400e; }
+        .status-resolu { background: #d1fae5; color: #065f46; }
+
+        .incident-info {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .incident-description {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #4b5563;
+            line-height: 1.6;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all .3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, .2);
+        }
+
+        .btn-pris-charge { background: #8b5cf6; color: white; }
+        .btn-pris-charge:hover { background: #7c3aed; }
+        .btn-resolution { background: #f59e0b; color: white; }
+        .btn-resolution:hover { background: #d97706; }
+        .btn-resolu { background: #10b981; color: white; }
+        .btn-resolu:hover { background: #059669; }
+        .btn-disabled { background: #d1d5db; color: #9ca3af; cursor: not-allowed; }
+        .btn-disabled:hover { transform: none; box-shadow: none; }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid #10b981;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #9ca3af;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .empty-state-text {
+            font-size: 18px;
+            color: #6b7280;
+        }
+
+        @media (max-width: 768px) {
+            .header-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .stat-card, .incident-card {
+            animation: fadeInUp 0.5s ease-out;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+    <!-- HEADER -->
+    <div class="header-container">
+        <div class="header-left">
+            <a th:href="@{/agent/dashboard}">
+                <span class="header-title">👮 Dashboard Agent</span>
+            </a>
+        </div>
+        <div class="header-right">
+            <span class="user-name" sec:authentication="name">Agent</span>
+            <form th:action="@{/logout}" method="post" style="margin: 0;">
+                <button type="submit" class="logout-btn">🚪 Déconnexion</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MESSAGES FLASH -->
+    <div th:if="${success}" class="alert alert-success">
+        ✅ <span th:text="${success}"></span>
+    </div>
+    <div th:if="${error}" class="alert alert-error">
+        ❌ <span th:text="${error}"></span>
+    </div>
+
+    <!-- STATISTIQUES -->
+    <div class="stats-grid">
+        <div class="stat-card total">
+            <div class="stat-header">
+                <h3>Total Incidents</h3>
+                <span class="stat-icon">📊</span>
+            </div>
+            <div class="number" th:text="${totalIncidents}">0</div>
+        </div>
+
+
+        <div class="stat-card pris-charge">
+            <div class="stat-header">
+                <h3>Pris en charge</h3>
+                <span class="stat-icon">🔄</span>
+            </div>
+            <div class="number" th:text="${countPrisEnCharge}">0</div>
+        </div>
+
+        <div class="stat-card resolution">
+            <div class="stat-header">
+                <h3>En résolution</h3>
+                <span class="stat-icon">⚙️</span>
+            </div>
+            <div class="number" th:text="${countEnResolution}">0</div>
+        </div>
+
+        <div class="stat-card resolu">
+            <div class="stat-header">
+                <h3>Résolus</h3>
+                <span class="stat-icon">✅</span>
+            </div>
+            <div class="number" th:text="${countResolu}">0</div>
+        </div>
+
+        <div class="stat-card cloture">
+            <div class="stat-header">
+                <h3>Clôturés</h3>
+                <span class="stat-icon">🔒</span>
+            </div>
+            <div class="number" th:text="${countCloture}">0</div>
+        </div>
+    </div>
+
+    <!-- LISTE DES INCIDENTS -->
+    <div class="incidents-section">
+        <h2 class="section-title">
+            <span>📋</span>
+            Mes incidents assignés
+        </h2>
+
+        <div th:if="${incidents == null or #lists.isEmpty(incidents)}" class="empty-state">
+            <div class="empty-state-icon">📭</div>
+            <div class="empty-state-text">Aucun incident en cours</div>
+        </div>
+
+        <div th:unless="${incidents == null or #lists.isEmpty(incidents)}">
+            <div th:each="incident : ${incidents}" class="incident-card">
+                <div class="incident-header">
+                    <div>
+                        <div class="incident-id">
+                            Incident #<span th:text="${incident.id}">1</span>
+                        </div>
+                    </div>
+                    <span class="incident-status" th:text="${incident.statut}">SIGNALE</span>
+                </div>
+
+                <div class="incident-info">
+                    <div class="info-row">
+                        <span>📅</span>
+                        <span class="info-label">Date :</span>
+                        <span th:text="${#temporals.format(incident.dateDeclaration, 'dd/MM/yyyy HH:mm')}"></span>
+                    </div>
+                    <div class="info-row">
+                        <span>📍</span>
+                        <span class="info-label">Localisation :</span>
+                        <span th:text="${incident.adresse != null ? incident.adresse : '—'}"></span>
+                    </div>
+                    <div class="info-row">
+                        <span>🏢</span>
+                        <span class="info-label">Service :</span>
+                        <span th:text="${incident.service != null ? incident.service.nom : 'Non assigné'}">Non assigné</span>
+                    </div>
+                    <div class="info-row">
+                        <span>⚠️</span>
+                        <span class="info-label">Priorité :</span>
+                        <span th:text="${incident.priorite}">MOYENNE</span>
+                    </div>
+                </div>
+
+                <div class="incident-description">
+                    <strong>Description :</strong><br>
+                    <span th:text="${incident.description}">Description de l'incident</span>
+                </div>
+
+                <form th:action="@{/agent/incidents/{id}/changer-statut(id=${incident.id})}"
+                      method="post"
+                      class="action-buttons"
+                      onsubmit="return confirm('Confirmer le changement de statut ?');">
+
+                    <!-- PRIS EN CHARGE -->
+                    <button
+                            type="submit"
+                            name="statut"
+                            value="PRIS_EN_CHARGE"
+                            class="action-btn btn-pris-charge"
+                            th:disabled="${incident.statut != T(com.ville.gestionincidents.enumeration.StatutIncident).SIGNALE}"
+                            th:classappend="${incident.statut != T(com.ville.gestionincidents.enumeration.StatutIncident).SIGNALE ? 'btn-disabled' : ''}">
+                        👁️ Prendre en charge
+                    </button>
+
+                    <!-- EN RÉSOLUTION -->
+                    <button
+                            type="submit"
+                            name="statut"
+                            value="EN_RESOLUTION"
+                            class="action-btn btn-resolution"
+                            th:disabled="${incident.statut != T(com.ville.gestionincidents.enumeration.StatutIncident).PRIS_EN_CHARGE}"
+                            th:classappend="${incident.statut != T(com.ville.gestionincidents.enumeration.StatutIncident).PRIS_EN_CHARGE ? 'btn-disabled' : ''}">
+                        ⚙️ En résolution
+                    </button>
+
+                    <!-- RÉSOLU -->
+                    <button
+                            type="submit"
+                            name="statut"
+                            value="RESOLU"
+                            class="action-btn btn-resolu"
+                            th:disabled="${incident.statut != T(com.ville.gestionincidents.enumeration.StatutIncident).EN_RESOLUTION}"
+                            th:classappend="${incident.statut != T(com.ville.gestionincidents.enumeration.StatutIncident).EN_RESOLUTION ? 'btn-disabled' : ''}">
+                        ✅ Résolu
+                    </button>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -129,4 +129,21 @@ long countByService_DepartementAndStatut(
     // Incidents résolus par service
     List<Incident> findByServiceAndStatut(ServiceMunicipal service, StatutIncident statut);
 
+    // Dans IncidentRepository.java
+
+    // Compter les incidents assignés à un agent par statut
+    long countByAgentAndStatut(Utilisateur agent, StatutIncident statut);
+
+    // Récupérer tous les incidents d'un agent
+    List<Incident> findByAgentOrderByDateDeclarationDesc(Utilisateur agent);
+
+    // Récupérer les incidents d'un agent par statut
+    List<Incident> findByAgentAndStatutOrderByDateDeclarationDesc(
+            Utilisateur agent,
+            StatutIncident statut
+    );
+
+    // Compter tous les incidents d'un agent
+    long countByAgent(Utilisateur agent);
+
 }

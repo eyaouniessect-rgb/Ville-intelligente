@@ -4,6 +4,9 @@ import com.ville.gestionincidents.entity.Departement;
 import com.ville.gestionincidents.entity.Utilisateur;
 import org.springframework.data.jpa.repository.JpaRepository;
 import com.ville.gestionincidents.enumeration.Role;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -32,4 +35,8 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur, Long> 
     List<Utilisateur> findByServiceMunicipalIdAndRole(Long serviceId, Role role);
 
     long countByDepartementAndRole(Departement departement, Role role);
+
+    Optional<Utilisateur> findByRoleAndDepartement_Id(Role role, Long departementId);
+
+
 }

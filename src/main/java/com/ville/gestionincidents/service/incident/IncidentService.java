@@ -4,6 +4,7 @@ import com.ville.gestionincidents.dto.incident.IncidentCreateDto;
 
 import com.ville.gestionincidents.entity.Departement;
 import com.ville.gestionincidents.entity.Incident;
+import com.ville.gestionincidents.entity.Utilisateur;
 import com.ville.gestionincidents.enumeration.PrioriteIncident;
 import com.ville.gestionincidents.enumeration.StatutIncident;
 import org.springframework.data.domain.Page;
@@ -70,5 +71,19 @@ public interface IncidentService {
 
     int countClotureForCurrentUser();
 
+    // Dans IncidentService.java
+
+    // Statistiques agent
+    long countByAgent(Utilisateur agent);
+    long countByAgentAndStatut(Utilisateur agent, StatutIncident statut);
+
+    // Liste des incidents
+    List<Incident> findByAgent(Utilisateur agent);
+    List<Incident> findByAgentAndStatut(Utilisateur agent, StatutIncident statut);
+
+    // Changer le statut d'un incident
+    void changerStatut(Long incidentId, StatutIncident nouveauStatut, String commentaire);
+//
+    Incident findById(Long id);
 
 }

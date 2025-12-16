@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+
+<div th:fragment="agent-header">
+
+    <style>
+        /* ===== HEADER STYLES ===== */
+        .header-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px 40px;
+            border-radius: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 1000;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-title {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 28px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .header-left a {
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-left a:hover .header-title {
+            opacity: 0.8;
+            transform: scale(1.02);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-name {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .notification-icon-container {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .notification-icon {
+            font-size: 24px;
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+            padding: 10px;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .notification-icon:hover {
+            background: rgba(102, 126, 234, 0.2);
+            transform: scale(1.1);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+            animation: pulse 2s infinite;
+        }
+
+        .notification-badge.hidden {
+            display: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .logout-btn {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+        }
+
+        /* ===== NOTIFICATION TOAST STYLES ===== */
+        .notification-toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 16px;
+            padding: 20px 25px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            min-width: 350px;
+            max-width: 450px;
+            z-index: 10000;
+            display: none;
+            animation: slideInRight 0.5s ease-out, fadeOut 0.5s ease-out 4.5s;
+            border-left: 5px solid #667eea;
+            transform: translateX(500px);
+            opacity: 0;
+        }
+
+        .notification-toast.show {
+            display: block;
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(500px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(500px);
+            }
+        }
+
+        .toast-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .toast-icon {
+            font-size: 28px;
+            margin-right: 12px;
+        }
+
+        .toast-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #9ca3af;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .toast-close:hover {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .toast-message {
+            color: #4b5563;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-left: 40px;
+        }
+
+        .toast-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 0 0 16px 16px;
+            animation: progress 5s linear;
+        }
+
+        @keyframes progress {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+
+        /* Notification variants */
+        .notification-toast.CREATION_INCIDENT {
+            border-left-color: #10b981;
+        }
+
+        .notification-toast.CREATION_INCIDENT .toast-icon {
+            color: #10b981;
+        }
+
+        .notification-toast.CHANGEMENT_STATUT {
+            border-left-color: #3b82f6;
+        }
+
+        .notification-toast.CHANGEMENT_STATUT .toast-icon {
+            color: #3b82f6;
+        }
+
+        .notification-toast.ASSIGNATION {
+            border-left-color: #8b5cf6;
+        }
+
+        .notification-toast.ASSIGNATION .toast-icon {
+            color: #8b5cf6;
+        }
+
+        .notification-toast.NOUVEAU_COMMENTAIRE {
+            border-left-color: #f59e0b;
+        }
+
+        .notification-toast.NOUVEAU_COMMENTAIRE .toast-icon {
+            color: #f59e0b;
+        }
+    </style>
+
+    <!-- Header Container -->
+    <div class="header-container">
+        <div class="header-left">
+            <a th:href="@{/agent/dashboard}">
+                <span class="header-title">👮 Dashboard Agent</span>
+            </a>
+        </div>
+
+        <div class="header-right">
+            <span class="user-name"
+                  th:text="${agent != null ? agent.prenom + ' ' + agent.nom : 'Agent'}">
+                Nom Agent
+            </span>
+
+            <div class="notification-icon-container" onclick="window.location.href='/agent/notifications'" th:if="${agent != null}">
+                <div class="notification-icon">🔔</div>
+                <span class="notification-badge hidden" id="notificationBadge">0</span>
+            </div>
+
+            <form th:action="@{/logout}" method="post" style="margin: 0;">
+                <button type="submit" class="logout-btn">🚪 Déconnexion</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification Toast Container -->
+    <div id="notificationToast" class="notification-toast CREATION_INCIDENT">
+        <div class="toast-progress"></div>
+        <div class="toast-header">
+            <div class="toast-title">
+                <span class="toast-icon">🔔</span>
+                <span id="toastTitle">Notification</span>
+            </div>
+            <button class="toast-close" onclick="closeNotification()">×</button>
+        </div>
+        <div class="toast-message" id="toastMessage"></div>
+    </div>
+
+    <!-- WebSocket Notifications Script -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
+    <script th:if="${agent != null}" th:inline="javascript">
+
+        let stompClient = null;
+        let notificationCount = 0;
+
+        // 👉 Récupération de l'ID de l'agent depuis Thymeleaf
+        const agentId = [[${agent.id}]];
+
+        function debug(msg) { console.log("🔧 WS-AGENT >> " + msg); }
+
+        function initWebSocket() {
+
+            if (!agentId) {
+                debug("❌ AGENT ID NULL → WebSocket ignoré");
+                return;
+            }
+
+            debug("🔌 Connexion WebSocket pour agent " + agentId);
+
+            const socket = new SockJS('/ws-notifications');
+            stompClient = Stomp.over(socket);
+
+            stompClient.connect({}, function () {
+
+                debug("✅ WebSocket CONNECTÉ");
+
+                const topic = "/topic/notifications/" + agentId;
+                debug("📡 Souscription : " + topic);
+
+                stompClient.subscribe(topic, function (msg) {
+
+                    debug("📨 MESSAGE REÇU : " + msg.body);
+
+                    let data;
+
+                    try {
+                        data = JSON.parse(msg.body);
+                    } catch (e) {
+                        data = {
+                            message: msg.body,
+                            type: "ASSIGNATION",
+                            title: "Notification"
+                        };
+                    }
+
+                    showNotification(data.message, data.type, data.title);
+                });
+
+            }, function (error) {
+                debug("❌ Erreur WebSocket : " + error);
+                setTimeout(initWebSocket, 5000);
+            });
+        }
+
+        function showNotification(message, type, title) {
+            debug("🔔 Notification : " + message + " | Type: " + type);
+
+            const toast = document.getElementById("notificationToast");
+            const msg = document.getElementById("toastMessage");
+            const titleElement = document.getElementById("toastTitle");
+
+            // Retirer toutes les classes de type
+            toast.classList.remove("CREATION_INCIDENT", "CHANGEMENT_STATUT", "ASSIGNATION", "NOUVEAU_COMMENTAIRE");
+            toast.classList.add(type);
+
+            // Définir l'icône et le titre selon le type
+            const icon = document.querySelector(".toast-icon");
+            switch(type) {
+                case "ASSIGNATION":
+                    icon.textContent = "📋";
+                    titleElement.textContent = title || "Nouvel incident assigné";
+                    break;
+                case "CHANGEMENT_STATUT":
+                    icon.textContent = "🔄";
+                    titleElement.textContent = title || "Statut modifié";
+                    break;
+                case "NOUVEAU_COMMENTAIRE":
+                    icon.textContent = "💬";
+                    titleElement.textContent = title || "Nouveau commentaire";
+                    break;
+                default:
+                    icon.textContent = "🔔";
+                    titleElement.textContent = title || "Notification";
+            }
+
+            msg.textContent = message;
+
+            toast.classList.add("show");
+
+            notificationCount++;
+            updateNotificationBadge();
+
+            setTimeout(() => toast.classList.remove("show"), 5000);
+        }
+
+        function updateNotificationBadge() {
+            const badge = document.getElementById("notificationBadge");
+            if (badge) {
+                badge.textContent = notificationCount;
+                badge.classList.remove("hidden");
+            }
+        }
+
+        function closeNotification() {
+            const toast = document.getElementById("notificationToast");
+            toast.classList.remove("show");
+        }
+
+        document.addEventListener("DOMContentLoaded", initWebSocket);
+
+    </script>
+
+</div>
+
+</body>
+</html>

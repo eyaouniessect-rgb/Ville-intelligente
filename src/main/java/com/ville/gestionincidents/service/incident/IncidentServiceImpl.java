@@ -3,7 +3,7 @@ package com.ville.gestionincidents.service.incident;
 import com.ville.gestionincidents.dto.incident.IncidentCreateDto;
 
 import com.ville.gestionincidents.entity.*;
-import com.ville.gestionincidents.enumeration.PrioriteIncident;
+import com.ville.gestionincidents.enumeration.*;
 
 import com.ville.gestionincidents.dto.incident.IncidentDetailsDto;
 import com.ville.gestionincidents.dto.incident.IncidentListDto;
@@ -11,8 +11,6 @@ import com.ville.gestionincidents.entity.Incident;
 import com.ville.gestionincidents.entity.Photo;
 import com.ville.gestionincidents.entity.Utilisateur;
 
-import com.ville.gestionincidents.enumeration.StatutIncident;
-import com.ville.gestionincidents.enumeration.TypeNotification;
 import com.ville.gestionincidents.mapper.IncidentMapper;
 
 import com.ville.gestionincidents.repository.*;
@@ -24,6 +22,7 @@ import com.ville.gestionincidents.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import com.ville.gestionincidents.repository.UtilisateurRepository;
 
@@ -290,6 +289,90 @@ public class IncidentServiceImpl implements IncidentService {
     public int countClotureForCurrentUser() {
         String email = currentUserService.getCurrentUser().getEmail();
         return incidentRepository.countByCitoyenEmailAndStatut(email, StatutIncident.CLOTURE);
+    }
+// Dans IncidentServiceImpl.java
+
+    @Override
+    public long countByAgent(Utilisateur agent) {
+        return incidentRepository.countByAgent(agent);
+    }
+
+    @Override
+    public long countByAgentAndStatut(Utilisateur agent, StatutIncident statut) {
+        return incidentRepository.countByAgentAndStatut(agent, statut);
+    }
+
+    @Override
+    public List<Incident> findByAgent(Utilisateur agent) {
+        return incidentRepository.findByAgentOrderByDateDeclarationDesc(agent);
+    }
+
+    @Override
+    public List<Incident> findByAgentAndStatut(Utilisateur agent, StatutIncident statut) {
+        return incidentRepository.findByAgentAndStatutOrderByDateDeclarationDesc(agent, statut);
+    }
+
+    @Override
+    @Transactional
+    public void changerStatut(Long incidentId,
+                              StatutIncident nouveauStatut,
+                              String commentaire) {
+
+        Incident incident = incidentRepository.findById(incidentId)
+                .orElseThrow(() -> new RuntimeException("Incident introuvable"));
+
+        Utilisateur agent = currentUserService.getCurrentUser();
+
+        // 🔐 Sécurité
+        if (incident.getAgent() == null ||
+                !incident.getAgent().getId().equals(agent.getId())) {
+            throw new RuntimeException("Accès interdit");
+        }
+
+        // 🔁 Mise à jour
+        incident.setStatut(nouveauStatut);
+        incident.setDateDerniereMiseAJour(LocalDateTime.now());
+        incidentRepository.save(incident);
+
+        /* 🔔 NOTIFICATION CITOYEN */
+        notificationService.creerNotification(
+                incident.getCitoyen().getEmail(),
+                TypeNotification.CHANGEMENT_STATUT,
+                "Votre incident #" + incident.getId()
+                        + " est passé au statut : " + nouveauStatut,
+                incident
+        );
+
+        /* 🔔 NOTIFICATION ADMIN (1 seul admin par département) */
+        if (incident.getService() == null ||
+                incident.getService().getDepartement() == null) {
+            throw new RuntimeException("Incident sans service ou département");
+        }
+
+        Utilisateur admin =
+                utilisateurRepository.findByRoleAndDepartement_Id(
+                        Role.ADMIN,
+                        incident.getService().getDepartement().getId()
+                ).orElseThrow(() ->
+                        new RuntimeException("Admin introuvable pour ce département"));
+        System.out.println("SERVICE ID = " + incident.getService().getId());
+        System.out.println("DEPARTEMENT ID = " + incident.getService().getDepartement().getId());
+
+        notificationService.creerNotification(
+                admin.getEmail(),
+                TypeNotification.CHANGEMENT_STATUT,
+                "Incident #" + incident.getId()
+                        + " changé en " + nouveauStatut
+                        + " par l'agent " + agent.getNom(),
+                incident
+        );
+    }
+
+
+    @Override
+    public Incident findById(Long id) {
+        return incidentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Incident introuvable"));
     }
 
 }
