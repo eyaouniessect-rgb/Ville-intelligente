@@ -191,7 +191,7 @@
 </head>
 <body>
 <div class="form-container">
-    <a th:href="@{/superadmin/departements/{id}(id=${departement.id})}" class="back-link">
+    <a th:href="@{/superadmin/departements/{id}(id=${service.departementId})}" class="back-link">
         ← Retour au département
     </a>
 
@@ -199,7 +199,7 @@
         <div class="icon">✏️</div>
         <h1>Modifier le Service</h1>
         <p>Mettez à jour les informations du service</p>
-        <span class="departement-badge" th:text="${departement.nom}">Département</span>
+        <span class="departement-badge"  th:text="${service.departementNom}">Département</span>
     </div>
 
     <!-- Message d'erreur -->
@@ -210,12 +210,15 @@
     <!-- Info -->
     <div class="alert alert-info">
         <strong>ℹ️ Info :</strong> Ce service appartient au département
-        <strong th:text="${departement.nom}">Département</strong>
+        <strong th:text="${service.departementNom}">Département</strong>
     </div>
 
-    <form th:action="@{/superadmin/departements/services/{id}/edit(id=${service.id})}"
+    <span class="departement-badge" th:text="${service.departementNom}">Département</span>
+
+    <form th:action="@{/superadmin/services/{id}/edit(id=${service.id})}"
           method="post"
           th:object="${service}">
+        <input type="hidden" th:field="*{departementId}">
 
         <!-- Nom du service -->
         <div class="form-group">
@@ -244,7 +247,7 @@
 
         <!-- Actions -->
         <div class="form-actions">
-            <a th:href="@{/superadmin/departements/{id}(id=${departement.id})}" class="btn btn-secondary">
+            <a th:href="@{/superadmin/departements/{id}(id=${service.departementId})}" class="btn btn-secondary">
                 Annuler
             </a>
             <button type="submit" class="btn btn-primary">

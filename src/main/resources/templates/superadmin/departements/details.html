@@ -323,7 +323,7 @@
                 ← Retour à la liste
             </a>
             <div class="header-actions">
-                <a th:href="@{/superadmin/departements/{id}/services/add(id=${departement.id})}"
+                <a th:href="@{/superadmin/services/create(departementId=${departement.id})}"
                    class="btn btn-primary">
                     + Ajouter un Service
                 </a>
@@ -395,7 +395,7 @@
                 🔧 Services du département
                 <span class="count-badge" th:text="${services.size()}">0</span>
             </h2>
-            <a th:href="@{/superadmin/departements/{id}/services/add(id=${departement.id})}"
+            <a th:href="@{/superadmin/services/create(departementId=${departement.id})}"
                class="btn btn-primary btn-sm">
                 + Ajouter un Service
             </a>
@@ -421,15 +421,16 @@
                 </div>
 
                 <div class="service-actions">
-                    <a th:href="@{/superadmin/departements/services/{id}/edit(id=${service.id})}"
+                    <a th:href="@{/superadmin/services/{id}/edit(id=${service.id})}"
                        class="btn btn-edit btn-sm">
                         ✏️ Modifier
                     </a>
 
-                    <form th:action="@{/superadmin/departements/services/{id}/delete(id=${service.id})}"
+                    <form th:action="@{/superadmin/services/{id}/delete(id=${service.id})}"
                           method="post"
                           style="margin: 0;"
                           onsubmit="return confirm('⚠️ Supprimer ce service ? Cette action est irréversible.');">
+                        <input type="hidden" name="departementId" th:value="${departement.id}" />
                         <button type="submit" class="btn btn-delete btn-sm">
                             🗑️ Supprimer
                         </button>
@@ -443,7 +444,7 @@
             <div class="icon">🔧</div>
             <h3>Aucun service</h3>
             <p>Ce département n'a pas encore de services.</p>
-            <a th:href="@{/superadmin/departements/{id}/services/add(id=${departement.id})}"
+            <a th:href="@{/superadmin/services/create(departementId=${departement.id})}"
                class="btn btn-primary">
                 + Ajouter le premier service
             </a>

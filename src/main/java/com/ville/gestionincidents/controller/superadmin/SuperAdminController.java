@@ -4,6 +4,7 @@ import com.ville.gestionincidents.dto.utilisateur.superAdmin.CreateUtilisateurBy
 import com.ville.gestionincidents.dto.utilisateur.superAdmin.UpdateUtilisateurByAdminDto;
 import com.ville.gestionincidents.entity.Utilisateur;
 import com.ville.gestionincidents.entity.ServiceMunicipal;
+import com.ville.gestionincidents.mapper.ServiceMunicipalMapper;
 import com.ville.gestionincidents.enumeration.Role;
 import com.ville.gestionincidents.security.CurrentUserService;
 import com.ville.gestionincidents.service.departement.DepartementService;
@@ -35,7 +36,8 @@ public class SuperAdminController {
     private ServiceMunicipalService serviceMunicipalService;
     @Autowired
     private CurrentUserService currentUserService;
-
+    @Autowired
+    private ServiceMunicipalMapper serviceMunicipalMapper;
     // ==================== DASHBOARD ====================
 
     /**
@@ -161,16 +163,8 @@ public class SuperAdminController {
     public List<ServiceMunicipalDto> getServicesByDepartement(@PathVariable Long departementId) {
         List<ServiceMunicipal> services = serviceMunicipalService.findServicesByDepartement(departementId);
 
-        // Convertir en DTO pour éviter les références circulaires
-        return services.stream()
-                .map(service -> new ServiceMunicipalDto(
-                        service.getId(),
-                        service.getNom(),
-                        service.getDescription(),
-                        service.getDepartement().getId(),
-                        service.getDepartement().getNom()
-                ))
-                .collect(java.util.stream.Collectors.toList());
+        return serviceMunicipalMapper.toDtoList(services);
+
     }
 
     // ==================== VOIR DÉTAILS D'UN UTILISATEUR ====================
