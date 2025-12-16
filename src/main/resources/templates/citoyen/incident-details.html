@@ -322,10 +322,14 @@
     <h2 class="section-title">📋 Informations générales</h2>
 
     <div class="info-grid">
+
         <div class="info-card">
             <span class="label">Catégorie</span>
-            <div class="value" th:text="${incident.categorie}"></div>
+            <div class="value"
+                 th:text="${incident.departementNom != null ? incident.departementNom : 'Non définie'}">
+            </div>
         </div>
+
 
         <div class="info-card">
             <span class="label">Statut</span>
@@ -340,9 +344,16 @@
         </div>
 
         <div class="info-card">
-            <span class="label">Adresse</span>
-            <div class="value" th:text="${incident.adresse}"></div>
+            <span class="label">Quartier</span>
+
+            <div th:if="${incident.quartierNom != null}"
+                 class="value"
+                 th:text="${incident.quartierNom}">
+            </div>
+
+
         </div>
+
 
         <div class="info-card">
             <span class="label">Dernière mise à jour</span>

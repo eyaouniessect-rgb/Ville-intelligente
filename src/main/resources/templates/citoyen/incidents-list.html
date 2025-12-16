@@ -439,7 +439,8 @@
             <div class="incident-image">
                 <div th:if="${inc.photoPrincipale != null}">
                     <img th:src="@{'/' + ${inc.photoPrincipale}}"
-                         th:alt="${inc.categorie}">
+                         th:alt="${inc.departementNom}">
+
 
                     <!-- Badge "Photo principale" -->
                     <span class="image-badge">📸 Photo principale</span>
@@ -461,7 +462,8 @@
 
                 <!-- Header: Catégorie + Statut -->
                 <div class="incident-header">
-                    <span class="incident-category" th:text="${inc.categorie}"></span>
+                    <span class="incident-category" th:text="${inc.departementNom}"></span>
+
                     <span class="incident-status"
                           th:classappend="${
                             inc.statut.name() == 'SIGNALE' ? 'status-signale' :
@@ -479,9 +481,10 @@
                     <span>
                         📅 <span th:text="${#temporals.format(inc.dateDeclaration, 'dd/MM/yyyy')}"></span>
                     </span>
-                    <span th:if="${inc.adresse != null && !#strings.isEmpty(inc.adresse)}">
-                        📍 <span th:text="${#strings.abbreviate(inc.adresse, 20)}"></span>
-                    </span>
+                    <span th:if="${inc.quartierNom != null}">
+                     🏘️ <span th:text="${inc.quartierNom}"></span>
+                      </span>
+
                 </div>
 
                 <!-- Footer: Bouton détails -->
