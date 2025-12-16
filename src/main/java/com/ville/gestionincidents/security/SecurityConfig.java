@@ -49,6 +49,8 @@ public class SecurityConfig {
 
                 // 🔐 ACCÈS CITOYEN
                 .antMatchers("/citoyen/**").hasRole("CITOYEN")
+                //ACCÈS AGENT
+                .antMatchers("/agent/**").hasRole("AGENT")
 
                 // 🔐 AUTRES REQUÊTES
                 .anyRequest().authenticated()
