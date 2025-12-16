@@ -1,7 +1,9 @@
 package com.ville.gestionincidents.controller;
 
+import com.ville.gestionincidents.dto.departement.DepartementDto;
 import com.ville.gestionincidents.entity.Departement;
 import com.ville.gestionincidents.entity.ServiceMunicipal;
+import com.ville.gestionincidents.mapper.DepartementMapper;
 import com.ville.gestionincidents.service.departement.DepartementService;
 import com.ville.gestionincidents.service.serviceMunicipal.ServiceMunicipalService;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,7 @@ public class DepartementController {
 
     private final DepartementService departementService;
     private final ServiceMunicipalService serviceMunicipalService;
+    private final DepartementMapper departementMapper;
 
     // ==================== GESTION DES DÉPARTEMENTS ====================
 
@@ -30,7 +33,7 @@ public class DepartementController {
      */
     @GetMapping
     public String listDepartements(Model model) {
-        model.addAttribute("departements", departementService.findAll());
+        model.addAttribute("departements", departementMapper.toDtoList(departementService.findAll()));
         model.addAttribute("totalDepartements", departementService.countDepartements());
         model.addAttribute("totalServices", serviceMunicipalService.countServices());
         return "superadmin/departements/list";
@@ -41,7 +44,7 @@ public class DepartementController {
      */
     @GetMapping("/create")
     public String createDepartementForm(Model model) {
-        model.addAttribute("departement", new Departement());
+        model.addAttribute("departement", new DepartementDto());
         return "superadmin/departements/create";
     }
 
@@ -49,7 +52,7 @@ public class DepartementController {
      * Créer un nouveau département
      */
     @PostMapping("/create")
-    public String createDepartement(@Valid @ModelAttribute Departement departement,
+    public String createDepartement(@Valid @ModelAttribute("departement") DepartementDto departementDto,
                                     BindingResult result,
                                     RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
@@ -57,9 +60,10 @@ public class DepartementController {
         }
 
         try {
+            Departement departement = departementMapper.toEntity(departementDto);
             departementService.createDepartement(departement);
             redirectAttributes.addFlashAttribute("success",
-                    "Département '" + departement.getNom() + "' créé avec succès");
+                    "Département '" + departementDto.getNom() + "' créé avec succès");
             return "redirect:/superadmin/departements";
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
@@ -74,7 +78,7 @@ public class DepartementController {
     public String viewDepartement(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
         try {
             Departement departement = departementService.findById(id);
-            model.addAttribute("departement", departement);
+            model.addAttribute("departement", departementMapper.toDto(departement));
             model.addAttribute("services", serviceMunicipalService.findServicesByDepartement(id));
             return "superadmin/departements/details";
         } catch (Exception e) {
@@ -89,7 +93,8 @@ public class DepartementController {
     @GetMapping("/{id}/edit")
     public String editDepartementForm(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
         try {
-            model.addAttribute("departement", departementService.findById(id));
+            Departement departement = departementService.findById(id);
+            model.addAttribute("departement", departementMapper.toDto(departement));
             return "superadmin/departements/edit";
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Département introuvable");
@@ -102,18 +107,18 @@ public class DepartementController {
      */
     @PostMapping("/{id}/edit")
     public String editDepartement(@PathVariable Long id,
-                                  @Valid @ModelAttribute Departement departement,
+                                  @Valid @ModelAttribute("departement") DepartementDto departementDto,
                                   BindingResult result,
                                   Model model,
                                   RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
-            // Réinjecter le département avec l'ID pour éviter les erreurs
-            departement.setId(id);
-            model.addAttribute("departement", departement);
+            departementDto.setId(id);
+            model.addAttribute("departement", departementDto);
             return "superadmin/departements/edit";
         }
 
         try {
+            Departement departement = departementMapper.toEntity(departementDto);
             departementService.updateDepartement(id, departement);
             redirectAttributes.addFlashAttribute("success", "Département modifié avec succès");
             return "redirect:/superadmin/departements/" + id;
@@ -206,7 +211,6 @@ public class DepartementController {
                               Model model,
                               RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
-            // Réinjecter le service et le département pour éviter les erreurs
             try {
                 ServiceMunicipal existing = serviceMunicipalService.findServiceById(serviceId);
                 service.setId(serviceId);
