@@ -27,8 +27,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import com.ville.gestionincidents.repository.UtilisateurRepository;
 
+
+
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
+
+import com.ville.gestionincidents.enumeration.TypeNotification;
+
 
 @Service
 @RequiredArgsConstructor
@@ -143,14 +149,9 @@ public class IncidentServiceImpl implements IncidentService {
     }
 
     @Override
-    public long countByDepartementAndStatut(Departement d, StatutIncident s) {
-        return incidentRepository
-                .countByService_DepartementAndDateDeclarationBetweenAndStatut(
-                        d,
-                        LocalDate.now().minusYears(50).atStartOfDay(),
-                        LocalDate.now().atTime(23, 59, 59),
-                        s
-                );
+    // Ajouter cette implémentation
+    public long countByDepartementAndStatut(Departement departement, StatutIncident statut) {
+        return incidentRepository.countByService_DepartementAndStatut(departement, statut);
     }
 
     @Override
@@ -193,6 +194,14 @@ public class IncidentServiceImpl implements IncidentService {
             int page,
             int size
     ) {
+        // 🔧 CORRECTION: Gérer les dates null
+        LocalDateTime dateDebut = (dd != null)
+                ? dd.atStartOfDay()
+                : LocalDate.now().minusYears(10).atStartOfDay();  // Plage très large
+
+        LocalDateTime dateFin = (df != null)
+                ? df.atTime(23, 59, 59)
+                : LocalDate.now().atTime(23, 59, 59);
 
         StatutIncident s = (statut == null || statut.isBlank())
                 ? null
@@ -208,8 +217,8 @@ public class IncidentServiceImpl implements IncidentService {
                 d,
                 serviceId,
                 s,
-                dd.atStartOfDay(),
-                df.atTime(23, 59, 59),
+                dateDebut,   // ✅ LocalDateTime
+                dateFin,     // ✅ LocalDateTime
                 pageable
         );
     }
@@ -227,12 +236,24 @@ public class IncidentServiceImpl implements IncidentService {
 
         Utilisateur agent = utilisateurRepository.findById(agentId)
                 .orElseThrow(() -> new RuntimeException("Agent introuvable"));
-
+        Utilisateur citoyen = utilisateurRepository.findById(incident.getCitoyen().getId())
+                .orElseThrow(() -> new RuntimeException("Citoyen introuvable"));
         incident.setService(service);
         incident.setAgent(agent);
         incident.setStatut(StatutIncident.PRIS_EN_CHARGE);
         incident.setPriorite(priorite);
-
+        notificationService.creerNotification(
+                agent.getEmail(),
+                TypeNotification.ASSIGNATION,
+                "Vous avez été assigné à un nouvel incident : " + incident.getId(),
+                incident
+        );
+        notificationService.creerNotification(
+                citoyen.getEmail(),
+                TypeNotification.CHANGEMENT_STATUT,
+                "Vous incident est pris en charge  : " + incident.getId(),
+                incident
+        );
         incidentRepository.save(incident);
     }
 

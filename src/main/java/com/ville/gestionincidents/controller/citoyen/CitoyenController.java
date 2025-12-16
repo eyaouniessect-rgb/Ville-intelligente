@@ -28,6 +28,8 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import com.ville.gestionincidents.service.notification.PreferenceNotificationService;
+
 @Controller
 @RequestMapping("/citoyen")
 @RequiredArgsConstructor
@@ -37,7 +39,6 @@ public class CitoyenController {
     private final UtilisateurService utilisateurService;
     private final AuthenticationHelper authHelper; //
     private final CurrentUserService currentUserService;
-
     // -------------------------
     // Dashboard Citoyen
     // -------------------------
@@ -45,7 +46,6 @@ public class CitoyenController {
     public String dashboard(Model model, Authentication authentication) {
 
         Utilisateur utilisateur = currentUserService.getCurrentUser();
-
         //  Ajouter l'utilisateur au modèle (pour le header)
         model.addAttribute("utilisateur", utilisateur);
 

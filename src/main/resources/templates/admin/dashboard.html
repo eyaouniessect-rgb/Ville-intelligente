@@ -106,7 +106,7 @@
         /* Stats Grid */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 20px;
             margin-bottom: 30px;
         }
@@ -114,7 +114,7 @@
         .stat-card {
             background: white;
             border-radius: 15px;
-            padding: 25px;
+            padding: 20px;
             box-shadow: 0 5px 20px rgba(0,0,0,0.08);
             transition: all 0.3s;
             position: relative;
@@ -153,38 +153,47 @@
             opacity: 0.1;
         }
 
+        /* Couleurs des cartes */
         .stat-card.total::before { background: #3b82f6; }
-        .stat-card.resolus::before { background: #10b981; }
-        .stat-card.en-cours::before { background: #f59e0b; }
+        .stat-card.signale::before { background: #ef4444; }
+        .stat-card.pris-en-charge::before { background: #f59e0b; }
+        .stat-card.en-resolution::before { background: #3b82f6; }
+        .stat-card.resolu::before { background: #10b981; }
+        .stat-card.cloture::before { background: #6b7280; }
         .stat-card.agents::before { background: #8b5cf6; }
+        .stat-card.non-assignes::before { background: #ec4899; }
 
         .stat-icon {
-            width: 50px;
-            height: 50px;
+            width: 45px;
+            height: 45px;
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
-            margin-bottom: 15px;
+            font-size: 22px;
+            margin-bottom: 12px;
         }
 
         .stat-card.total .stat-icon { background: rgba(59, 130, 246, 0.1); }
-        .stat-card.resolus .stat-icon { background: rgba(16, 185, 129, 0.1); }
-        .stat-card.en-cours .stat-icon { background: rgba(245, 158, 11, 0.1); }
+        .stat-card.signale .stat-icon { background: rgba(239, 68, 68, 0.1); }
+        .stat-card.pris-en-charge .stat-icon { background: rgba(245, 158, 11, 0.1); }
+        .stat-card.en-resolution .stat-icon { background: rgba(59, 130, 246, 0.1); }
+        .stat-card.resolu .stat-icon { background: rgba(16, 185, 129, 0.1); }
+        .stat-card.cloture .stat-icon { background: rgba(107, 114, 128, 0.1); }
         .stat-card.agents .stat-icon { background: rgba(139, 92, 246, 0.1); }
+        .stat-card.non-assignes .stat-icon { background: rgba(236, 72, 153, 0.1); }
 
         .stat-card h3 {
             color: #6b7280;
-            font-size: 14px;
-            margin-bottom: 10px;
+            font-size: 12px;
+            margin-bottom: 8px;
             text-transform: uppercase;
             font-weight: 600;
             letter-spacing: 0.5px;
         }
 
         .stat-card .number {
-            font-size: 36px;
+            font-size: 32px;
             font-weight: bold;
             color: #1f2937;
             line-height: 1;
@@ -330,24 +339,6 @@
                 width: 100%;
                 justify-content: center;
             }
-
-            .incidents-header {
-                flex-direction: column;
-                gap: 15px;
-            }
-
-            .search-box {
-                width: 100%;
-            }
-
-            .incidents-table {
-                font-size: 12px;
-            }
-
-            .incidents-table th,
-            .incidents-table td {
-                padding: 10px 5px;
-            }
         }
     </style>
 
@@ -377,64 +368,49 @@
             <h3>Total Incidents</h3>
             <div class="number" th:text="${totalIncidents}">0</div>
         </div>
-        <div class="stat-card resolus">
+
+        <div class="stat-card signale">
+            <div class="stat-icon">🚨</div>
+            <h3>Signalés</h3>
+            <div class="number" th:text="${incidentsSignales}">0</div>
+        </div>
+
+        <div class="stat-card pris-en-charge">
+            <div class="stat-icon">👁️</div>
+            <h3>Pris en charge</h3>
+            <div class="number" th:text="${incidentsPrisEnCharge}">0</div>
+        </div>
+
+        <div class="stat-card en-resolution">
+            <div class="stat-icon">🔧</div>
+            <h3>En résolution</h3>
+            <div class="number" th:text="${incidentsEnResolution}">0</div>
+        </div>
+
+        <div class="stat-card resolu">
             <div class="stat-icon">✅</div>
-            <h3>Incidents Résolus</h3>
+            <h3>Résolus</h3>
             <div class="number" th:text="${incidentsResolus}">0</div>
         </div>
-        <div class="stat-card en-cours">
-            <div class="stat-icon">⏳</div>
-            <h3>En Cours</h3>
-            <div class="number" th:text="${incidentsEnCours}">0</div>
+
+        <div class="stat-card cloture">
+            <div class="stat-icon">🔒</div>
+            <h3>Clôturés</h3>
+            <div class="number" th:text="${incidentsClotures}">0</div>
         </div>
+
         <div class="stat-card agents">
             <div class="stat-icon">👮</div>
             <h3>Agents Actifs</h3>
             <div class="number" th:text="${totalAgents}">0</div>
         </div>
-    </div>
 
-    <!-- Filters -->
-    <div class="filters">
-        <h3>🔍 Filtrer les incidents</h3>
-        <form th:action="@{/admin/dashboard}" method="get">
-            <div class="filter-row">
-                <div class="filter-group">
-                    <label>Service</label>
-                    <select name="serviceId">
-                        <option value="">Tous les services</option>
-                        <option th:each="service : ${services}"
-                                th:value="${service.id}"
-                                th:text="${service.nom}"
-                                th:selected="${serviceId == service.id}">Service</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label>Statut</label>
-                    <select name="statut">
-                        <option value="">Tous les statuts</option>
-                        <option value="SIGNALE" th:selected="${statut == 'SIGNALE'}">Signalé</option>
-                        <option value="PRIS_EN_CHARGE" th:selected="${statut == 'PRIS_EN_CHARGE'}">Pris en charge</option>
-                        <option value="EN_RESOLUTION" th:selected="${statut == 'EN_RESOLUTION'}">En résolution</option>
-                        <option value="RESOLU" th:selected="${statut == 'RESOLU'}">Résolu</option>
-                        <option value="CLOTURE" th:selected="${statut == 'CLOTURE'}">Clôturé</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label>Date début</label>
-                    <input type="date" name="dateDebut" th:value="${dateDebut}">
-                </div>
-                <div class="filter-group">
-                    <label>Date fin</label>
-                    <input type="date" name="dateFin" th:value="${dateFin}">
-                </div>
-                <div class="filter-group">
-                    <button type="submit" class="filter-btn">Filtrer</button>
-                </div>
-            </div>
-        </form>
+        <div class="stat-card non-assignes">
+            <div class="stat-icon">⚠️</div>
+            <h3>Non Assignés</h3>
+            <div class="number" th:text="${incidentsNonAssignes}">0</div>
+        </div>
     </div>
-
     <!-- Actions -->
     <div class="actions">
         <h3>⚡ Actions rapides</h3>
@@ -450,6 +426,53 @@
             </a>
         </div>
     </div>
+    <!-- Filters -->
+    <div class="filters">
+        <h3>🔍 Filtrer les incidents</h3>
+        <form th:action="@{/admin/dashboard}" method="get">
+            <div class="filter-row">
+                <!-- Service -->
+                <div class="filter-group">
+                    <label>Service</label>
+                    <select name="serviceId">
+                        <option value="">Tous les services</option>
+                        <option th:each="service : ${services}"
+                                th:value="${service.id}"
+                                th:text="${service.nom}"
+                                th:selected="${serviceId == service.id}">Service</option>
+                    </select>
+                </div>
+
+                <!-- Statut (dynamique depuis l'enum StatutIncident) -->
+                <div class="filter-group">
+                    <label>Statut</label>
+                    <select name="statut">
+                        <option value="">Tous les statuts</option>
+                        <option th:each="s : ${statuts}"
+                                th:value="${s.name()}"
+                                th:text="${#strings.capitalize(#strings.replace(s.name(), '_', ' ').toLowerCase())}"
+                                th:selected="${statut == s.name()}">
+                        </option>
+                    </select>
+                </div>
+
+
+                <!-- Date de signalement -->
+                <div class="filter-group">
+                    <label>📅 Date de Signalement</label>
+                    <input type="date"
+                           name="dateSignalement"
+                           th:value="${dateSignalement}">
+                </div>
+
+                <!-- Bouton filtrer -->
+                <div class="filter-group">
+                    <button type="submit" class="filter-btn">Filtrer</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
 
     <!-- Incidents Table (Fragment) -->
     <div th:replace="~{fragments/incidents-table :: incidentsTable(${incidents}, true, ${totalPages}, ${currentPage}, '/admin/dashboard')}"></div>

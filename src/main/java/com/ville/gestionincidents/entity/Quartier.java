@@ -31,6 +31,9 @@ public class Quartier {
 
     @OneToMany(mappedBy = "quartier", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Incident> incidents = new ArrayList<>();
+    @ManyToOne
+    @JoinColumn(name = "departement_id")
+    private Departement departement;
 
     // ==================== MÉTHODES UTILITAIRES ====================
 

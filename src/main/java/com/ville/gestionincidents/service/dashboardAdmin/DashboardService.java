@@ -20,13 +20,22 @@ public interface DashboardService {
     double calculerDelaiMoyenResolutionByDepartement(Departement departement, LocalDate dateDebut, LocalDate dateFin);
 
     // ==================== DONNÉES POUR GRAPHIQUES ====================
-    List<IncidentParServiceDto> getIncidentsParServiceByDepartement(Departement departement, LocalDate dateDebut, LocalDate dateFin);
-    List<IncidentParQuartierDto> getIncidentsParQuartierByDepartement(Departement departement, LocalDate dateDebut, LocalDate dateFin);
+    List<IncidentParServiceDto> getIncidentsParServiceByDepartement(
+            Departement departement, LocalDate dateDebut, LocalDate dateFin, Long serviceId);
+
+    List<IncidentParQuartierDto> getIncidentsParQuartierByDepartement(
+            Departement departement, LocalDate dateDebut, LocalDate dateFin, Long quartierId);
+
     List<DelaiResolutionDto> getDelaiResolutionParServiceByDepartement(Departement departement, LocalDate dateDebut, LocalDate dateFin);
     Map<String, Long> getIncidentsParStatutByDepartement(Departement departement, LocalDate dateDebut, LocalDate dateFin);
     Map<String, Long> getIncidentsParMoisByDepartement(Departement departement, LocalDate dateDebut, LocalDate dateFin);
 
-    // ==================== EXPORTS ====================
-    void exportCsv(LocalDate dateDebut, LocalDate dateFin, Writer writer) throws Exception;
-    void exportPdf(LocalDate dateDebut, LocalDate dateFin, OutputStream outputStream) throws Exception;
+    // ==================== EXPORTS =====================
+    void exportCsv(LocalDate dateDebut, LocalDate dateFin, Long serviceId, Long quartierId, Writer writer) throws Exception;
+    void exportPdf(LocalDate dateDebut, LocalDate dateFin, Long serviceId, Long quartierId, OutputStream outputStream) throws Exception;
+    //delai moyen======
+    // Délai moyen global (en jours)
+    double calculDelaiMoyenGlobal();
+
+    // Délai moyen par service
 }

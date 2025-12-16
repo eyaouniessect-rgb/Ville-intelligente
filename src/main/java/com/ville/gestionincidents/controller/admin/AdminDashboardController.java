@@ -1,5 +1,6 @@
 package com.ville.gestionincidents.controller.admin;
 
+import com.ville.gestionincidents.dto.dashboardAdmin.DelaiResolutionDto;
 import com.ville.gestionincidents.entity.Incident;
 import com.ville.gestionincidents.entity.ServiceMunicipal;
 import com.ville.gestionincidents.enumeration.PrioriteIncident;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import com.ville.gestionincidents.service.utilisateur.UtilisateurService;
 import com.ville.gestionincidents.enumeration.Role;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import com.ville.gestionincidents.dto.utilisateur.agent.AgentDto;
 import com.ville.gestionincidents.repository.IncidentRepository;
@@ -29,6 +31,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.ville.gestionincidents.enumeration.PrioriteIncident;
 import com.ville.gestionincidents.repository.ServiceMunicipalRepository;
 
+import com.ville.gestionincidents.service.notification.PreferenceNotificationService;
+import  com.ville.gestionincidents.repository.QuartierRepository;
 
 @Controller
 @RequestMapping("/admin")
@@ -45,7 +49,7 @@ public class AdminDashboardController {
     private final IncidentRepository incidentRepository;
     @Autowired
     private ServiceMunicipalRepository serviceMunicipalRepository;
-
+    private final QuartierRepository quartierRepository;
 
     /**
      * PAGE 1 : Dashboard principal avec la liste des incidents
@@ -56,48 +60,70 @@ public class AdminDashboardController {
             @RequestParam(required = false) String statut,
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-            LocalDate dateDebut,
+            LocalDate dateSignalement,
 
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-            LocalDate dateFin,
             @RequestParam(defaultValue = "0") int page,
             Model model) {
 
-        // Récupérer l'admin connecté
         var admin = currentUserService.getCurrentUser();
         var departement = admin.getDepartement();
 
-        // Si pas de dates, prendre les 30 derniers jours
-        if (dateDebut == null) {
+        // ✅ CORRECTION : Initialiser les dates AVANT de les utiliser
+        LocalDate dateDebut;
+        LocalDate dateFin;
+
+        if (dateSignalement != null) {
+            // Si une date est fournie, l'utiliser pour début ET fin
+            dateDebut = dateSignalement;
+            dateFin = dateSignalement;
+        } else {
+            // Sinon, prendre les 30 derniers jours par défaut
             dateDebut = LocalDate.now().minusDays(30);
-        }
-        if (dateFin == null) {
             dateFin = LocalDate.now();
         }
 
-        // Statistiques du département
         model.addAttribute("admin", admin);
-        model.addAttribute("totalIncidents",
-                incidentService.countByDepartement(departement));
+
+        // Délai moyen global (sans filtrage par date)
+        double delaiMoyenGlobal = dashboardService.calculDelaiMoyenGlobal();
+        model.addAttribute("delaiMoyenResolution", delaiMoyenGlobal);
+
+        // ✅ IMPORTANT : Utiliser dateDebut et dateFin (jamais null)
+        model.addAttribute(
+                "delaiResolutionParService",
+                dashboardService.getDelaiResolutionParServiceByDepartement(departement, dateDebut, dateFin)
+        );
+
+        // Statistiques
+        long totalIncidents = incidentService.countByDepartement(departement);
+        model.addAttribute("totalIncidents", totalIncidents);
+
+        model.addAttribute("incidentsSignales",
+                incidentService.countByDepartementAndStatut(departement, StatutIncident.SIGNALE));
+        model.addAttribute("incidentsPrisEnCharge",
+                incidentService.countByDepartementAndStatut(departement, StatutIncident.PRIS_EN_CHARGE));
+        model.addAttribute("incidentsEnResolution",
+                incidentService.countByDepartementAndStatut(departement, StatutIncident.EN_RESOLUTION));
         model.addAttribute("incidentsResolus",
                 incidentService.countByDepartementAndStatut(departement, StatutIncident.RESOLU));
+        model.addAttribute("incidentsClotures",
+                incidentService.countByDepartementAndStatut(departement, StatutIncident.CLOTURE));
         model.addAttribute("incidentsEnCours",
                 incidentService.countByDepartementAndStatutsEnCours(departement));
         model.addAttribute("totalAgents",
                 utilisateurService.countAgentsByDepartement(departement));
-
         model.addAttribute("incidentsNonAssignes",
-                incidentService.countNonAssignesByDepartement(departement)
-);
+                incidentService.countNonAssignesByDepartement(departement));
 
-        // Services du département
         model.addAttribute("services",
                 serviceMunicipalService.findByDepartement(departement));
+        model.addAttribute("statuts", StatutIncident.values());
 
         // Liste des incidents avec filtres
+        // ✅ Pour la liste : utiliser dateSignalement si fourni, sinon null (pas de filtre de date)
         var incidents = incidentService.findByDepartementWithFilters(
-                departement, serviceId, statut, dateDebut, dateFin, page, 20);
+                departement, serviceId, statut, dateSignalement, dateSignalement, page, 20);
+
         model.addAttribute("incidents", incidents.getContent());
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", incidents.getTotalPages());
@@ -105,8 +131,7 @@ public class AdminDashboardController {
         // Garder les filtres
         model.addAttribute("serviceId", serviceId);
         model.addAttribute("statut", statut);
-        model.addAttribute("dateDebut", dateDebut);
-        model.addAttribute("dateFin", dateFin);
+        model.addAttribute("dateSignalement", dateSignalement);
         model.addAttribute("priorites", PrioriteIncident.values());
 
         return "admin/dashboard";
@@ -124,7 +149,8 @@ public class AdminDashboardController {
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate dateFin,
-
+            @RequestParam(required = false) Long serviceId,
+            @RequestParam(required = false) Long quartierId,
             Model model){
 
         // Si pas de dates, prendre les 30 derniers jours
@@ -139,35 +165,107 @@ public class AdminDashboardController {
         var admin = currentUserService.getCurrentUser();
         var departement = admin.getDepartement();
 
+        // ========== DEBUG COMPLET ==========
+        System.out.println("\n======================================");
+        System.out.println("🔍 DEBUG RAPPORT ANALYTIQUE");
+        System.out.println("======================================");
+        System.out.println("📅 Date début : " + dateDebut);
+        System.out.println("📅 Date fin   : " + dateFin);
+        System.out.println("👤 Admin      : " + admin.getEmail());
+        System.out.println("🏢 Département: " + departement.getNom() + " (ID: " + departement.getId() + ")");
+        System.out.println("======================================\n");
+
+        // Test 1 : Total incidents
+        long total = dashboardService.countTotalIncidentsByDepartement(departement, dateDebut, dateFin);
+        System.out.println("📊 Total incidents : " + total);
+
+        // Test 2 : Incidents résolus
+        long resolus = dashboardService.countIncidentsResolusByDepartement(departement, dateDebut, dateFin);
+        System.out.println("✅ Incidents résolus : " + resolus);
+
+        // Test 3 : Incidents en cours
+        long enCours = dashboardService.countIncidentsEnCoursByDepartement(departement, dateDebut, dateFin);
+        System.out.println("🔄 Incidents en cours : " + enCours);
+
+        // Test 4 : Incidents par service
+        var incidentsParService = dashboardService.getIncidentsParServiceByDepartement(
+                departement, dateDebut, dateFin, serviceId);        System.out.println("\n🏢 INCIDENTS PAR SERVICE (" + incidentsParService.size() + " résultats):");
+        if (incidentsParService.isEmpty()) {
+            System.out.println("   ⚠️ AUCUN SERVICE TROUVÉ !");
+        } else {
+            incidentsParService.forEach(dto ->
+                    System.out.println("   - " + dto.getNomService() + " : " + dto.getNombre())
+            );
+        }
+
+        // Test 5 : Incidents par quartier
+        var incidentsParQuartier = dashboardService.getIncidentsParQuartierByDepartement(
+                departement, dateDebut, dateFin, quartierId);
+        System.out.println("\n🏘️ INCIDENTS PAR QUARTIER (" + incidentsParQuartier.size() + " résultats):");
+        if (incidentsParQuartier.isEmpty()) {
+            System.out.println("   ⚠️ AUCUN QUARTIER TROUVÉ !");
+        } else {
+            incidentsParQuartier.forEach(dto ->
+                    System.out.println("   - " + dto.getNomQuartier() + " : " + dto.getNombre())
+            );
+        }
+
+        // Test 6 : Incidents par statut
+        var incidentsParStatut = dashboardService.getIncidentsParStatutByDepartement(departement, dateDebut, dateFin);
+        System.out.println("\n📋 INCIDENTS PAR STATUT :");
+        incidentsParStatut.forEach((statut, count) ->
+                System.out.println("   - " + statut + " : " + count)
+        );
+
+        // Test 7 : Incidents par mois
+        var incidentsParMois = dashboardService.getIncidentsParMoisByDepartement(departement, dateDebut, dateFin);
+        System.out.println("\n📆 INCIDENTS PAR MOIS (" + incidentsParMois.size() + " mois):");
+        incidentsParMois.forEach((mois, count) ->
+                System.out.println("   - " + mois + " : " + count)
+        );
+
+        System.out.println("\n======================================");
+        System.out.println("✅ FIN DEBUG");
+        System.out.println("======================================\n");
+
         // Statistiques générales
-        model.addAttribute("totalIncidents",
-                dashboardService.countTotalIncidentsByDepartement(departement, dateDebut, dateFin));
-        model.addAttribute("incidentsResolus",
-                dashboardService.countIncidentsResolusByDepartement(departement, dateDebut, dateFin));
-        model.addAttribute("incidentsEnCours",
-                dashboardService.countIncidentsEnCoursByDepartement(departement, dateDebut, dateFin));
+        model.addAttribute("totalIncidents", total);
+        model.addAttribute("incidentsResolus", resolus);
+        model.addAttribute("incidentsEnCours", enCours);
         model.addAttribute("delaiMoyenResolution",
                 dashboardService.calculerDelaiMoyenResolutionByDepartement(departement, dateDebut, dateFin));
 
         // Données pour les graphiques
         model.addAttribute("incidentsParService",
-                dashboardService.getIncidentsParServiceByDepartement(departement, dateDebut, dateFin));
+                dashboardService.getIncidentsParServiceByDepartement(departement, dateDebut, dateFin, serviceId));
+
         model.addAttribute("incidentsParQuartier",
-                dashboardService.getIncidentsParQuartierByDepartement(departement, dateDebut, dateFin));
+                dashboardService.getIncidentsParQuartierByDepartement(departement, dateDebut, dateFin, quartierId));
+
         model.addAttribute("delaiResolutionParService",
                 dashboardService.getDelaiResolutionParServiceByDepartement(departement, dateDebut, dateFin));
-        model.addAttribute("incidentsParStatut",
-                dashboardService.getIncidentsParStatutByDepartement(departement, dateDebut, dateFin));
-        model.addAttribute("incidentsParMois",
-                dashboardService.getIncidentsParMoisByDepartement(departement, dateDebut, dateFin));
+        model.addAttribute("incidentsParStatut", incidentsParStatut);
+        model.addAttribute("incidentsParMois", incidentsParMois);
 
         // Filtres de date
         model.addAttribute("dateDebut", dateDebut);
         model.addAttribute("dateFin", dateFin);
+        //flitre
+        // Envoyer les services et quartiers pour le filtre
+        model.addAttribute("services", serviceMunicipalRepository.findByDepartement(departement));
+        model.addAttribute("quartiers", quartierRepository.findAllByDepartement(departement)); // méthode à créer dans QuartierRepository
+        model.addAttribute("serviceId", serviceId);
+        model.addAttribute("quartierId", quartierId);
+
+
+        List<DelaiResolutionDto> delaiResolutionParService =
+                dashboardService.getDelaiResolutionParServiceByDepartement(departement, dateDebut, dateFin);
+        model.addAttribute("delaiResolutionParService", delaiResolutionParService);
+        System.out.println("💡 DelaiResolutionParService: " + delaiResolutionParService);
+
 
         return "admin/rapport_analytique";
     }
-
     /**
      * API : Récupérer les agents d'un service (pour le modal)
      */
@@ -211,13 +309,10 @@ public class AdminDashboardController {
      */
     @GetMapping("/dashboard/export/csv")
     public void exportCsv(
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-            LocalDate dateDebut,
-
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-            LocalDate dateFin,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateDebut,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFin,
+            @RequestParam(required = false) Long serviceId,
+            @RequestParam(required = false) Long quartierId,
             HttpServletResponse response) throws IOException {
 
         if (dateDebut == null) dateDebut = LocalDate.now().minusDays(30);
@@ -229,7 +324,7 @@ public class AdminDashboardController {
                 "attachment; filename=rapport_incidents_" + LocalDate.now() + ".csv");
 
         try {
-            dashboardService.exportCsv(dateDebut, dateFin, response.getWriter());
+            dashboardService.exportCsv(dateDebut, dateFin, serviceId, quartierId, response.getWriter());
         } catch (Exception e) {
             response.reset();
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -243,13 +338,10 @@ public class AdminDashboardController {
      */
     @GetMapping("/dashboard/export/pdf")
     public void exportPdf(
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-            LocalDate dateDebut,
-
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-            LocalDate dateFin,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateDebut,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFin,
+            @RequestParam(required = false) Long serviceId,
+            @RequestParam(required = false) Long quartierId,
             HttpServletResponse response) throws IOException {
 
         if (dateDebut == null) dateDebut = LocalDate.now().minusDays(30);
@@ -260,13 +352,14 @@ public class AdminDashboardController {
                 "attachment; filename=rapport_incidents_" + LocalDate.now() + ".pdf");
 
         try {
-            dashboardService.exportPdf(dateDebut, dateFin, response.getOutputStream());
+            dashboardService.exportPdf(dateDebut, dateFin, serviceId, quartierId, response.getOutputStream());
         } catch (Exception e) {
             response.reset();
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             response.getWriter().write("Erreur lors de l'export PDF : " + e.getMessage());
         }
     }
+
 
     /* ===================== AGENTS ===================== */
 

@@ -70,4 +70,5 @@ public interface IncidentService {
 
     int countClotureForCurrentUser();
 
+
 }
