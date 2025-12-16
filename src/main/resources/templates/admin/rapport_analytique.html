@@ -296,60 +296,80 @@
 <body>
 <div class="container">
     <!-- Header -->
-    <div class="header">
-        <h1>📊 Dashboard Analytique</h1>
+    <div class="header" style="display: flex; align-items: center; justify-content: space-between; padding: 20px 30px; background: white; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+        <!-- Titre -->
+        <h1 style="margin: 0; font-size: 28px; color: #1f2937;">📊 Dashboard Analytique</h1>
 
-        <!-- Filters -->
-        <div class="filters">
-            <form method="get" th:action="@{/admin/dashboard/rapport}">
-                <div class="filter-row">
-                    <!-- Date début -->
-                    <div class="filter-group">
-                        <label>Date début :</label>
-                        <input type="date" name="dateDebut"
-                               th:value="${dateDebut != null ? #temporals.format(dateDebut, 'yyyy-MM-dd') : ''}">
-                    </div>
+        <!-- Flèche de retour à droite -->
+        <a th:href="@{/admin/dashboard}"
+           style="
+        text-decoration: none;
+        font-size: 18px;
+        color: white;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 8px 15px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        transition: all 0.2s;">
+            ⬅️ Retour
+        </a>
 
-                    <!-- Date fin -->
-                    <div class="filter-group">
-                        <label>Date fin :</label>
-                        <input type="date" name="dateFin"
-                               th:value="${dateFin != null ? #temporals.format(dateFin, 'yyyy-MM-dd') : ''}">
-                    </div>
+    </div>
 
-                    <!-- Service -->
-                    <div class="filter-group">
-                        <label>Service :</label>
-                        <select name="serviceId">
-                            <option value="">Tous les services</option>
-                            <option th:each="service : ${services}"
-                                    th:value="${service.id}"
-                                    th:text="${service.nom}"
-                                    th:selected="${serviceId != null and serviceId == service.id}">
-                            </option>
-                        </select>
-                    </div>
-
-                    <!-- Quartier -->
-                    <div class="filter-group">
-                        <label>Quartier :</label>
-                        <select name="quartierId">
-                            <option value="">Tous les quartiers</option>
-                            <option th:each="quartier : ${quartiers}"
-                                    th:value="${quartier.id}"
-                                    th:text="${quartier.nom}"
-                                    th:selected="${quartierId != null and quartierId == quartier.id}">
-                            </option>
-                        </select>
-                    </div>
-
-                    <!-- Bouton Filtrer -->
-                    <div class="filter-group">
-                        <button type="submit">Filtrer</button>
-                    </div>
+    <!-- Filters (sous le header) -->
+    <div class="filters" style="background: rgba(255,255,255,0.9); border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
+        <form method="get" th:action="@{/admin/dashboard/rapport}">
+            <div class="filter-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; align-items: end;">
+                <!-- Date début -->
+                <div class="filter-group" style="display: flex; flex-direction: column;">
+                    <label style="color: #374151; font-weight: 600; margin-bottom: 8px; font-size: 14px;">Date début :</label>
+                    <input type="date" name="dateDebut"
+                           th:value="${dateDebut != null ? #temporals.format(dateDebut, 'yyyy-MM-dd') : ''}"
+                           style="padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
                 </div>
-            </form>
-        </div>
+
+                <!-- Date fin -->
+                <div class="filter-group" style="display: flex; flex-direction: column;">
+                    <label style="color: #374151; font-weight: 600; margin-bottom: 8px; font-size: 14px;">Date fin :</label>
+                    <input type="date" name="dateFin"
+                           th:value="${dateFin != null ? #temporals.format(dateFin, 'yyyy-MM-dd') : ''}"
+                           style="padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                </div>
+
+                <!-- Service -->
+                <div class="filter-group" style="display: flex; flex-direction: column;">
+                    <label style="color: #374151; font-weight: 600; margin-bottom: 8px; font-size: 14px;">Service :</label>
+                    <select name="serviceId" style="padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                        <option value="">Tous les services</option>
+                        <option th:each="service : ${services}"
+                                th:value="${service.id}"
+                                th:text="${service.nom}"
+                                th:selected="${serviceId != null and serviceId == service.id}">
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Quartier -->
+                <div class="filter-group" style="display: flex; flex-direction: column;">
+                    <label style="color: #374151; font-weight: 600; margin-bottom: 8px; font-size: 14px;">Quartier :</label>
+                    <select name="quartierId" style="padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                        <option value="">Tous les quartiers</option>
+                        <option th:each="quartier : ${quartiers}"
+                                th:value="${quartier.id}"
+                                th:text="${quartier.nom}"
+                                th:selected="${quartierId != null and quartierId == quartier.id}">
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Bouton Filtrer -->
+                <div class="filter-group" style="display: flex; flex-direction: column;">
+                    <button type="submit" style="padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Filtrer</button>
+                </div>
+            </div>
+        </form>
     </div>
 
     <!-- Statistics -->

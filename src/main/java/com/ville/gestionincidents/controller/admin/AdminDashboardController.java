@@ -66,25 +66,29 @@ public class AdminDashboardController {
             Model model) {
 
         var admin = currentUserService.getCurrentUser();
-
         var departement = admin.getDepartement();
 
-        // Convertir la date unique en plage
-        LocalDate dateDebut = null;
-        LocalDate dateFin = null;
+        // ✅ CORRECTION : Initialiser les dates AVANT de les utiliser
+        LocalDate dateDebut;
+        LocalDate dateFin;
 
         if (dateSignalement != null) {
+            // Si une date est fournie, l'utiliser pour début ET fin
             dateDebut = dateSignalement;
             dateFin = dateSignalement;
+        } else {
+            // Sinon, prendre les 30 derniers jours par défaut
+            dateDebut = LocalDate.now().minusDays(30);
+            dateFin = LocalDate.now();
         }
 
         model.addAttribute("admin", admin);
 
-        // Délai moyen global
+        // Délai moyen global (sans filtrage par date)
         double delaiMoyenGlobal = dashboardService.calculDelaiMoyenGlobal();
         model.addAttribute("delaiMoyenResolution", delaiMoyenGlobal);
 
-        // Délai moyen par service (pour graphique)
+        // ✅ IMPORTANT : Utiliser dateDebut et dateFin (jamais null)
         model.addAttribute(
                 "delaiResolutionParService",
                 dashboardService.getDelaiResolutionParServiceByDepartement(departement, dateDebut, dateFin)
@@ -113,13 +117,12 @@ public class AdminDashboardController {
 
         model.addAttribute("services",
                 serviceMunicipalService.findByDepartement(departement));
-
-        // ✅ AJOUTEZ CETTE LIGNE : Envoyer tous les statuts au modèle
         model.addAttribute("statuts", StatutIncident.values());
 
         // Liste des incidents avec filtres
+        // ✅ Pour la liste : utiliser dateSignalement si fourni, sinon null (pas de filtre de date)
         var incidents = incidentService.findByDepartementWithFilters(
-                departement, serviceId, statut, dateDebut, dateFin, page, 20);
+                departement, serviceId, statut, dateSignalement, dateSignalement, page, 20);
 
         model.addAttribute("incidents", incidents.getContent());
         model.addAttribute("currentPage", page);
