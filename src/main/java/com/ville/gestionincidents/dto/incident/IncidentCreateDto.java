@@ -17,12 +17,13 @@ public class IncidentCreateDto {
     @Size(min = 10, max = 1000, message = "La description doit contenir entre 10 et 1000 caractères")
     private String description;
 
+    // 👇 SELECT catégorie (noms des départements)
     @NotNull(message = "La catégorie est obligatoire")
-    private CategorieIncident categorie;
+    private Long departementId;
 
-    @NotBlank(message = "L'adresse est obligatoire")
-    @Size(min = 5, max = 255, message = "L'adresse doit contenir entre 5 et 255 caractères")
-    private String adresse;
+    // 👇 SELECT quartier
+    @NotNull(message = "Le quartier est obligatoire")
+    private Long quartierId;
 
     @NotNull(message = "La latitude est obligatoire")
     @DecimalMin(value = "-90.0", message = "Latitude invalide")

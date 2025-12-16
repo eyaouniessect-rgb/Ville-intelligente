@@ -463,44 +463,60 @@
             <div class="invalid-feedback" th:errors="*{description}"></div>
         </div>
 
-        <!-- CATÉGORIE -->
+
+        <!-- DÉPARTEMENT (Catégorie dynamique) -->
         <div class="form-group">
             <label class="form-label">
-                🏷️ Catégorie
+                🏷️ Catégorie (Département)
                 <span class="required">*</span>
             </label>
+
             <select class="form-control"
-                    th:field="*{categorie}"
-                    id="categorie"
+                    th:field="*{departementId}"
                     required>
-                <option value="">-- Sélectionnez une catégorie --</option>
-                <option th:each="c : ${categories}"
-                        th:value="${c}"
-                        th:text="${c}"></option>
+                <option value="" disabled selected>
+                    -- Sélectionnez un département --
+                </option>
+
+                <option th:each="d : ${departements}"
+                        th:value="${d.id}"
+                        th:text="${d.nom}">
+                </option>
             </select>
-            <div class="invalid-feedback" th:errors="*{categorie}">
-                Veuillez sélectionner une catégorie
+
+
+            <div class="invalid-feedback"
+                 th:errors="*{departementId}">
+                Veuillez sélectionner un département
             </div>
         </div>
 
-        <!-- ADRESSE -->
+
+        <!-- QUARTIER -->
         <div class="form-group">
             <label class="form-label">
-                🏡 Adresse
+                📍 Quartier
                 <span class="required">*</span>
             </label>
-            <input class="form-control"
-                   type="text"
-                   th:field="*{adresse}"
-                   id="adresse"
-                   placeholder="Ex: Avenue Habib Bourguiba, Tunis"
-                   minlength="5"
-                   maxlength="255"
-                   required>
-            <div class="invalid-feedback" th:errors="*{adresse}">
-                L'adresse doit contenir entre 5 et 255 caractères
+
+            <select class="form-control"
+                    th:field="*{quartierId}"
+                    id="quartierId"
+                    required>
+                <option value="">-- Sélectionnez un quartier --</option>
+
+                <option th:each="q : ${quartiers}"
+                        th:value="${q.id}"
+                        th:text="${q.nom}">
+                </option>
+            </select>
+
+            <div class="invalid-feedback"
+                 th:errors="*{quartierId}">
+                Veuillez sélectionner un quartier
             </div>
         </div>
+
 
         <!-- CARTE -->
         <div class="map-container">
@@ -741,7 +757,7 @@
         const form = this;
 
         // Valider tous les champs
-        ['description', 'categorie', 'adresse'].forEach(fieldId => {
+        ['description', 'departementId', 'quartierId'].forEach(fieldId => {
             const field = document.getElementById(fieldId);
             if (field && !validateField(field)) {
                 isValid = false;
