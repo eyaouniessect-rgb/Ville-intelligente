@@ -1,6 +1,5 @@
 package com.ville.gestionincidents.dto.incident;
 
-import com.ville.gestionincidents.enumeration.CategorieIncident;
 import com.ville.gestionincidents.enumeration.StatutIncident;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,10 +20,13 @@ public class IncidentListDto {
 
     private Long id;
     private String description;
-    private CategorieIncident categorie;
+
     private StatutIncident statut;
-    private String adresse;
     private LocalDateTime dateDeclaration;
+
+    // ✅ NOUVEAUX CHAMPS (métier correct)
+    private String departementNom;
+    private String quartierNom;
 
     // Photo principale (si elle existe)
     private String photoPrincipale;

@@ -9,7 +9,8 @@ import com.ville.gestionincidents.service.utilisateur.UtilisateurService;
 import com.ville.gestionincidents.security.CurrentUserService;
 import com.ville.gestionincidents.repository.IncidentRepository;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
+import com.ville.gestionincidents.repository.DepartementRepository;
+import com.ville.gestionincidents.repository.QuartierRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Scanner;
 
 @Controller
 @RequiredArgsConstructor
@@ -28,6 +30,8 @@ public class IncidentController {
     private final IncidentService incidentService;
     private final UtilisateurService utilisateurService;
     private final CurrentUserService currentUserService;
+    private final DepartementRepository departementRepository;
+    private  final QuartierRepository quartierRepository;
 
     private void injectUtilisateur(Model model) {
         Utilisateur utilisateur = currentUserService.getCurrentUser();
@@ -46,7 +50,10 @@ public class IncidentController {
 
         injectUtilisateur(model);
         model.addAttribute("incident", new IncidentCreateDto());
-        model.addAttribute("categories", CategorieIncident.values());
+        model.addAttribute("incident", new IncidentCreateDto());
+
+        model.addAttribute("departements", departementRepository.findAll());
+        model.addAttribute("quartiers", quartierRepository.findAll());
 
         return "citoyen/incident_form";
     }

@@ -21,8 +21,7 @@ public class Incident {
 
     private String description;
 
-    @Enumerated(EnumType.STRING)
-    private CategorieIncident categorie;
+
 
     @Enumerated(EnumType.STRING)
     private StatutIncident statut;
@@ -30,7 +29,7 @@ public class Incident {
     @Enumerated(EnumType.STRING)
     private PrioriteIncident priorite;
 
-    private String adresse;
+
     private Double latitude;
     private Double longitude;
 
@@ -48,7 +47,14 @@ public class Incident {
     @ManyToOne
     private Utilisateur agent;
 
-    @ManyToOne
+    // 🔹 CATÉGORIE = DÉPARTEMENT
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "departement_id")
+    private Departement departement;
+
+    // 🔹 LOCALISATION
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "quartier_id")
     private Quartier quartier;
 
     @ManyToOne

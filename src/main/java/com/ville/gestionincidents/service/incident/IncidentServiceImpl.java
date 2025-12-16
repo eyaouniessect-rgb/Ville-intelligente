@@ -26,7 +26,8 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import com.ville.gestionincidents.repository.UtilisateurRepository;
-
+import com.ville.gestionincidents.repository.DepartementRepository;
+import com.ville.gestionincidents.repository.QuartierRepository;
 
 
 import java.time.LocalDate;
@@ -48,20 +49,39 @@ public class IncidentServiceImpl implements IncidentService {
     private final NotificationService notificationService;
     private final ServiceMunicipalRepository serviceMunicipalRepository;
     private final UtilisateurRepository utilisateurRepository;
-
+    private final DepartementRepository departementRepository;
+    private  final QuartierRepository quartierRepository;
     /* ===================== CRÉATION ===================== */
 
     @Override
     public void creerIncident(IncidentCreateDto dto) {
 
-        Incident incident = incidentMapper.toEntity(dto);
-
+        // 🔹 Utilisateur connecté
         Utilisateur citoyen = currentUserService.getCurrentUser();
+
+        // 🔹 Récupération du département (catégorie)
+        Departement departement = departementRepository.findById(dto.getDepartementId())
+                .orElseThrow(() -> new RuntimeException("Département introuvable"));
+
+        // 🔹 Récupération du quartier
+        Quartier quartier = quartierRepository.findById(dto.getQuartierId())
+                .orElseThrow(() -> new RuntimeException("Quartier introuvable"));
+
+        // 🔹 Création de l'incident
+        Incident incident = new Incident();
+        incident.setDescription(dto.getDescription());
+        incident.setLatitude(dto.getLatitude());
+        incident.setLongitude(dto.getLongitude());
+        incident.setDepartement(departement);
+        incident.setQuartier(quartier);
         incident.setCitoyen(citoyen);
         incident.setStatut(StatutIncident.SIGNALE);
+        incident.setDateDeclaration(LocalDateTime.now());
 
+        // 🔹 Sauvegarde incident
         incident = incidentRepository.save(incident);
 
+        // 🔔 Notification
         notificationService.creerNotification(
                 citoyen.getEmail(),
                 TypeNotification.CREATION_INCIDENT,
@@ -69,8 +89,10 @@ public class IncidentServiceImpl implements IncidentService {
                 incident
         );
 
+        // 📸 Sauvegarde des photos
         if (dto.getPhotos() != null) {
             boolean principale = true;
+
             for (MultipartFile f : dto.getPhotos()) {
                 if (f == null || f.isEmpty()) continue;
 
@@ -88,6 +110,7 @@ public class IncidentServiceImpl implements IncidentService {
             }
         }
     }
+
 
     /* ===================== CITOYEN ===================== */
 
