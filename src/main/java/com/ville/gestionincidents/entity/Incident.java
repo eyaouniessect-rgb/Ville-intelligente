@@ -65,8 +65,7 @@ public class Incident {
     @OneToMany(mappedBy = "incident")
     private List<Notification> notifications;
 
-    @OneToMany(mappedBy = "incident")
-    private List<Rapport> rapports;
+
 
 
 

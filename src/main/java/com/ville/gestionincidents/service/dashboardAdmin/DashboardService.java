@@ -4,7 +4,9 @@ import com.ville.gestionincidents.dto.dashboardAdmin.DelaiResolutionDto;
 import com.ville.gestionincidents.dto.dashboardAdmin.IncidentParQuartierDto;
 import com.ville.gestionincidents.dto.dashboardAdmin.IncidentParServiceDto;
 import com.ville.gestionincidents.entity.Departement;
+import com.ville.gestionincidents.entity.Rapport;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.time.LocalDate;
@@ -78,7 +80,7 @@ public interface DashboardService {
             Long serviceId,
             Long quartierId);
 
-    // ==================== EXPORTS =====================
+    // ==================== EXPORTS (Téléchargement direct) =====================
     void exportCsv(
             LocalDate dateDebut,
             LocalDate dateFin,
@@ -92,6 +94,46 @@ public interface DashboardService {
             Long serviceId,
             Long quartierId,
             OutputStream outputStream) throws Exception;
+
+    // ==================== EXPORTS (Sauvegarde en BD) =====================
+    /**
+     * Génère un rapport CSV et le sauvegarde dans la base de données
+     */
+    Rapport exportCsvAndSave(
+            LocalDate dateDebut,
+            LocalDate dateFin,
+            Long serviceId,
+            Long quartierId) throws Exception;
+
+    /**
+     * Génère un rapport PDF et le sauvegarde dans la base de données
+     */
+    Rapport exportPdfAndSave(
+            LocalDate dateDebut,
+            LocalDate dateFin,
+            Long serviceId,
+            Long quartierId) throws Exception;
+
+    // ==================== GESTION DES RAPPORTS =====================
+    /**
+     * Récupère tous les rapports du département de l'utilisateur connecté
+     */
+    List<Rapport> getRapportsByDepartement();
+
+    /**
+     * Récupère un rapport spécifique par son ID
+     */
+    Rapport getRapportById(Long rapportId);
+
+    /**
+     * Télécharge le fichier d'un rapport existant
+     */
+    byte[] telechargerRapport(Long rapportId) throws IOException;
+
+    /**
+     * Supprime un rapport (fichier + enregistrement BD)
+     */
+    void supprimerRapport(Long rapportId) throws IOException;
 
     // ==================== DÉLAI MOYEN GLOBAL =====================
     double calculDelaiMoyenGlobal();
