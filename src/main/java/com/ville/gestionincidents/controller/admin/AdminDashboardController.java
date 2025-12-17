@@ -350,7 +350,7 @@ public String detailsIncident(@PathVariable Long id, Model model) {
             RedirectAttributes redirectAttributes) {
 
         try {
-            incidentService.assignerIncident(id, serviceId, agentId, commentaire,priorite);
+            incidentService.assignerIncident(id, serviceId, agentId,priorite);
             redirectAttributes.addFlashAttribute("success", "Incident assigné avec succès !");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Erreur lors de l'assignation : " + e.getMessage());

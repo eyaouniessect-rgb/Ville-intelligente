@@ -67,7 +67,7 @@ public interface IncidentService {
             int size
     );
 
-    void assignerIncident(Long incidentId, Long serviceId, Long agentId, String commentaire, PrioriteIncident priorite);
+    void assignerIncident(Long incidentId, Long serviceId, Long agentId, PrioriteIncident priorite);
 
     int countClotureForCurrentUser();
 
