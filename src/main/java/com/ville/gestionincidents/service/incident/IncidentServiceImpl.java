@@ -248,7 +248,7 @@ public class IncidentServiceImpl implements IncidentService {
     /* ===================== ASSIGNATION (FIX FINAL) ===================== */
 
     @Override
-    public void assignerIncident(Long incidentId, Long serviceId, Long agentId, String commentaire, PrioriteIncident priorite   ) {
+    public void assignerIncident(Long incidentId, Long serviceId, Long agentId, PrioriteIncident priorite   ) {
 
         Incident incident = incidentRepository.findById(incidentId)
                 .orElseThrow(() -> new RuntimeException("Incident introuvable"));
