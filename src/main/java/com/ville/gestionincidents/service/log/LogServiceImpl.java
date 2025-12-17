@@ -38,4 +38,30 @@ public class LogServiceImpl implements LogService {
     public List<LogEntry> getAllLogs() {
         return logRepository.findAll();
     }
+
+    public void saveFailedLogin(String username, String ip) {
+
+        // 1️⃣ Sauvegarder l’échec de connexion
+        saveLog(
+                "WARN",
+                "Échec de connexion (mot de passe incorrect)",
+                username,
+                "LOGIN_FAILED",
+                ip
+        );
+
+        LocalDateTime last5Minutes = LocalDateTime.now().minusMinutes(5);
+
+        int attempts = logRepository.countFailedLogins(username, last5Minutes);
+
+        if (attempts >= 5) {
+            saveLog(
+                    "ERROR",
+                    "Tentative de brute force détectée",
+                    username,
+                    "BRUTE_FORCE",
+                    ip
+            );
+        }
+    }
 }

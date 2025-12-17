@@ -12,4 +12,7 @@ public interface LogService {
                  String ipAddress);
 
     List<LogEntry> getAllLogs();
+
+    void saveFailedLogin(String username, String ip);
+
 }
