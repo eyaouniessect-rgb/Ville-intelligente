@@ -341,8 +341,7 @@ public class IncidentServiceImpl implements IncidentService {
     @Override
     @Transactional
     public void changerStatut(Long incidentId,
-                              StatutIncident nouveauStatut,
-                              String commentaire) {
+                              StatutIncident nouveauStatut) {
 
         Incident incident = incidentRepository.findById(incidentId)
                 .orElseThrow(() -> new RuntimeException("Incident introuvable"));
