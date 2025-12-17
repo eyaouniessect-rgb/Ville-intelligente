@@ -67,26 +67,7 @@ public class ServiceMunicipal {
         return incidents != null ? incidents.size() : 0;
     }
 
-    /**
-     * Ajouter un agent au service
-     */
-    public void addAgent(Utilisateur agent) {
-        if (agents == null) {
-            agents = new ArrayList<>();
-        }
-        agents.add(agent);
-        //agent.setServiceMunicipal(this);
-    }
 
-    /**
-     * Retirer un agent du service
-     */
-    public void removeAgent(Utilisateur agent) {
-        if (agents != null) {
-            agents.remove(agent);
-            //agent.setServiceMunicipal(null);
-        }
-    }
 
     @Override
     public String toString() {

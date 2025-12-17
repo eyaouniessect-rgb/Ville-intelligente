@@ -17,13 +17,13 @@ public class Photo {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Exemple : "1712345678_incident.jpg"
+
     private String nomFichier;
 
-    // Exemple : "image/jpeg" ou "image/png"
+
     private String typeContenu;
 
-    // Chemin dans dossier local : "uploads/1712345678_incident.jpg"
+    // Chemin dans dossier local : "uploads/nomimage.jpg"
     private String cheminStockage;
 
     private LocalDateTime dateUpload;
