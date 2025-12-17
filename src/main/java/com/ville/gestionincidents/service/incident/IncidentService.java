@@ -89,4 +89,8 @@ public interface IncidentService {
 
     List<Incident> getIncidentsNonAssignesParDepartement(Utilisateur admin);
 
+    void cloturerIncidentParCitoyen(Long incidentId);
+
+
+
 }

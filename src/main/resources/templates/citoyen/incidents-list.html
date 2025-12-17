@@ -223,14 +223,24 @@
             color: #1e40af;
         }
 
-        .status-en-cours {
-            background: #fed7aa;
+        .status-pris-en-charge {
+            background: #fef3c7;
             color: #92400e;
+        }
+
+        .status-en-resolution {
+            background: #fed7aa;
+            color: #9a3412;
         }
 
         .status-resolu {
             background: #d1fae5;
             color: #065f46;
+        }
+
+        .status-cloture {
+            background: #e5e7eb;
+            color: #374151;
         }
 
         .incident-description {
@@ -265,6 +275,12 @@
         .incident-footer {
             display: flex;
             gap: 8px;
+            align-items: stretch;
+        }
+
+        .incident-footer form {
+            display: flex;
+            flex: 1;
         }
 
         .details-btn {
@@ -279,11 +295,174 @@
             font-size: 14px;
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
         }
 
         .details-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        /* 🎨 Style amélioré du bouton Clôturer */
+        .cloturer-btn {
+            flex: 1;
+            width: 100%;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cloturer-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .cloturer-btn:hover::before {
+            left: 100%;
+        }
+
+        .cloturer-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .cloturer-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(16, 185, 129, 0.3);
+        }
+
+        /* 🎨 Style de l'alerte personnalisée */
+        .custom-alert-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 9999;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .custom-alert-overlay.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .custom-alert {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.4s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .custom-alert-icon {
+            text-align: center;
+            font-size: 64px;
+            margin-bottom: 20px;
+            animation: bounce 0.6s ease;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .custom-alert-title {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 10px;
+        }
+
+        .custom-alert-message {
+            text-align: center;
+            color: #6b7280;
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .custom-alert-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .custom-alert-btn {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .custom-alert-btn-confirm {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .custom-alert-btn-confirm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .custom-alert-btn-cancel {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .custom-alert-btn-cancel:hover {
+            background: #e5e7eb;
+            transform: translateY(-2px);
         }
 
         .empty-state {
@@ -343,18 +522,49 @@
             .incidents-grid {
                 grid-template-columns: 1fr;
             }
+
+            .custom-alert {
+                padding: 25px;
+            }
+
+            .custom-alert-icon {
+                font-size: 48px;
+            }
+
+            .custom-alert-title {
+                font-size: 20px;
+            }
         }
     </style>
 </head>
 
 <body>
 
+<!-- Alerte personnalisée -->
+<div class="custom-alert-overlay" id="customAlertOverlay">
+    <div class="custom-alert">
+        <div class="custom-alert-icon">⚠️</div>
+        <h3 class="custom-alert-title">Clôturer l'incident</h3>
+        <p class="custom-alert-message">
+            Êtes-vous sûr de vouloir clôturer cet incident ?
+            Cette action confirmera que le problème a été résolu de manière satisfaisante.
+        </p>
+        <div class="custom-alert-buttons">
+            <button class="custom-alert-btn custom-alert-btn-cancel" onclick="closeCustomAlert()">
+                ✖️ Annuler
+            </button>
+            <button class="custom-alert-btn custom-alert-btn-confirm" onclick="confirmCloturer()">
+                ✅ Confirmer
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- ===== HEADER ===== -->
 <div th:replace="fragments/header_citoyen :: citoyen-header"></div>
 
-
-<!-- 🔔 Message succès création incident -->
-<div th:if="${successMessage}"
+<!-- 🔔 Message succès -->
+<div th:if="${success}"
      style="
         margin: 20px auto;
         max-width: 1200px;
@@ -370,7 +580,27 @@
         animation: fadeInUp 0.4s ease-out;
      ">
     <span style="font-size: 22px;">✅</span>
-    <span th:text="${successMessage}"></span>
+    <span th:text="${success}"></span>
+</div>
+
+<!-- 🔴 Message erreur -->
+<div th:if="${error}"
+     style="
+        margin: 20px auto;
+        max-width: 1200px;
+        background: linear-gradient(135deg, #fee2e2, #fef2f2);
+        color: #991b1b;
+        padding: 16px 24px;
+        border-radius: 14px;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(153, 27, 27, 0.2);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        animation: fadeInUp 0.4s ease-out;
+     ">
+    <span style="font-size: 22px;">❌</span>
+    <span th:text="${error}"></span>
 </div>
 
 <!-- Barre de filtre -->
@@ -381,34 +611,21 @@
     align-items:center;
 ">
     <label style="color:white; font-weight:bold;">Filtrer par statut :</label>
-
     <select name="statut" onchange="this.form.submit()"
             style="padding:10px; border-radius:8px; border:none; font-size:14px;">
-
-        <!-- Option : tous les statuts -->
-        <option th:value="''"
-                th:selected="${statutActuel == null}">
-            Tous
-        </option>
-
-        <!-- Options : statut listés -->
+        <option th:value="''" th:selected="${statutActuel == null}">Tous</option>
         <option th:each="s : ${statuts}"
                 th:value="${s.name()}"
                 th:text="${s}"
                 th:selected="${s.name() == statutActuel}">
         </option>
-
     </select>
 </form>
 
-
-
 <!-- ===== CONTENT ===== -->
 <div class="container">
-
-    <!-- 🟦 CAS 1 : aucun incident déclaré (tous statuts confondus) -->
-    <div class="empty-state"
-         th:if="${!hasAnyIncident}">
+    <!-- CAS 1 : aucun incident -->
+    <div class="empty-state" th:if="${!hasAnyIncident}">
         <div class="empty-state-icon">📭</div>
         <h2>Aucun incident déclaré</h2>
         <p>Vous n'avez pas encore signalé d'incident.</p>
@@ -417,89 +634,109 @@
         </a>
     </div>
 
-    <!-- 🟨 CAS 2 : incidents existent, mais pas pour ce statut -->
-    <div class="empty-state"
-         th:if="${hasAnyIncident and #lists.isEmpty(incidents)}">
+    <!-- CAS 2 : incidents existent mais filtre vide -->
+    <div class="empty-state" th:if="${hasAnyIncident and #lists.isEmpty(incidents)}">
         <div class="empty-state-icon">🔍</div>
         <h2>Aucun incident trouvé pour ce statut</h2>
-        <p>Essayez d’appliquer un autre filtre.</p>
+        <p>Essayez d'appliquer un autre filtre.</p>
     </div>
 
-    <!-- 🟩 CAS 3 : incidents à afficher -->
-    <div class="incidents-grid"
-         th:if="${!#lists.isEmpty(incidents)}">
-
-    </div>
-    <!-- Grid des incidents -->
+    <!-- CAS 3 : Grid des incidents -->
     <div class="incidents-grid" th:if="${!#lists.isEmpty(incidents)}">
-
         <div class="incident-card" th:each="inc : ${incidents}">
-
-            <!-- Image principale -->
+            <!-- Image -->
             <div class="incident-image">
                 <div th:if="${inc.photoPrincipale != null}">
-                    <img th:src="@{'/' + ${inc.photoPrincipale}}"
-                         th:alt="${inc.departementNom}">
-
-
-                    <!-- Badge "Photo principale" -->
+                    <img th:src="@{'/' + ${inc.photoPrincipale}}" th:alt="${inc.departementNom}">
                     <span class="image-badge">📸 Photo principale</span>
-
-                    <!-- Compteur de photos si > 1 -->
                     <span class="image-count" th:if="${inc.nombrePhotos > 1}">
                         🖼️ <span th:text="${inc.nombrePhotos}"></span> photos
                     </span>
                 </div>
-
-                <!-- Si pas de photos -->
-                <div class="no-image" th:if="${inc.photoPrincipale == null}">
-                    📷
-                </div>
+                <div class="no-image" th:if="${inc.photoPrincipale == null}">📷</div>
             </div>
 
-            <!-- Contenu de la carte -->
+            <!-- Contenu -->
             <div class="incident-content">
-
-                <!-- Header: Catégorie + Statut -->
                 <div class="incident-header">
                     <span class="incident-category" th:text="${inc.departementNom}"></span>
-
                     <span class="incident-status"
                           th:classappend="${
                             inc.statut.name() == 'SIGNALE' ? 'status-signale' :
-                            (inc.statut.name() == 'EN_COURS' ? 'status-en-cours' : 'status-resolu')
+                            inc.statut.name() == 'PRIS_EN_CHARGE' ? 'status-pris-en-charge' :
+                            inc.statut.name() == 'EN_RESOLUTION' ? 'status-en-resolution' :
+                            inc.statut.name() == 'RESOLU' ? 'status-resolu' :
+                            'status-cloture'
                           }"
                           th:text="${inc.statut}">
                     </span>
                 </div>
 
-                <!-- Description -->
                 <p class="incident-description" th:text="${inc.description}"></p>
 
-                <!-- Métadonnées -->
                 <div class="incident-meta">
-                    <span>
-                        📅 <span th:text="${#temporals.format(inc.dateDeclaration, 'dd/MM/yyyy')}"></span>
-                    </span>
-                    <span th:if="${inc.quartierNom != null}">
-                     🏘️ <span th:text="${inc.quartierNom}"></span>
-                      </span>
-
+                    <span>📅 <span th:text="${#temporals.format(inc.dateDeclaration, 'dd/MM/yyyy')}"></span></span>
+                    <span th:if="${inc.quartierNom != null}">🏘️ <span th:text="${inc.quartierNom}"></span></span>
                 </div>
 
-                <!-- Footer: Bouton détails -->
+                <!-- Footer avec boutons -->
                 <div class="incident-footer">
                     <a class="details-btn" th:href="@{'/citoyen/incidents/' + ${inc.id}}">
                         👁️ Voir les détails
                     </a>
-                </div>
 
+                    <!-- Bouton Clôturer amélioré -->
+                    <form th:if="${inc.statut.name() == 'RESOLU'}"
+                          th:action="@{'/citoyen/incidents/' + ${inc.id} + '/cloturer'}"
+                          method="post"
+                          th:id="'form-' + ${inc.id}"
+                          style="flex: 1;">
+                        <button type="button"
+                                class="cloturer-btn"
+                                th:onclick="'showCustomAlert(' + ${inc.id} + ')'">
+                            <span>✔️</span>
+                            <span>Clôturer</span>
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
-
     </div>
-
 </div>
+
+<script>
+    let currentFormId = null;
+
+    function showCustomAlert(incidentId) {
+        currentFormId = 'form-' + incidentId;
+        document.getElementById('customAlertOverlay').classList.add('active');
+    }
+
+    function closeCustomAlert() {
+        document.getElementById('customAlertOverlay').classList.remove('active');
+        currentFormId = null;
+    }
+
+    function confirmCloturer() {
+        if (currentFormId) {
+            document.getElementById(currentFormId).submit();
+        }
+    }
+
+    // Fermer l'alerte en cliquant sur l'overlay
+    document.getElementById('customAlertOverlay').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeCustomAlert();
+        }
+    });
+
+    // Fermer avec la touche Échap
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeCustomAlert();
+        }
+    });
+</script>
 
 </body>
 </html>
