@@ -74,7 +74,7 @@ Le système distingue **4 types d'utilisateurs** avec des droits spécifiques :
 - Création et gestion des départements
 - Création et gestion des quartiers
 - Gestion des utilisateurs (création, modification, désactivation)
-- Accès à toutes les statistiques globales
+- Visualisation des logs
 
 ### 📝 Gestion des Incidents
 
@@ -85,7 +85,6 @@ Le système distingue **4 types d'utilisateurs** avec des droits spécifiques :
 - Sélection du quartier
 - Géolocalisation interactive via carte Leaflet
 - Upload de photos (jusqu'à 3 photos, max 5MB chacune)
-- Validation côté client et serveur
 
 #### Statuts des Incidents
 1. **SIGNALE** : Incident déclaré par un citoyen
@@ -102,9 +101,7 @@ Le système distingue **4 types d'utilisateurs** avec des droits spécifiques :
 
 #### Fonctionnalités Avancées
 - Filtrage multi-critères (statut, service, dates, quartier)
-- Pagination pour les grandes listes
-- Recherche et tri
-- Historique complet des modifications
+- Recherche
 - Géolocalisation précise
 
 ### 🔔 Système de Notifications
@@ -130,7 +127,6 @@ Chaque utilisateur peut personnaliser ses notifications :
 - Consultation de l'historique complet des notifications
 - Marquage comme "lu/non lu"
 - Compteur de notifications non lues
-- Filtrage par type et date
 
 ### 📸 Upload et Gestion des Images
 
@@ -139,7 +135,6 @@ Chaque utilisateur peut personnaliser ses notifications :
 - **Stockage** : Fichiers stockés dans le dossier `uploads/`
 - **Photo principale** : Première photo marquée comme principale
 - **Affichage** : Prévisualisation avant upload, galerie dans les détails
-- **Sécurité** : Noms de fichiers uniques avec timestamp
 
 ---
 
@@ -498,26 +493,6 @@ Services municipaux (ex: Voirie, Éclairage, Propreté).
 - `@OneToMany` → `List<Utilisateur>` : Agents du service
 - `@OneToMany` → `List<Incident>` : Incidents assignés
 
-### Relations Principales
-
-```
-Utilisateur (CITOYEN)
-    ↓ (1-N)
-Incident
-    ↓ (1-N)        ↓ (N-1)
-Photo          Departement
-                    ↓ (1-N)
-                ServiceMunicipal
-                    ↓ (1-N)
-                Utilisateur (AGENT)
-
-Incident
-    ↓ (1-N)
-Notification
-    ↓ (N-1)
-Utilisateur
-```
-
 ---
 
 ## 📋 DTO et Validation
@@ -531,34 +506,6 @@ Les **DTOs (Data Transfer Objects)** sont utilisés pour :
 3. **Validation** : Valider les données avant traitement
 4. **Flexibilité** : Structure différente de l'entité si besoin
 
-### Exemple : `IncidentCreateDto`
-
-```java
-@Data
-public class IncidentCreateDto {
-    @NotBlank(message = "La description est obligatoire")
-    @Size(min = 10, max = 1000, message = "La description doit contenir entre 10 et 1000 caractères")
-    private String description;
-
-    @NotNull(message = "La catégorie est obligatoire")
-    private Long departementId;
-
-    @NotNull(message = "Le quartier est obligatoire")
-    private Long quartierId;
-
-    @NotNull(message = "La latitude est obligatoire")
-    @DecimalMin(value = "-90.0", message = "Latitude invalide")
-    @DecimalMax(value = "90.0", message = "Latitude invalide")
-    private Double latitude;
-
-    @NotNull(message = "La longitude est obligatoire")
-    @DecimalMin(value = "-180.0", message = "Longitude invalide")
-    @DecimalMax(value = "180.0", message = "Longitude invalide")
-    private Double longitude;
-
-    private List<MultipartFile> photos;
-}
-```
 
 ### Annotations de Validation Utilisées
 
@@ -568,22 +515,6 @@ public class IncidentCreateDto {
 - **`@DecimalMin` / `@DecimalMax`** : Valeur minimale/maximale pour nombres
 - **`@Email`** : Format email valide
 - **`@Pattern`** : Expression régulière
-
-### Validation dans les Contrôleurs
-
-```java
-@PostMapping("/incident/ajouter")
-public String ajouterIncident(
-    @Valid @ModelAttribute("incident") IncidentCreateDto dto,
-    BindingResult bindingResult,
-    Model model
-) {
-    if (bindingResult.hasErrors()) {
-        // Retourner au formulaire avec les erreurs
-        return "citoyen/incident_form";
-    }
-    // Traitement...
-}
 ```
 
 ---
@@ -619,46 +550,6 @@ public enum Role {
 }
 ```
 
-#### Configuration des Accès (`SecurityConfig`)
-
-```java
-.authorizeRequests()
-    // Public
-    .antMatchers("/auth/login", "/auth/register").permitAll()
-    
-    // Super Admin
-    .antMatchers("/superadmin/**").hasRole("SUPERADMIN")
-    
-    // Admin
-    .antMatchers("/admin/**").hasRole("ADMIN")
-    
-    // Citoyen
-    .antMatchers("/citoyen/**").hasRole("CITOYEN")
-    
-    // Agent
-    .antMatchers("/agent/**").hasRole("AGENT")
-    
-    // Autres
-    .anyRequest().authenticated()
-```
-
-#### Vérification dans les Contrôleurs
-
-```java
-@PreAuthorize("hasRole('ADMIN')")
-@GetMapping("/admin/dashboard")
-public String dashboard() {
-    // ...
-}
-```
-
-### Protection CSRF
-
-- Désactivée pour simplifier (à activer en production)
-- Protection contre les injections SQL via JPA/Hibernate
-- Validation des entrées avec Bean Validation
-
----
 
 ## 🚀 Installation et Exécution
 
@@ -752,32 +643,12 @@ mvn spring-boot:run
 ### Commandes Maven Utiles
 
 ```bash
-# Compiler le projet
-mvn clean compile
-
-# Exécuter les tests
-mvn test
-
-# Créer un JAR exécutable
-mvn clean package
-
 # Lancer l'application
 mvn spring-boot:run
 
 # Nettoyer le projet
 mvn clean
 ```
-
-### Configuration OAuth2 Google (Optionnel)
-
-1. Aller sur [Google Cloud Console](https://console.cloud.google.com/)
-2. Créer un nouveau projet
-3. Activer l'API Google+
-4. Créer des identifiants OAuth 2.0
-5. Ajouter l'URI de redirection : `http://localhost:8080/login/oauth2/code/google`
-6. Copier le Client ID et Client Secret dans `application.properties`
-
----
 
 ## ✅ Bonnes Pratiques Utilisées
 
@@ -828,37 +699,9 @@ mvn clean
 
 ### 8. Code Propre
 
-- Utilisation de Lombok pour réduire le boilerplate
 - Noms de méthodes explicites
 - Commentaires pour les parties complexes
 - Structure de packages logique
-
----
-
-## 🔮 Améliorations Futures
-
-### Court Terme
-- [ ] Activation de la protection CSRF
-- [ ] Tests unitaires et d'intégration
-- [ ] Documentation API avec Swagger/OpenAPI
-- [ ] Amélioration de l'interface utilisateur (responsive design)
-- [ ] Gestion des erreurs plus robuste
-
-### Moyen Terme
-- [ ] API REST complète (JSON) en plus de Thymeleaf
-- [ ] Application mobile (React Native / Flutter)
-- [ ] Système de commentaires sur les incidents
-- [ ] Notifications SMS
-- [ ] Export de données en CSV/Excel amélioré
-- [ ] Recherche full-text sur les incidents
-
-### Long Terme
-- [ ] Intégration avec des systèmes externes (CRM municipal)
-- [ ] Analyse prédictive avec Machine Learning
-- [ ] Tableau de bord temps réel avec WebSocket
-- [ ] Multi-tenancy (plusieurs villes)
-- [ ] Système de réputation pour les citoyens
-- [ ] Intégration avec des capteurs IoT
 
 ---
 
@@ -867,22 +710,13 @@ mvn clean
 **Équipe de Développement**
 
 Projet développé dans le cadre d'un projet académique/professionnel de gestion d'incidents urbains.
+Mayssa Ben azzouz - Eya Ouni - Sirine Berrbibe
 
 ---
 
 ## 📄 Licence
 
-Ce projet est un projet éducatif/démonstratif. Tous droits réservés.
+Ce projet est un projet éducatif/démonstratif. 
 
 ---
-
-## 📞 Support
-
-Pour toute question ou problème :
-- Ouvrir une issue sur le repository
-- Contacter l'équipe de développement
-
----
-
-**Dernière mise à jour** : 2024
 
