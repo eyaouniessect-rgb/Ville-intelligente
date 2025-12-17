@@ -43,21 +43,7 @@ public class Departement {
 
     // ==================== MÉTHODES UTILITAIRES ====================
 
-    /**
-     * Ajouter un service au département
-     */
-    public void addService(ServiceMunicipal service) {
-        services.add(service);
-        service.setDepartement(this);
-    }
 
-    /**
-     * Retirer un service du département
-     */
-    public void removeService(ServiceMunicipal service) {
-        services.remove(service);
-        service.setDepartement(null);
-    }
 
     @Override
     public String toString() {
