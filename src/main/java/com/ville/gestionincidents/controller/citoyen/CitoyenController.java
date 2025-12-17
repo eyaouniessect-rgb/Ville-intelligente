@@ -72,8 +72,8 @@ public class CitoyenController {
     @GetMapping("/incidents")
     public String incidentsList(
             @RequestParam(value = "statut", required = false) String statut,
-            Model model,
-            Authentication authentication) {
+            Model model ) {
+
 
         Utilisateur utilisateur = currentUserService.getCurrentUser();
 
@@ -133,9 +133,7 @@ public class CitoyenController {
 
 
 
-    // -------------------------
-    // Profil Citoyen
-    // -------------------------
+
     // 📄 Affichage du profil
     @GetMapping("/profil")
     public String profil(Model model, Authentication authentication) {
