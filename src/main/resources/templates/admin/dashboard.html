@@ -421,9 +421,32 @@
             <a th:href="@{/admin/agents}" class="action-btn btn-success">
                 👥 Gérer les Agents
             </a>
-            <a th:href="@{/admin/incidents/signales}" class="action-btn btn-warning">
-                🔔 Incidents Non Assignés (<span th:text="${incidentsNonAssignes}">0</span>)
+            <a th:href="@{/admin/incidents/non-assignes}"
+               class="action-btn btn-warning"
+               style="position: relative;">
+
+                🔔 Incidents non assignés
+
+                <!-- Badge compteur -->
+                <span style="
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: #ef4444;
+        color: white;
+        font-size: 12px;
+        font-weight: bold;
+        padding: 4px 8px;
+        border-radius: 999px;
+        min-width: 22px;
+        text-align: center;
+        box-shadow: 0 4px 10px rgba(239,68,68,0.4);
+    "
+                      th:text="${incidentsNonAssignes}">
+        0
+    </span>
             </a>
+
         </div>
     </div>
     <!-- Filters -->

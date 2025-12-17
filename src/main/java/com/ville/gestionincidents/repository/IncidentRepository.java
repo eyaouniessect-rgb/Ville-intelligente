@@ -70,41 +70,40 @@ public interface IncidentRepository extends JpaRepository<Incident, Long> {
 
     // ===================== SERVICE → DEPARTEMENT =====================
 
-    long countByService_DepartementAndDateDeclarationBetween(
+    // ✅ NOUVELLE MÉTHODE - Relation directe avec Departement
+    long countByDepartementAndDateDeclarationBetween(
             Departement departement,
             LocalDateTime debut,
             LocalDateTime fin
     );
 
-    long countByService_DepartementAndDateDeclarationBetweenAndStatut(
+    long countByDepartementAndDateDeclarationBetweenAndStatut(
             Departement departement,
             LocalDateTime debut,
             LocalDateTime fin,
             StatutIncident statut
     );
 
-    long countByService_DepartementAndDateDeclarationBetweenAndStatutIn(
+    long countByDepartementAndDateDeclarationBetweenAndStatutIn(
             Departement departement,
             LocalDateTime debut,
             LocalDateTime fin,
             List<StatutIncident> statuts
     );
 
-    List<Incident> findByAgentIsNull();
-//====================//
-long countByService_DepartementAndStatut(
-        Departement departement,
-        StatutIncident statut
-);
-    // ===================== FILTRES DASHBOARD =====================
+    long countByDepartementAndStatut(
+            Departement departement,
+            StatutIncident statut
+    );
 
+    // ✅ FILTRES DASHBOARD - Relation directe
     @Query("""
-        SELECT i FROM Incident i
-        WHERE i.service.departement = :departement
-        AND (:serviceId IS NULL OR i.service.id = :serviceId)
-        AND (:statut IS NULL OR i.statut = :statut)
-        AND i.dateDeclaration BETWEEN :dateDebut AND :dateFin
-    """)
+    SELECT i FROM Incident i
+    WHERE i.departement = :departement
+    AND (:serviceId IS NULL OR i.service.id = :serviceId)
+    AND (:statut IS NULL OR i.statut = :statut)
+    AND i.dateDeclaration BETWEEN :dateDebut AND :dateFin
+""")
     Page<Incident> findByFilters(
             @Param("departement") Departement departement,
             @Param("serviceId") Long serviceId,
@@ -114,14 +113,16 @@ long countByService_DepartementAndStatut(
             Pageable pageable
     );
 
-    /// /////////count de nbre d'incident non asigne dun département
+    // ✅ COUNT NON ASSIGNÉS
     @Query("""
     SELECT COUNT(i)
     FROM Incident i
-    WHERE i.service.departement = :departement
-      AND i.agent IS NULL
+    WHERE i.departement = :departement
+    AND i.agent IS NULL
 """)
     long countNonAssignesByDepartement(@Param("departement") Departement departement);
+
+
 
     // Tous les incidents résolus
     List<Incident> findByStatut(StatutIncident statut);
@@ -145,5 +146,31 @@ long countByService_DepartementAndStatut(
 
     // Compter tous les incidents d'un agent
     long countByAgent(Utilisateur agent);
+
+    // ✅ Incidents NON assignés d’un département précis
+    List<Incident> findByServiceIsNullAndDepartement_Id(Long departementId);
+
+    // ✅ CORRECT - Relation directe avec Departement
+    @Query("""
+    SELECT i FROM Incident i
+    WHERE i.agent IS NULL
+    AND i.departement = :departement
+    ORDER BY i.dateDeclaration DESC
+""")
+    List<Incident> findIncidentsNonAssignesParDepartement(@Param("departement") Departement departement);
+    // ✅ Méthode pour récupérer tous les incidents d'un département
+    List<Incident> findByDepartementAndDateDeclarationBetween(
+            Departement departement,
+            LocalDateTime debut,
+            LocalDateTime fin
+    );
+
+    // ✅ Méthode pour récupérer les incidents résolus d'un département
+    List<Incident> findByDepartementAndDateDeclarationBetweenAndStatut(
+            Departement departement,
+            LocalDateTime debut,
+            LocalDateTime fin,
+            StatutIncident statut
+    );
 
 }

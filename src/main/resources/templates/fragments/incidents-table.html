@@ -376,7 +376,8 @@
                     📝
                 </button>
 
-                <a th:href="@{/admin/incidents/{id}(id=${incident.id})}" class="action-icon-btn" title="Détails">
+                <a th:href="@{/admin/incidents/details/{id}(id=${incident.id})}"
+                   class="action-icon-btn" title="Détails">
                     👁️
                 </a>
             </td>
@@ -441,10 +442,7 @@
                 </select>
             </div>
 
-            <div class="form-group">
-                <label>Commentaire</label>
-                <textarea name="commentaire" rows="3" placeholder="Commentaire d'assignation..."></textarea>
-            </div>
+
 
             <div class="form-actions">
                 <button type="button" class="btn-cancel" onclick="closeModal()">Annuler</button>

@@ -284,23 +284,192 @@
         .btn-disabled { background: #d1d5db; color: #9ca3af; cursor: not-allowed; }
         .btn-disabled:hover { transform: none; box-shadow: none; }
 
+        /* ALERTES AMÉLIORÉES */
         .alert {
-            padding: 15px 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
+            padding: 18px 24px;
+            border-radius: 12px;
+            margin-bottom: 25px;
             font-weight: 500;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideInDown 0.4s ease-out;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .alert::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 4px;
+        }
+
+        .alert-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+            animation: bounceIn 0.6s ease-out;
+        }
+
+        .alert-content {
+            flex: 1;
+            line-height: 1.5;
         }
 
         .alert-success {
-            background: #d1fae5;
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
             color: #065f46;
             border-left: 4px solid #10b981;
         }
 
+        .alert-success::before {
+            background: linear-gradient(180deg, #10b981, #059669);
+        }
+
         .alert-error {
-            background: #fee2e2;
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
             color: #991b1b;
             border-left: 4px solid #ef4444;
+        }
+
+        .alert-error::before {
+            background: linear-gradient(180deg, #ef4444, #dc2626);
+        }
+
+        /* MODAL DE CONFIRMATION PERSONNALISÉE */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            z-index: 9999;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease-out;
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .modal-icon {
+            font-size: 48px;
+            animation: bounceIn 0.6s ease-out;
+        }
+
+        .modal-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .modal-message {
+            color: #6b7280;
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .modal-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal-btn-cancel {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .modal-btn-cancel:hover {
+            background: #e5e7eb;
+            transform: translateY(-2px);
+        }
+
+        .modal-btn-confirm {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .modal-btn-confirm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes bounceIn {
+            0% {
+                transform: scale(0);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(1);
+            }
         }
 
         .empty-state {
@@ -327,6 +496,22 @@
             .stats-grid {
                 grid-template-columns: 1fr;
             }
+            .alert {
+                padding: 15px 18px;
+                font-size: 14px;
+            }
+            .alert-icon {
+                font-size: 20px;
+            }
+            .modal-content {
+                padding: 25px;
+            }
+            .modal-buttons {
+                flex-direction: column;
+            }
+            .modal-btn {
+                width: 100%;
+            }
         }
 
         @keyframes fadeInUp {
@@ -343,10 +528,57 @@
         .stat-card, .incident-card {
             animation: fadeInUp 0.5s ease-out;
         }
+
+        .incident-images {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+            margin: 15px 0;
+        }
+
+        .incident-image {
+            position: relative;
+            overflow: hidden;
+            border-radius: 10px;
+            background: #e5e7eb;
+            cursor: pointer;
+        }
+
+        .incident-image img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .incident-image:hover img {
+            transform: scale(1.1);
+        }
     </style>
 </head>
 
 <body>
+<!-- MODAL DE CONFIRMATION -->
+<div id="confirmModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span class="modal-icon">⚠️</span>
+            <h3 class="modal-title">Confirmation requise</h3>
+        </div>
+        <p class="modal-message" id="modalMessage">
+            Êtes-vous sûr de vouloir changer le statut de cet incident ?
+        </p>
+        <div class="modal-buttons">
+            <button type="button" class="modal-btn modal-btn-cancel" onclick="closeModal()">
+                ❌ Annuler
+            </button>
+            <button type="button" class="modal-btn modal-btn-confirm" onclick="confirmAction()">
+                ✅ Confirmer
+            </button>
+        </div>
+    </div>
+</div>
+
 <div class="container">
     <!-- HEADER -->
     <div class="header-container">
@@ -363,12 +595,14 @@
         </div>
     </div>
 
-    <!-- MESSAGES FLASH -->
+    <!-- MESSAGES FLASH AMÉLIORÉS -->
     <div th:if="${success}" class="alert alert-success">
-        ✅ <span th:text="${success}"></span>
+        <span class="alert-icon">✅</span>
+        <span class="alert-content" th:text="${success}"></span>
     </div>
     <div th:if="${error}" class="alert alert-error">
-        ❌ <span th:text="${error}"></span>
+        <span class="alert-icon">❌</span>
+        <span class="alert-content" th:text="${error}"></span>
     </div>
 
     <!-- STATISTIQUES -->
@@ -380,7 +614,6 @@
             </div>
             <div class="number" th:text="${totalIncidents}">0</div>
         </div>
-
 
         <div class="stat-card pris-charge">
             <div class="stat-header">
@@ -446,8 +679,6 @@
                     </div>
                     <div class="info-row">
                         <span>📍</span>
-                        <span class="info-label">Localisation :</span>
-                        <span th:text="${incident.adresse != null ? incident.adresse : '—'}"></span>
                     </div>
                     <div class="info-row">
                         <span>🏢</span>
@@ -466,10 +697,30 @@
                     <span th:text="${incident.description}">Description de l'incident</span>
                 </div>
 
+                <div th:if="${incident.photos != null and !#lists.isEmpty(incident.photos)}">
+                    <strong>📷 Images de l’incident :</strong>
+
+                    <div class="incident-images">
+                        <div th:each="photo : ${incident.photos}" class="incident-image">
+                            <img th:src="@{'/uploads/' + ${photo.nomFichier}}"
+                                 alt="Photo incident"
+                                 loading="lazy">
+
+                        </div>
+                    </div>
+                </div>
+
+                <div th:if="${incident.photos == null or #lists.isEmpty(incident.photos)}"
+                     style="color:#9ca3af; font-size:13px; margin-top:10px;">
+                    📷 Aucune photo fournie
+                </div>
+
+
                 <form th:action="@{/agent/incidents/{id}/changer-statut(id=${incident.id})}"
                       method="post"
                       class="action-buttons"
-                      onsubmit="return confirm('Confirmer le changement de statut ?');">
+                      th:id="'form-' + ${incident.id}"
+                      onsubmit="return showConfirmModal(event, this);">
 
                     <!-- PRIS EN CHARGE -->
                     <button
@@ -510,5 +761,78 @@
         </div>
     </div>
 </div>
+
+<script>
+    let currentForm = null;
+    let currentButton = null;
+
+    function showConfirmModal(event, form) {
+        event.preventDefault();
+
+        // Stocker le formulaire et le bouton cliqué
+        currentForm = form;
+        currentButton = event.submitter;
+
+        // Vérifier si le bouton est désactivé
+        if (currentButton && currentButton.disabled) {
+            return false;
+        }
+
+        // Récupérer la valeur du statut
+        const statutValue = currentButton ? currentButton.value : '';
+
+        // Personnaliser le message selon le statut
+        let message = 'Êtes-vous sûr de vouloir changer le statut de cet incident ?';
+
+        if (statutValue === 'PRIS_EN_CHARGE') {
+            message = '🔄 Voulez-vous vraiment prendre en charge cet incident ?';
+        } else if (statutValue === 'EN_RESOLUTION') {
+            message = '⚙️ Voulez-vous marquer cet incident comme étant en résolution ?';
+        } else if (statutValue === 'RESOLU') {
+            message = '✅ Confirmez-vous que cet incident est résolu ?';
+        }
+
+        document.getElementById('modalMessage').textContent = message;
+        document.getElementById('confirmModal').classList.add('active');
+        return false;
+    }
+
+    function closeModal() {
+        document.getElementById('confirmModal').classList.remove('active');
+        currentForm = null;
+        currentButton = null;
+    }
+
+    function confirmAction() {
+        if (currentForm && currentButton) {
+            // Créer un input caché avec la valeur du statut
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'statut';
+            hiddenInput.value = currentButton.value;
+
+            // Ajouter l'input au formulaire
+            currentForm.appendChild(hiddenInput);
+
+            // Soumettre le formulaire
+            currentForm.submit();
+        }
+        closeModal();
+    }
+
+    // Fermer la modal en cliquant en dehors
+    document.getElementById('confirmModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeModal();
+        }
+    });
+
+    // Fermer avec la touche Échap
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeModal();
+        }
+    });
+</script>
 </body>
 </html>

@@ -34,7 +34,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.ville.gestionincidents.enumeration.TypeNotification;
-
+import com.ville.gestionincidents.service.notification.PreferenceNotificationService;
 
 @Service
 @RequiredArgsConstructor
@@ -50,6 +50,7 @@ public class IncidentServiceImpl implements IncidentService {
     private final UtilisateurRepository utilisateurRepository;
     private final DepartementRepository departementRepository;
     private  final QuartierRepository quartierRepository;
+    private final PreferenceNotificationService preferenceNotificationService;
     /* ===================== CRÉATION ===================== */
 
     @Override
@@ -163,7 +164,7 @@ public class IncidentServiceImpl implements IncidentService {
     @Override
     public long countByDepartement(Departement d) {
         return incidentRepository
-                .countByService_DepartementAndDateDeclarationBetween(
+                .countByDepartementAndDateDeclarationBetween(
                         d,
                         LocalDate.now().minusYears(50).atStartOfDay(),
                         LocalDate.now().atTime(23, 59, 59)
@@ -171,15 +172,14 @@ public class IncidentServiceImpl implements IncidentService {
     }
 
     @Override
-    // Ajouter cette implémentation
     public long countByDepartementAndStatut(Departement departement, StatutIncident statut) {
-        return incidentRepository.countByService_DepartementAndStatut(departement, statut);
+        return incidentRepository.countByDepartementAndStatut(departement, statut);
     }
 
     @Override
     public long countByDepartementAndStatutsEnCours(Departement d) {
         return incidentRepository
-                .countByService_DepartementAndDateDeclarationBetweenAndStatutIn(
+                .countByDepartementAndDateDeclarationBetweenAndStatutIn(
                         d,
                         LocalDate.now().minusYears(50).atStartOfDay(),
                         LocalDate.now().atTime(23, 59, 59),
@@ -264,6 +264,9 @@ public class IncidentServiceImpl implements IncidentService {
         incident.setAgent(agent);
         incident.setStatut(StatutIncident.PRIS_EN_CHARGE);
         incident.setPriorite(priorite);
+
+        preferenceNotificationService.getOrCreate(agent.getId());
+
         notificationService.creerNotification(
                 agent.getEmail(),
                 TypeNotification.ASSIGNATION,
@@ -380,6 +383,7 @@ public class IncidentServiceImpl implements IncidentService {
                         new RuntimeException("Admin introuvable pour ce département"));
         System.out.println("SERVICE ID = " + incident.getService().getId());
         System.out.println("DEPARTEMENT ID = " + incident.getService().getDepartement().getId());
+        preferenceNotificationService.getOrCreate(admin.getId());
 
         notificationService.creerNotification(
                 admin.getEmail(),
@@ -397,5 +401,15 @@ public class IncidentServiceImpl implements IncidentService {
         return incidentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Incident introuvable"));
     }
+
+    @Override
+    public List<Incident> getIncidentsNonAssignesParDepartement(Utilisateur admin) {
+
+        Departement departement = admin.getDepartement();
+
+        return incidentRepository
+                .findIncidentsNonAssignesParDepartement(departement);
+    }
+
 
 }

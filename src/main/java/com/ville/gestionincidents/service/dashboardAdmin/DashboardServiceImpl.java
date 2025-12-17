@@ -19,13 +19,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.OutputStream;
 import java.io.Writer;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
-
 
 @Service
 @RequiredArgsConstructor
@@ -48,104 +46,125 @@ public class DashboardServiceImpl implements DashboardService {
         return d.atTime(23, 59, 59);
     }
 
+    /**
+     * ✅ Méthode utilitaire pour appliquer les filtres service et quartier
+     */
+    private List<Incident> applyFilters(List<Incident> incidents, Long serviceId, Long quartierId) {
+        return incidents.stream()
+                .filter(i -> serviceId == null ||
+                        (i.getService() != null && i.getService().getId().equals(serviceId)))
+                .filter(i -> quartierId == null ||
+                        (i.getQuartier() != null && i.getQuartier().getId().equals(quartierId)))
+                .collect(Collectors.toList());
+    }
+
     /* ===================== COMPTEURS ===================== */
 
     @Override
     @Transactional(readOnly = true)
     public long countTotalIncidentsByDepartement(
-            Departement d, LocalDate dd, LocalDate df) {
+            Departement d, LocalDate dd, LocalDate df, Long serviceId, Long quartierId) {
 
-        return incidentRepository
-                .countByService_DepartementAndDateDeclarationBetween(
-                        d, start(dd), end(df));
+        List<Incident> incidents = incidentRepository
+                .findByDepartementAndDateDeclarationBetween(d, start(dd), end(df));
+
+        return applyFilters(incidents, serviceId, quartierId).size();
     }
 
     @Override
     @Transactional(readOnly = true)
     public long countIncidentsResolusByDepartement(
-            Departement d, LocalDate dd, LocalDate df) {
+            Departement d, LocalDate dd, LocalDate df, Long serviceId, Long quartierId) {
 
-        return incidentRepository
-                .countByService_DepartementAndDateDeclarationBetweenAndStatut(
+        List<Incident> incidents = incidentRepository
+                .findByDepartementAndDateDeclarationBetweenAndStatut(
                         d, start(dd), end(df), StatutIncident.RESOLU);
+
+        return applyFilters(incidents, serviceId, quartierId).size();
     }
 
     @Override
     @Transactional(readOnly = true)
     public long countIncidentsEnCoursByDepartement(
-            Departement d, LocalDate dd, LocalDate df) {
+            Departement d, LocalDate dd, LocalDate df, Long serviceId, Long quartierId) {
 
-        return incidentRepository
-                .countByService_DepartementAndDateDeclarationBetweenAndStatutIn(
-                        d,
-                        start(dd),
-                        end(df),
-                        List.of(
-                                StatutIncident.PRIS_EN_CHARGE,
-                                StatutIncident.EN_RESOLUTION
-                        )
-                );
+        List<Incident> incidents = incidentRepository
+                .findByDepartementAndDateDeclarationBetween(d, start(dd), end(df))
+                .stream()
+                .filter(i -> i.getStatut() == StatutIncident.PRIS_EN_CHARGE ||
+                        i.getStatut() == StatutIncident.EN_RESOLUTION)
+                .collect(Collectors.toList());
+
+        return applyFilters(incidents, serviceId, quartierId).size();
     }
 
     @Override
     @Transactional(readOnly = true)
     public double calculerDelaiMoyenResolutionByDepartement(
-            Departement d, LocalDate dd, LocalDate df) {
+            Departement d, LocalDate dd, LocalDate df, Long serviceId, Long quartierId) {
 
-        List<Incident> incidents =
-                incidentRepository.findByDateDeclarationBetween(start(dd), end(df))
-                        .stream()
-                        .filter(i ->
-                                i.getService() != null &&
-                                        i.getService().getDepartement().equals(d) &&
-                                        i.getStatut() == StatutIncident.RESOLU &&
-                                        i.getDateResolution() != null  // ✅ CORRECTION ICI
-                        )
-                        .collect(Collectors.toList());
+        List<Incident> incidents = incidentRepository
+                .findByDepartementAndDateDeclarationBetweenAndStatut(
+                        d, start(dd), end(df), StatutIncident.RESOLU);
+
+        incidents = applyFilters(incidents, serviceId, quartierId);
 
         if (incidents.isEmpty()) return 0;
 
         return incidents.stream()
-                .mapToLong(i ->
-                        ChronoUnit.DAYS.between(
-                                i.getDateDeclaration(),
-                                i.getDateResolution()  // ✅ CORRECTION ICI
-                        )
-                )
+                .filter(i -> i.getDateResolution() != null)
+                .mapToLong(i -> ChronoUnit.DAYS.between(
+                        i.getDateDeclaration(),
+                        i.getDateResolution()))
                 .average()
                 .orElse(0);
     }
+
     /* ===================== GRAPHIQUES ===================== */
 
     @Override
     @Transactional(readOnly = true)
     public List<IncidentParServiceDto> getIncidentsParServiceByDepartement(
-            Departement d, LocalDate dd, LocalDate df, Long serviceId) {
+            Departement d, LocalDate dd, LocalDate df, Long serviceId, Long quartierId) {
 
-        return serviceMunicipalRepository.findByDepartement(d).stream()
-                .filter(s -> serviceId == null || s.getId().equals(serviceId)) // filtre optionnel
-                .map(s -> new IncidentParServiceDto(
-                        s.getNom(),
-                        incidentRepository.countByServiceAndDateDeclarationBetween(
-                                s, start(dd), end(df)
-                        )
+        // Récupérer tous les incidents du département
+        List<Incident> incidents = incidentRepository
+                .findByDepartementAndDateDeclarationBetween(d, start(dd), end(df));
+
+        // Appliquer le filtre quartier
+        incidents = applyFilters(incidents, null, quartierId);
+
+        // Grouper par service
+        return incidents.stream()
+                .filter(i -> i.getService() != null)
+                .filter(i -> serviceId == null || i.getService().getId().equals(serviceId))
+                .collect(Collectors.groupingBy(
+                        i -> i.getService().getNom(),
+                        Collectors.counting()
                 ))
-                .filter(x -> x.getNombre() > 0)
+                .entrySet()
+                .stream()
+                .map(e -> new IncidentParServiceDto(e.getKey(), e.getValue()))
+                .sorted((a, b) -> Long.compare(b.getNombre(), a.getNombre()))
                 .collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<IncidentParQuartierDto> getIncidentsParQuartierByDepartement(
-            Departement d, LocalDate dd, LocalDate df, Long quartierId) {
+            Departement d, LocalDate dd, LocalDate df, Long serviceId, Long quartierId) {
 
-        return incidentRepository.findByDateDeclarationBetween(start(dd), end(df))
-                .stream()
-                .filter(i -> i.getService() != null &&
-                        i.getService().getDepartement().equals(d) &&
-                        i.getQuartier() != null &&
-                        (quartierId == null || i.getQuartier().getId().equals(quartierId))
-                )
+        // Récupérer tous les incidents du département
+        List<Incident> incidents = incidentRepository
+                .findByDepartementAndDateDeclarationBetween(d, start(dd), end(df));
+
+        // Appliquer le filtre service
+        incidents = applyFilters(incidents, serviceId, null);
+
+        // Grouper par quartier
+        return incidents.stream()
+                .filter(i -> i.getQuartier() != null)
+                .filter(i -> quartierId == null || i.getQuartier().getId().equals(quartierId))
                 .collect(Collectors.groupingBy(
                         i -> i.getQuartier().getNom(),
                         Collectors.counting()
@@ -153,62 +172,58 @@ public class DashboardServiceImpl implements DashboardService {
                 .entrySet()
                 .stream()
                 .map(e -> new IncidentParQuartierDto(e.getKey(), e.getValue()))
+                .sorted((a, b) -> Long.compare(b.getNombre(), a.getNombre()))
                 .collect(Collectors.toList());
     }
 
-
-    // Délai moyen global
-    @Override
-    public double calculDelaiMoyenGlobal() {
-        List<Incident> incidentsResolus = incidentRepository.findByStatut(StatutIncident.RESOLU);
-        return incidentsResolus.stream()
-                .filter(i -> i.getDateResolution() != null && i.getDateDeclaration() != null)
-                .mapToLong(i -> Duration.between(i.getDateDeclaration(), i.getDateResolution()).toDays())
-                .average()
-                .orElse(0);
-    }
-
-    // Délai moyen par service
     @Override
     public List<DelaiResolutionDto> getDelaiResolutionParServiceByDepartement(
-            Departement d, LocalDate dd, LocalDate df) {
+            Departement d, LocalDate dd, LocalDate df, Long serviceId, Long quartierId) {
 
-        return serviceMunicipalRepository.findByDepartement(d).stream()
-                .map(s -> {
-                    var list = incidentRepository
-                            .findByServiceAndDateDeclarationBetweenAndStatut(
-                                    s, start(dd), end(df), StatutIncident.RESOLU);
+        // Récupérer tous les incidents résolus
+        List<Incident> incidents = incidentRepository
+                .findByDepartementAndDateDeclarationBetweenAndStatut(
+                        d, start(dd), end(df), StatutIncident.RESOLU);
 
-                    double avg = list.stream()
-                            .filter(i -> i.getDateResolution() != null)
-                            .mapToLong(i ->
-                                    ChronoUnit.DAYS.between(
-                                            i.getDateDeclaration(),
-                                            i.getDateResolution() // <-- ici aussi
-                                    )
-                            )
+        // Appliquer les filtres
+        incidents = applyFilters(incidents, serviceId, quartierId);
+
+        // Grouper par service et calculer le délai moyen
+        return incidents.stream()
+                .filter(i -> i.getService() != null && i.getDateResolution() != null)
+                .collect(Collectors.groupingBy(i -> i.getService().getNom()))
+                .entrySet()
+                .stream()
+                .map(e -> {
+                    double avg = e.getValue().stream()
+                            .mapToLong(i -> ChronoUnit.DAYS.between(
+                                    i.getDateDeclaration(),
+                                    i.getDateResolution()))
                             .average()
                             .orElse(0);
-
-                    return new DelaiResolutionDto(s.getNom(), avg);
+                    return new DelaiResolutionDto(e.getKey(), avg);
                 })
-                .filter(x -> x.getDelaiMoyen() > 0)
+                .filter(dto -> dto.getDelaiMoyen() > 0)
+                .sorted((a, b) -> Double.compare(b.getDelaiMoyen(), a.getDelaiMoyen()))
                 .collect(Collectors.toList());
     }
-
-
 
     @Override
     @Transactional(readOnly = true)
     public Map<String, Long> getIncidentsParStatutByDepartement(
-            Departement d, LocalDate dd, LocalDate df) {
+            Departement d, LocalDate dd, LocalDate df, Long serviceId, Long quartierId) {
+
+        List<Incident> incidents = incidentRepository
+                .findByDepartementAndDateDeclarationBetween(d, start(dd), end(df));
+
+        incidents = applyFilters(incidents, serviceId, quartierId);
 
         Map<String, Long> result = new LinkedHashMap<>();
 
         for (StatutIncident statut : StatutIncident.values()) {
-            long count = incidentRepository
-                    .countByService_DepartementAndDateDeclarationBetweenAndStatut(
-                            d, start(dd), end(df), statut);
+            long count = incidents.stream()
+                    .filter(i -> i.getStatut() == statut)
+                    .count();
             result.put(statut.name(), count);
         }
 
@@ -218,14 +233,14 @@ public class DashboardServiceImpl implements DashboardService {
     @Override
     @Transactional(readOnly = true)
     public Map<String, Long> getIncidentsParMoisByDepartement(
-            Departement d, LocalDate dd, LocalDate df) {
+            Departement d, LocalDate dd, LocalDate df, Long serviceId, Long quartierId) {
 
-        return incidentRepository.findByDateDeclarationBetween(start(dd), end(df))
-                .stream()
-                .filter(i ->
-                        i.getService() != null &&
-                                i.getService().getDepartement().equals(d)
-                )
+        List<Incident> incidents = incidentRepository
+                .findByDepartementAndDateDeclarationBetween(d, start(dd), end(df));
+
+        incidents = applyFilters(incidents, serviceId, quartierId);
+
+        return incidents.stream()
                 .collect(Collectors.groupingBy(
                         i -> i.getDateDeclaration().getYear() + "-" +
                                 String.format("%02d", i.getDateDeclaration().getMonthValue()),
@@ -233,38 +248,47 @@ public class DashboardServiceImpl implements DashboardService {
                 ));
     }
 
+    @Override
+    public double calculDelaiMoyenGlobal() {
+        List<Incident> incidentsResolus = incidentRepository.findByStatut(StatutIncident.RESOLU);
+        return incidentsResolus.stream()
+                .filter(i -> i.getDateResolution() != null && i.getDateDeclaration() != null)
+                .mapToLong(i -> ChronoUnit.DAYS.between(
+                        i.getDateDeclaration(),
+                        i.getDateResolution()))
+                .average()
+                .orElse(0);
+    }
+
     /* ===================== EXPORTS ===================== */
+
     @Override
     public void exportCsv(LocalDate dd, LocalDate df, Long serviceId, Long quartierId, Writer writer) throws Exception {
-
         Departement dept = currentUserService.getCurrentUser().getDepartement();
 
         csvExportService.exportDashboardData(
                 dd, df,
-                getIncidentsParServiceByDepartement(dept, dd, df, serviceId),
-                getIncidentsParQuartierByDepartement(dept, dd, df, quartierId),
-                getDelaiResolutionParServiceByDepartement(dept, dd, df),
+                getIncidentsParServiceByDepartement(dept, dd, df, serviceId, quartierId),
+                getIncidentsParQuartierByDepartement(dept, dd, df, serviceId, quartierId),
+                getDelaiResolutionParServiceByDepartement(dept, dd, df, serviceId, quartierId),
                 writer
         );
     }
 
     @Override
     public void exportPdf(LocalDate dd, LocalDate df, Long serviceId, Long quartierId, OutputStream out) throws Exception {
-
         Departement dept = currentUserService.getCurrentUser().getDepartement();
 
         pdfExportService.exportDashboardData(
                 dd, df,
-                countTotalIncidentsByDepartement(dept, dd, df),
-                countIncidentsResolusByDepartement(dept, dd, df),
-                countIncidentsEnCoursByDepartement(dept, dd, df),
-                calculerDelaiMoyenResolutionByDepartement(dept, dd, df),
-                getIncidentsParServiceByDepartement(dept, dd, df, serviceId),
-                getIncidentsParQuartierByDepartement(dept, dd, df, quartierId),
-                getDelaiResolutionParServiceByDepartement(dept, dd, df),
+                countTotalIncidentsByDepartement(dept, dd, df, serviceId, quartierId),
+                countIncidentsResolusByDepartement(dept, dd, df, serviceId, quartierId),
+                countIncidentsEnCoursByDepartement(dept, dd, df, serviceId, quartierId),
+                calculerDelaiMoyenResolutionByDepartement(dept, dd, df, serviceId, quartierId),
+                getIncidentsParServiceByDepartement(dept, dd, df, serviceId, quartierId),
+                getIncidentsParQuartierByDepartement(dept, dd, df, serviceId, quartierId),
+                getDelaiResolutionParServiceByDepartement(dept, dd, df, serviceId, quartierId),
                 out
         );
     }
-
-
 }

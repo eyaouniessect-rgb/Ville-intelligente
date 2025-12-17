@@ -135,7 +135,6 @@
                 <th>Email</th>
                 <th>Service</th>
                 <th>Statut</th>
-                <th>Actions</th>
             </tr>
             </thead>
             <tbody>
@@ -163,19 +162,7 @@
     </span>
                 </td>
 
-                <td>
-                    <a th:href="@{/admin/agents/{id}(id=${agent.id})}"
-                       class="action-btn"
-                       title="Voir">
-                        👁️
-                    </a>
 
-                    <a th:href="@{/admin/agents/{id}/edit(id=${agent.id})}"
-                       class="action-btn"
-                       title="Modifier">
-                        ✏️
-                    </a>
-                </td>
             </tr>
 
             </tbody>
