@@ -86,4 +86,7 @@ public interface IncidentService {
 //
     Incident findById(Long id);
 
+
+    List<Incident> getIncidentsNonAssignesParDepartement(Utilisateur admin);
+
 }

@@ -92,7 +92,7 @@ public class NotificationServiceImpl implements NotificationService {
 
                 case CHANGEMENT_STATUT:
                     if (pref.isEmailChangementStatut()) {
-                        emailService.sendSimpleEmail(email, "Mise à jour de votre incident", message);
+                        emailService.sendSimpleEmail(email, "Mise à jour du l'incident", message);
                         log.info("📧 Email CHANGEMENT_STATUT envoyé");
                     }
                     break;

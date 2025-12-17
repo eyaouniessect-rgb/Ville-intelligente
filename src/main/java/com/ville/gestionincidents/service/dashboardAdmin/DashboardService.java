@@ -14,28 +14,85 @@ import java.util.Map;
 public interface DashboardService {
 
     // ==================== COMPTEURS ====================
-    long countTotalIncidentsByDepartement(Departement departement, LocalDate dateDebut, LocalDate dateFin);
-    long countIncidentsResolusByDepartement(Departement departement, LocalDate dateDebut, LocalDate dateFin);
-    long countIncidentsEnCoursByDepartement(Departement departement, LocalDate dateDebut, LocalDate dateFin);
-    double calculerDelaiMoyenResolutionByDepartement(Departement departement, LocalDate dateDebut, LocalDate dateFin);
+    long countTotalIncidentsByDepartement(
+            Departement departement,
+            LocalDate dateDebut,
+            LocalDate dateFin,
+            Long serviceId,
+            Long quartierId);
+
+    long countIncidentsResolusByDepartement(
+            Departement departement,
+            LocalDate dateDebut,
+            LocalDate dateFin,
+            Long serviceId,
+            Long quartierId);
+
+    long countIncidentsEnCoursByDepartement(
+            Departement departement,
+            LocalDate dateDebut,
+            LocalDate dateFin,
+            Long serviceId,
+            Long quartierId);
+
+    double calculerDelaiMoyenResolutionByDepartement(
+            Departement departement,
+            LocalDate dateDebut,
+            LocalDate dateFin,
+            Long serviceId,
+            Long quartierId);
 
     // ==================== DONNÉES POUR GRAPHIQUES ====================
     List<IncidentParServiceDto> getIncidentsParServiceByDepartement(
-            Departement departement, LocalDate dateDebut, LocalDate dateFin, Long serviceId);
+            Departement departement,
+            LocalDate dateDebut,
+            LocalDate dateFin,
+            Long serviceId,
+            Long quartierId);
 
     List<IncidentParQuartierDto> getIncidentsParQuartierByDepartement(
-            Departement departement, LocalDate dateDebut, LocalDate dateFin, Long quartierId);
+            Departement departement,
+            LocalDate dateDebut,
+            LocalDate dateFin,
+            Long serviceId,
+            Long quartierId);
 
-    List<DelaiResolutionDto> getDelaiResolutionParServiceByDepartement(Departement departement, LocalDate dateDebut, LocalDate dateFin);
-    Map<String, Long> getIncidentsParStatutByDepartement(Departement departement, LocalDate dateDebut, LocalDate dateFin);
-    Map<String, Long> getIncidentsParMoisByDepartement(Departement departement, LocalDate dateDebut, LocalDate dateFin);
+    List<DelaiResolutionDto> getDelaiResolutionParServiceByDepartement(
+            Departement departement,
+            LocalDate dateDebut,
+            LocalDate dateFin,
+            Long serviceId,
+            Long quartierId);
+
+    Map<String, Long> getIncidentsParStatutByDepartement(
+            Departement departement,
+            LocalDate dateDebut,
+            LocalDate dateFin,
+            Long serviceId,
+            Long quartierId);
+
+    Map<String, Long> getIncidentsParMoisByDepartement(
+            Departement departement,
+            LocalDate dateDebut,
+            LocalDate dateFin,
+            Long serviceId,
+            Long quartierId);
 
     // ==================== EXPORTS =====================
-    void exportCsv(LocalDate dateDebut, LocalDate dateFin, Long serviceId, Long quartierId, Writer writer) throws Exception;
-    void exportPdf(LocalDate dateDebut, LocalDate dateFin, Long serviceId, Long quartierId, OutputStream outputStream) throws Exception;
-    //delai moyen======
-    // Délai moyen global (en jours)
-    double calculDelaiMoyenGlobal();
+    void exportCsv(
+            LocalDate dateDebut,
+            LocalDate dateFin,
+            Long serviceId,
+            Long quartierId,
+            Writer writer) throws Exception;
 
-    // Délai moyen par service
+    void exportPdf(
+            LocalDate dateDebut,
+            LocalDate dateFin,
+            Long serviceId,
+            Long quartierId,
+            OutputStream outputStream) throws Exception;
+
+    // ==================== DÉLAI MOYEN GLOBAL =====================
+    double calculDelaiMoyenGlobal();
 }
