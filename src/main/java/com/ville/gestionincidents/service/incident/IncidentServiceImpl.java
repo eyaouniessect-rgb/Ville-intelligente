@@ -411,4 +411,67 @@ public class IncidentServiceImpl implements IncidentService {
     }
 
 
+    //methode pour cloture un incident si il est resolu et on verifie bien que c bien le citoyen concerne qui va cloture te bien sur on envoie
+    //une notification vers l'agent et l'admin
+    @Override
+    @Transactional
+    public void cloturerIncidentParCitoyen(Long incidentId) {
+
+        Incident incident = incidentRepository.findById(incidentId)
+                .orElseThrow(() -> new RuntimeException("Incident introuvable"));
+
+        Utilisateur citoyen = currentUserService.getCurrentUser();
+
+        // 🔐 Sécurité : Vérifier que c'est bien le citoyen qui a déclaré l'incident
+        if (incident.getCitoyen() == null ||
+                !incident.getCitoyen().getId().equals(citoyen.getId())) {
+            throw new RuntimeException("Vous n'êtes pas autorisé à clôturer cet incident");
+        }
+
+        // ✅ Vérifier que le statut est RESOLU
+        if (incident.getStatut() != StatutIncident.RESOLU) {
+            throw new RuntimeException("Seuls les incidents résolus peuvent être clôturés");
+        }
+
+        // 🔁 Mise à jour
+        incident.setStatut(StatutIncident.CLOTURE);
+        incident.setDateDerniereMiseAJour(LocalDateTime.now());
+        incidentRepository.save(incident);
+
+        /* 🔔 NOTIFICATION AGENT */
+        if (incident.getAgent() != null) {
+            notificationService.creerNotification(
+                    incident.getAgent().getEmail(),
+                    TypeNotification.CHANGEMENT_STATUT,
+                    "Le citoyen " + citoyen.getNom() + " " + citoyen.getPrenom()
+                            + " a clôturé l'incident #" + incident.getId(),
+                    incident
+            );
+        }
+
+        /* 🔔 NOTIFICATION ADMIN */
+        if (incident.getService() != null &&
+                incident.getService().getDepartement() != null) {
+
+            Utilisateur admin = utilisateurRepository
+                    .findByRoleAndDepartement_Id(
+                            Role.ADMIN,
+                            incident.getService().getDepartement().getId()
+                    )
+                    .orElse(null);
+
+            if (admin != null) {
+                preferenceNotificationService.getOrCreate(admin.getId());
+
+                notificationService.creerNotification(
+                        admin.getEmail(),
+                        TypeNotification.CHANGEMENT_STATUT,
+                        "Incident #" + incident.getId() + " clôturé par le citoyen",
+                        incident
+                );
+            }
+        }
+    }
+
+
 }

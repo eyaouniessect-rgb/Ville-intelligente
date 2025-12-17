@@ -112,4 +112,26 @@ public class IncidentController {
         return "citoyen/incident_form";
     }
 
+    // ===================== CLÔTURER INCIDENT =====================
+    @PostMapping("/incidents/{id}/cloturer")
+    public String cloturerIncident(
+            @PathVariable Long id,
+            RedirectAttributes redirectAttributes) {
+
+        try {
+            incidentService.cloturerIncidentParCitoyen(id);
+            redirectAttributes.addFlashAttribute(
+                    "success",
+                    "Incident clôturé avec succès"
+            );
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute(
+                    "error",
+                    e.getMessage()
+            );
+        }
+
+        return "redirect:/citoyen/incidents/" + id;
+    }
+
 }

@@ -116,8 +116,8 @@ public class CitoyenController {
     // -------------------------
     @GetMapping("/incidents/{id}")
     public String incidentDetails(@PathVariable Long id,
-                                  Model model,
-                                  Authentication authentication) {
+                                  Model model     ) {
+
         Utilisateur utilisateur = currentUserService.getCurrentUser();
 
         IncidentDetailsDto inc = incidentService.getIncidentDetailsForCurrentUser(id);
