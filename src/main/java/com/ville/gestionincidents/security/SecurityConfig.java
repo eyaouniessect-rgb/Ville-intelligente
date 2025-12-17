@@ -1,6 +1,8 @@
 package com.ville.gestionincidents.security;
 
+import com.ville.gestionincidents.service.log.LogService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.DisabledException;
@@ -28,7 +30,10 @@ public class SecurityConfig {
 
     private final UserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
-    private final CustomOAuth2UserService customOAuth2UserService; // ✅ NOUVEAU
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final LogService logService;
+    @Autowired
+    private CustomAccessDeniedHandler accessDeniedHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -56,12 +61,24 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
                 .and()
 
+                .exceptionHandling()
+                .accessDeniedHandler(accessDeniedHandler)
+                .and()
+
                 // ✅ CONNEXION CLASSIQUE (EMAIL + MOT DE PASSE)
                 .formLogin()
                 .loginPage("/auth/login")
                 .loginProcessingUrl("/auth/login")
                 .successHandler(customAuthenticationSuccessHandler())
                 .failureHandler((request, response, exception) -> {
+
+                    String username = request.getParameter("username");
+                    String ip = request.getRemoteAddr();
+
+                    logService.saveFailedLogin(
+                            username != null ? username : "UNKNOWN",
+                            ip
+                    );
 
                     System.out.println("=================================");
                     System.out.println("❌ LOGIN FAILED");
@@ -144,4 +161,5 @@ public class SecurityConfig {
             }
         };
     }
+
 }
