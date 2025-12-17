@@ -81,7 +81,7 @@ public class AgentController {
             RedirectAttributes redirectAttributes
     ) {
 
-        incidentService.changerStatut(id, statut, null);
+        incidentService.changerStatut(id, statut);
 
         redirectAttributes.addFlashAttribute(
                 "success",

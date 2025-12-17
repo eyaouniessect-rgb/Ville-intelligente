@@ -82,7 +82,7 @@ public interface IncidentService {
     List<Incident> findByAgentAndStatut(Utilisateur agent, StatutIncident statut);
 
     // Changer le statut d'un incident
-    void changerStatut(Long incidentId, StatutIncident nouveauStatut, String commentaire);
+    void changerStatut(Long incidentId, StatutIncident nouveauStatut);
 //
     Incident findById(Long id);
 
