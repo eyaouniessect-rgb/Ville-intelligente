@@ -1,6 +1,5 @@
 package com.ville.gestionincidents.entity;
 
-import com.ville.gestionincidents.enumeration.CategorieIncident;
 import com.ville.gestionincidents.enumeration.PrioriteIncident;
 import com.ville.gestionincidents.enumeration.StatutIncident;
 import lombok.*;

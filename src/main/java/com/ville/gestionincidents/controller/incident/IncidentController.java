@@ -3,7 +3,6 @@ package com.ville.gestionincidents.controller.incident;
 import com.ville.gestionincidents.dto.incident.IncidentCreateDto;
 import com.ville.gestionincidents.entity.Incident;
 import com.ville.gestionincidents.entity.Utilisateur;
-import com.ville.gestionincidents.enumeration.CategorieIncident;
 import com.ville.gestionincidents.service.incident.IncidentService;
 import com.ville.gestionincidents.service.utilisateur.UtilisateurService;
 import com.ville.gestionincidents.security.CurrentUserService;
@@ -92,7 +91,9 @@ public class IncidentController {
         // 🔹 S’il y a des erreurs → rester sur le formulaire
         if (bindingResult.hasErrors()) {
             injectUtilisateur(model);
-            model.addAttribute("categories", CategorieIncident.values());
+            // ✅ Réinjecter les listes nécessaires au formulaire
+            model.addAttribute("departements", departementRepository.findAll());
+            model.addAttribute("quartiers", quartierRepository.findAll());
             return "citoyen/incident_form";
         }
 

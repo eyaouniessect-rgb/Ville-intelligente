@@ -613,8 +613,8 @@
         validateField(this);
     });
 
-    // Validation des autres champs
-    ['categorie', 'adresse'].forEach(fieldId => {
+    // Validation des autres champs (département & quartier)
+    ['departementId', 'quartierId'].forEach(fieldId => {
         const field = document.getElementById(fieldId);
         if (field) {
             field.addEventListener('blur', function() {

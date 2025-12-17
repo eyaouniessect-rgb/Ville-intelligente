@@ -1,6 +1,5 @@
 package com.ville.gestionincidents.dto.incident;
 
-import com.ville.gestionincidents.enumeration.CategorieIncident;
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
 
