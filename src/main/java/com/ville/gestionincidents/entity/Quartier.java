@@ -19,6 +19,9 @@ public class Quartier {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+
+
+
     @NotBlank(message = "Le nom du quartier est obligatoire")
     @Size(min = 2, max = 100, message = "Le nom doit contenir entre 2 et 100 caractères")
     @Column(nullable = false, unique = true)

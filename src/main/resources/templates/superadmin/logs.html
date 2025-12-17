@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Logs - Ville Intelligente</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+
+        .stats {
+            padding: 20px 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-card p {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .table-container {
+            padding: 30px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 0.95rem;
+        }
+
+        tbody tr {
+            transition: background 0.2s;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-info {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .badge-warning {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .badge-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .badge-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .badge-debug {
+            background: #6c757d;
+            color: white;
+        }
+
+        .message-cell {
+            max-width: 400px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .no-logs {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .no-logs .icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .actions {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        @media (max-width: 768px) {
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                font-size: 0.85rem;
+            }
+
+            th, td {
+                padding: 10px;
+            }
+
+            .message-cell {
+                max-width: 200px;
+            }
+        }
+
+        .dashboard-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            text-decoration: none;
+            padding: 18px 22px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #6a5acd, #7b68ee);
+            color: #fff;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            margin-bottom: 16px;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+            background: linear-gradient(135deg, #5a4bdc, #6b5ce7);
+        }
+
+        .card-icon {
+            font-size: 36px;
+            opacity: 0.9;
+        }
+
+        .card-content h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .card-content p {
+            margin: 4px 0 0;
+            font-size: 14px;
+            opacity: 0.85;
+        }
+
+        .card-arrow {
+            font-size: 22px;
+            opacity: 0.8;
+        }
+
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <h1>📋 Gestion des Logs Système</h1>
+        <p>Visualisation et analyse des activités du système</p>
+    </div>
+
+    <!-- Statistiques -->
+    <div class="stats">
+        <div class="stat-card">
+            <h3>Erreurs</h3>
+            <p th:text="${errorCount}" style="color: #dc3545;">0</p>
+        </div>
+        <div class="stat-card">
+            <h3>Avertissements</h3>
+            <p th:text="${warningCount}" style="color: #ffc107;">0</p>
+        </div>
+        <div class="stat-card">
+            <h3>Info</h3>
+            <p th:text="${infoCount}">0</p>
+        </div>
+        <div class="stat-card">
+            <h3>Total</h3>
+            <p th:text="${logs.size()}">0</p>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+        <button onclick="window.print()" class="btn btn-secondary">🖨️ Imprimer</button>
+        <a th:href="@{/superadmin/dashboard}" class="btn btn-primary">← Retour au tableau de bord</a>
+    </div>
+
+    <!-- Table des logs -->
+    <div class="table-container">
+        <div th:if="${logs.isEmpty()}" class="no-logs">
+            <div class="icon">📭</div>
+            <h2>Aucun log trouvé</h2>
+            <p>Aucune activité n'a été enregistrée pour le moment.</p>
+        </div>
+
+        <table th:unless="${logs.isEmpty()}">
+            <thead>
+            <tr>
+                <th>Date & Heure</th>
+                <th>Niveau</th>
+                <th>Utilisateur</th>
+                <th>Action</th>
+                <th>Message</th>
+                <th>IP</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="log : ${logs}">
+                <td th:text="${#temporals.format(log.timestamp, 'dd/MM/yyyy HH:mm:ss')}"></td>
+                <td>
+                            <span class="badge"
+                                  th:classappend="${log.level == 'ERROR' ? 'badge-danger' :
+                                                   log.level == 'WARNING' ? 'badge-warning' :
+                                                   log.level == 'INFO' ? 'badge-info' :
+                                                   log.level == 'DEBUG' ? 'badge-debug' :
+                                                   'badge-success'}"
+                                                              th:text="${log.level}">
+                            </span>
+
+                </td>
+                <td th:text="${log.username != null ? log.username : 'Système'}">Utilisateur</td>
+                <td th:text="${log.action}">Action</td>
+                <td class="message-cell" th:text="${log.message}" th:title="${log.message}">Message</td>
+                <td th:text="${log.ipAddress != null ? log.ipAddress : '-'}">-</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // Trier le tableau au clic sur les en-têtes
+    document.addEventListener('DOMContentLoaded', function() {
+        const table = document.querySelector('table');
+        if (!table) return;
+
+        const headers = table.querySelectorAll('th');
+        let sortDirection = {};
+
+        headers.forEach((header, index) => {
+            sortDirection[index] = 'asc';
+            header.style.cursor = 'pointer';
+            header.addEventListener('click', () => {
+                const tbody = table.querySelector('tbody');
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+
+                rows.sort((a, b) => {
+                    const aValue = a.cells[index].textContent.trim();
+                    const bValue = b.cells[index].textContent.trim();
+
+                    if (sortDirection[index] === 'asc') {
+                        return aValue.localeCompare(bValue);
+                    } else {
+                        return bValue.localeCompare(aValue);
+                    }
+                });
+
+                sortDirection[index] = sortDirection[index] === 'asc' ? 'desc' : 'asc';
+
+                rows.forEach(row => tbody.appendChild(row));
+            });
+        });
+    });
+</script>
+</body>
+</html>
