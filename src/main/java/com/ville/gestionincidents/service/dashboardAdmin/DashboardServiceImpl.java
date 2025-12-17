@@ -5,22 +5,28 @@ import com.ville.gestionincidents.dto.dashboardAdmin.IncidentParQuartierDto;
 import com.ville.gestionincidents.dto.dashboardAdmin.IncidentParServiceDto;
 import com.ville.gestionincidents.entity.Departement;
 import com.ville.gestionincidents.entity.Incident;
-import com.ville.gestionincidents.entity.ServiceMunicipal;
+import com.ville.gestionincidents.entity.Rapport;
+import com.ville.gestionincidents.enumeration.FormatRapport;
 import com.ville.gestionincidents.enumeration.StatutIncident;
 import com.ville.gestionincidents.repository.IncidentRepository;
 import com.ville.gestionincidents.repository.QuartierRepository;
+import com.ville.gestionincidents.repository.RapportRepository;
 import com.ville.gestionincidents.repository.ServiceMunicipalRepository;
 import com.ville.gestionincidents.security.CurrentUserService;
 import com.ville.gestionincidents.util.export.CsvExportService;
 import com.ville.gestionincidents.util.export.PdfExportService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.OutputStream;
-import java.io.Writer;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -32,9 +38,13 @@ public class DashboardServiceImpl implements DashboardService {
     private final IncidentRepository incidentRepository;
     private final ServiceMunicipalRepository serviceMunicipalRepository;
     private final QuartierRepository quartierRepository;
+    private final RapportRepository rapportRepository;
     private final CsvExportService csvExportService;
     private final PdfExportService pdfExportService;
     private final CurrentUserService currentUserService;
+
+    @Value("${app.rapports.storage-path:./rapports}")
+    private String rapportsStoragePath;
 
     /* ===================== UTILS ===================== */
 
@@ -177,6 +187,7 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<DelaiResolutionDto> getDelaiResolutionParServiceByDepartement(
             Departement d, LocalDate dd, LocalDate df, Long serviceId, Long quartierId) {
 
@@ -249,6 +260,7 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public double calculDelaiMoyenGlobal() {
         List<Incident> incidentsResolus = incidentRepository.findByStatut(StatutIncident.RESOLU);
         return incidentsResolus.stream()
@@ -260,7 +272,7 @@ public class DashboardServiceImpl implements DashboardService {
                 .orElse(0);
     }
 
-    /* ===================== EXPORTS ===================== */
+    /* ===================== EXPORTS (Téléchargement direct) ===================== */
 
     @Override
     public void exportCsv(LocalDate dd, LocalDate df, Long serviceId, Long quartierId, Writer writer) throws Exception {
@@ -290,5 +302,165 @@ public class DashboardServiceImpl implements DashboardService {
                 getDelaiResolutionParServiceByDepartement(dept, dd, df, serviceId, quartierId),
                 out
         );
+    }
+
+    /* ===================== EXPORTS (Sauvegarde en BD) ===================== */
+
+    @Override
+    @Transactional
+    public Rapport exportCsvAndSave(LocalDate dd, LocalDate df, Long serviceId, Long quartierId) throws Exception {
+        Departement dept = currentUserService.getCurrentUser().getDepartement();
+
+        // Créer le répertoire si nécessaire
+        Path storagePath = Paths.get(rapportsStoragePath);
+        Files.createDirectories(storagePath);
+
+        // Générer le nom de fichier
+        String fileName = generateFileName("rapport", "csv", dd, df);
+        Path filePath = storagePath.resolve(fileName);
+
+        // Générer le CSV
+        try (Writer writer = new FileWriter(filePath.toFile())) {
+            csvExportService.exportDashboardData(
+                    dd, df,
+                    getIncidentsParServiceByDepartement(dept, dd, df, serviceId, quartierId),
+                    getIncidentsParQuartierByDepartement(dept, dd, df, serviceId, quartierId),
+                    getDelaiResolutionParServiceByDepartement(dept, dd, df, serviceId, quartierId),
+                    writer
+            );
+        }
+
+        // Sauvegarder dans la BD
+        return saveRapport(dd, df, serviceId, quartierId, fileName, filePath.toString(), FormatRapport.CSV, dept);
+    }
+
+    @Override
+    @Transactional
+    public Rapport exportPdfAndSave(LocalDate dd, LocalDate df, Long serviceId, Long quartierId) throws Exception {
+        Departement dept = currentUserService.getCurrentUser().getDepartement();
+
+        // Créer le répertoire si nécessaire
+        Path storagePath = Paths.get(rapportsStoragePath);
+        Files.createDirectories(storagePath);
+
+        // Générer le nom de fichier
+        String fileName = generateFileName("rapport", "pdf", dd, df);
+        Path filePath = storagePath.resolve(fileName);
+
+        // Générer le PDF
+        try (OutputStream out = new FileOutputStream(filePath.toFile())) {
+            pdfExportService.exportDashboardData(
+                    dd, df,
+                    countTotalIncidentsByDepartement(dept, dd, df, serviceId, quartierId),
+                    countIncidentsResolusByDepartement(dept, dd, df, serviceId, quartierId),
+                    countIncidentsEnCoursByDepartement(dept, dd, df, serviceId, quartierId),
+                    calculerDelaiMoyenResolutionByDepartement(dept, dd, df, serviceId, quartierId),
+                    getIncidentsParServiceByDepartement(dept, dd, df, serviceId, quartierId),
+                    getIncidentsParQuartierByDepartement(dept, dd, df, serviceId, quartierId),
+                    getDelaiResolutionParServiceByDepartement(dept, dd, df, serviceId, quartierId),
+                    out
+            );
+        }
+
+        // Sauvegarder dans la BD
+        return saveRapport(dd, df, serviceId, quartierId, fileName, filePath.toString(), FormatRapport.PDF, dept);
+    }
+
+    /* ===================== GESTION DES RAPPORTS ===================== */
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Rapport> getRapportsByDepartement() {
+        Departement dept = currentUserService.getCurrentUser().getDepartement();
+        return rapportRepository.findByDepartementOrderByDateGenerationDesc(dept);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Rapport getRapportById(Long rapportId) {
+        return rapportRepository.findById(rapportId)
+                .orElseThrow(() -> new RuntimeException("Rapport non trouvé avec l'ID: " + rapportId));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public byte[] telechargerRapport(Long rapportId) throws IOException {
+        Rapport rapport = getRapportById(rapportId);
+
+        // Vérifier que l'utilisateur a accès à ce rapport
+        Departement userDept = currentUserService.getCurrentUser().getDepartement();
+        if (!rapport.getDepartement().getId().equals(userDept.getId())) {
+            throw new RuntimeException("Accès non autorisé à ce rapport");
+        }
+
+        Path path = Paths.get(rapport.getCheminFichier());
+
+        if (!Files.exists(path)) {
+            throw new FileNotFoundException("Le fichier du rapport n'existe pas: " + rapport.getCheminFichier());
+        }
+
+        return Files.readAllBytes(path);
+    }
+
+    @Override
+    @Transactional
+    public void supprimerRapport(Long rapportId) throws IOException {
+        Rapport rapport = getRapportById(rapportId);
+
+        // Vérifier que l'utilisateur a accès à ce rapport
+        Departement userDept = currentUserService.getCurrentUser().getDepartement();
+        if (!rapport.getDepartement().getId().equals(userDept.getId())) {
+            throw new RuntimeException("Accès non autorisé à ce rapport");
+        }
+
+        // Supprimer le fichier physique
+        Path path = Paths.get(rapport.getCheminFichier());
+        if (Files.exists(path)) {
+            Files.delete(path);
+        }
+
+        // Supprimer l'enregistrement de la BD
+        rapportRepository.delete(rapport);
+    }
+
+    /* ===================== MÉTHODES PRIVÉES ===================== */
+
+    private Rapport saveRapport(LocalDate dd, LocalDate df, Long serviceId, Long quartierId,
+                                String fileName, String cheminFichier, FormatRapport format,
+                                Departement dept) throws IOException {
+
+        File file = new File(cheminFichier);
+
+        Rapport rapport = Rapport.builder()
+                .titre(generateTitre(dd, df))
+                .dateDebut(dd)
+                .dateFin(df)
+                .dateGeneration(LocalDateTime.now())
+                .format(format)
+                .nomFichier(fileName)
+                .cheminFichier(cheminFichier)
+                .tailleFichier(file.length())
+                .departement(dept)
+                .service(serviceId != null ? serviceMunicipalRepository.findById(serviceId).orElse(null) : null)
+                .quartier(quartierId != null ? quartierRepository.findById(quartierId).orElse(null) : null)
+                .generePar(currentUserService.getCurrentUser())
+                .totalIncidents(countTotalIncidentsByDepartement(dept, dd, df, serviceId, quartierId))
+                .incidentsResolus(countIncidentsResolusByDepartement(dept, dd, df, serviceId, quartierId))
+                .incidentsEnCours(countIncidentsEnCoursByDepartement(dept, dd, df, serviceId, quartierId))
+                .delaiMoyen(calculerDelaiMoyenResolutionByDepartement(dept, dd, df, serviceId, quartierId))
+                .build();
+
+        return rapportRepository.save(rapport);
+    }
+
+    private String generateFileName(String prefix, String extension, LocalDate dd, LocalDate df) {
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyyMMdd");
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        return String.format("%s_%s_%s_%s.%s", prefix, dd.format(fmt), df.format(fmt), timestamp, extension);
+    }
+
+    private String generateTitre(LocalDate dd, LocalDate df) {
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        return String.format("Rapport du %s au %s", dd.format(fmt), df.format(fmt));
     }
 }

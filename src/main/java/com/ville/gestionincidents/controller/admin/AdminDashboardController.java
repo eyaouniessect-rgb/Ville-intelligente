@@ -2,6 +2,7 @@ package com.ville.gestionincidents.controller.admin;
 
 import com.ville.gestionincidents.dto.dashboardAdmin.DelaiResolutionDto;
 import com.ville.gestionincidents.entity.Incident;
+import com.ville.gestionincidents.entity.Rapport;
 import com.ville.gestionincidents.entity.ServiceMunicipal;
 import com.ville.gestionincidents.entity.Utilisateur;
 import com.ville.gestionincidents.enumeration.PrioriteIncident;
@@ -22,6 +23,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import com.ville.gestionincidents.service.utilisateur.UtilisateurService;
 import com.ville.gestionincidents.enumeration.Role;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -225,17 +230,29 @@ public class AdminDashboardController {
         if (dateDebut == null) dateDebut = LocalDate.now().minusDays(30);
         if (dateFin == null) dateFin = LocalDate.now();
 
-        response.setContentType("text/csv");
-        response.setCharacterEncoding("UTF-8");
-        response.setHeader("Content-Disposition",
-                "attachment; filename=rapport_incidents_" + LocalDate.now() + ".csv");
-
         try {
-            dashboardService.exportCsv(dateDebut, dateFin, serviceId, quartierId, response.getWriter());
+            // ✅ 1) Générer + sauvegarder
+            Rapport rapport = dashboardService.exportCsvAndSave(
+                    dateDebut, dateFin, serviceId, quartierId
+            );
+
+            // ✅ 2) Télécharger le fichier sauvegardé
+            Path path = Paths.get(rapport.getCheminFichier());
+
+            response.setContentType("text/csv");
+            response.setCharacterEncoding("UTF-8");
+            response.setHeader(
+                    "Content-Disposition",
+                    "attachment; filename=" + rapport.getNomFichier()
+            );
+
+            Files.copy(path, response.getOutputStream());
+            response.flushBuffer();
+
         } catch (Exception e) {
             response.reset();
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write("Erreur lors de l'export CSV : " + e.getMessage());
+            response.getWriter().write("Erreur export CSV : " + e.getMessage());
         }
     }
 
@@ -254,18 +271,31 @@ public class AdminDashboardController {
         if (dateDebut == null) dateDebut = LocalDate.now().minusDays(30);
         if (dateFin == null) dateFin = LocalDate.now();
 
-        response.setContentType("application/pdf");
-        response.setHeader("Content-Disposition",
-                "attachment; filename=rapport_incidents_" + LocalDate.now() + ".pdf");
-
         try {
-            dashboardService.exportPdf(dateDebut, dateFin, serviceId, quartierId, response.getOutputStream());
+            // ✅ 1) Générer + sauvegarder
+            Rapport rapport = dashboardService.exportPdfAndSave(
+                    dateDebut, dateFin, serviceId, quartierId
+            );
+
+            // ✅ 2) Télécharger
+            Path path = Paths.get(rapport.getCheminFichier());
+
+            response.setContentType("application/pdf");
+            response.setHeader(
+                    "Content-Disposition",
+                    "attachment; filename=" + rapport.getNomFichier()
+            );
+
+            Files.copy(path, response.getOutputStream());
+            response.flushBuffer();
+
         } catch (Exception e) {
             response.reset();
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write("Erreur lors de l'export PDF : " + e.getMessage());
+            response.getWriter().write("Erreur export PDF : " + e.getMessage());
         }
     }
+
     /* ===================== AGENTS ===================== */
 
     @GetMapping("/agents")
