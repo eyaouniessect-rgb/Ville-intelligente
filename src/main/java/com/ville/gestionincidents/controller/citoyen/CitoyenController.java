@@ -45,7 +45,7 @@ public class CitoyenController {
     // Dashboard Citoyen
     // -------------------------
     @GetMapping("/home")
-    public String dashboard(Model model, Authentication authentication) {
+    public String dashboard(Model model) {
 
         Utilisateur utilisateur = currentUserService.getCurrentUser();
 
