@@ -9,6 +9,7 @@ Le système facilite la communication entre les citoyens et les services municip
 ## 🎯 Objectif du Projet
 
 Créer une solution numérique moderne et efficace pour :
+
 - **Centraliser** la déclaration et le suivi des incidents urbains
 - **Automatiser** l'assignation des incidents aux services compétents
 - **Améliorer** la communication entre citoyens et administration
@@ -18,6 +19,7 @@ Créer une solution numérique moderne et efficace pour :
 ## 🔍 Problématique Traitée
 
 Dans les villes modernes, la gestion des incidents urbains (nids-de-poule, éclairage défaillant, déchets, etc.) est souvent :
+
 - **Dispersée** : plusieurs canaux de signalement non coordonnés
 - **Manuelle** : traitement papier ou emails non structurés
 - **Peu transparente** : les citoyens ne suivent pas l'avancement de leurs signalements
@@ -28,6 +30,7 @@ Cette plateforme résout ces problèmes en offrant un système unifié, automati
 ## 🌍 Contexte
 
 Application développée dans le cadre d'un projet de **ville intelligente (Smart City)**, permettant :
+
 - La **déclaration d'incidents** par les citoyens via une interface web intuitive
 - La **gestion administrative** par les départements et services municipaux
 - Le **suivi en temps réel** du statut des incidents
@@ -42,6 +45,7 @@ Application développée dans le cadre d'un projet de **ville intelligente (Smar
 Le système distingue **4 types d'utilisateurs** avec des droits spécifiques :
 
 #### 🧑‍💼 **CITOYEN**
+
 - Inscription et authentification (email/mot de passe ou OAuth2 Google)
 - Déclaration d'incidents avec photos et géolocalisation
 - Consultation de ses incidents déclarés
@@ -52,12 +56,14 @@ Le système distingue **4 types d'utilisateurs** avec des droits spécifiques :
 - Préférences de notifications personnalisables
 
 #### 👨‍💻 **AGENT**
+
 - Visualisation des incidents assignés à son service
 - Mise à jour du statut des incidents (PRIS_EN_CHARGE, EN_RESOLUTION, RESOLU)
 - Consultation des détails complets d'un incident
 - Statistiques personnelles (nombre d'incidents traités)
 
 #### 👨‍💼 **ADMIN**
+
 - Gestion des incidents de son département
 - Assignation d'incidents aux services et agents
 - Filtrage avancé (par service, statut, dates)
@@ -70,6 +76,7 @@ Le système distingue **4 types d'utilisateurs** avec des droits spécifiques :
 - Gestion des services municipaux de son département
 
 #### 🔐 **SUPERADMIN**
+
 - Gestion complète de la plateforme
 - Création et gestion des départements
 - Création et gestion des quartiers
@@ -79,6 +86,7 @@ Le système distingue **4 types d'utilisateurs** avec des droits spécifiques :
 ### 📝 Gestion des Incidents
 
 #### Création d'Incident
+
 - Formulaire intuitif avec validation en temps réel
 - Description détaillée (10-1000 caractères)
 - Sélection du département (catégorie)
@@ -88,6 +96,7 @@ Le système distingue **4 types d'utilisateurs** avec des droits spécifiques :
 - Validation côté client et serveur
 
 #### Statuts des Incidents
+
 1. **SIGNALE** : Incident déclaré par un citoyen
 2. **PRIS_EN_CHARGE** : Un agent a pris en charge l'incident
 3. **EN_RESOLUTION** : L'incident est en cours de traitement
@@ -95,12 +104,14 @@ Le système distingue **4 types d'utilisateurs** avec des droits spécifiques :
 5. **CLOTURE** : L'incident est clôturé par le citoyen
 
 #### Priorités
+
 - **BASSE** : Impact limité
 - **MOYENNE** : Impact modéré
 - **HAUTE** : Impact important
 - **URGENTE** : Intervention immédiate requise
 
 #### Fonctionnalités Avancées
+
 - Filtrage multi-critères (statut, service, dates, quartier)
 - Pagination pour les grandes listes
 - Recherche et tri
@@ -110,23 +121,28 @@ Le système distingue **4 types d'utilisateurs** avec des droits spécifiques :
 ### 🔔 Système de Notifications
 
 #### Types de Notifications
+
 - **CREATION_INCIDENT** : Confirmation de création d'un incident
 - **CHANGEMENT_STATUT** : Mise à jour du statut d'un incident
 - **ASSIGNATION** : Assignation d'un incident à un agent/service
 
 #### Canaux de Notification
+
 1. **Notifications Internes** : Toujours enregistrées en base de données
 2. **Email** : Envoi d'emails selon les préférences utilisateur
 3. **WebSocket** : Notifications push en temps réel dans l'interface
 
 #### Préférences Utilisateur
+
 Chaque utilisateur peut personnaliser ses notifications :
+
 - Activer/désactiver les emails
 - Activer/désactiver les notifications push
 - Activer/désactiver les emails de changement de statut
 - Gestion via une interface dédiée
 
 #### Historique
+
 - Consultation de l'historique complet des notifications
 - Marquage comme "lu/non lu"
 - Compteur de notifications non lues
@@ -162,6 +178,7 @@ Le projet suit une **architecture en couches** (Layered Architecture) pour une s
 ```
 
 #### 🎮 **Controller Layer** (`controller/`)
+
 **Rôle** : Gérer les requêtes HTTP, valider les entrées, appeler les services, préparer les réponses.
 
 - **`controller/citoyen/`** : Endpoints pour les citoyens
@@ -173,12 +190,14 @@ Le projet suit une **architecture en couches** (Layered Architecture) pour une s
 - **`controller/AuthController`** : Authentification et inscription
 
 **Responsabilités** :
+
 - Validation des DTOs avec `@Valid`
 - Gestion des erreurs de validation (`BindingResult`)
 - Injection des données dans le modèle Thymeleaf
 - Redirection et messages flash
 
 #### ⚙️ **Service Layer** (`service/`)
+
 **Rôle** : Contenir toute la logique métier de l'application.
 
 - **`service/incident/`** : Création, modification, assignation d'incidents
@@ -189,6 +208,7 @@ Le projet suit une **architecture en couches** (Layered Architecture) pour une s
 - **`service/rapport/`** : Génération de rapports
 
 **Responsabilités** :
+
 - Logique métier complexe
 - Transactions (`@Transactional`)
 - Appels aux repositories
@@ -196,6 +216,7 @@ Le projet suit une **architecture en couches** (Layered Architecture) pour une s
 - Gestion des exceptions métier
 
 #### 💾 **Repository Layer** (`repository/`)
+
 **Rôle** : Interface avec la base de données via Spring Data JPA.
 
 - **`IncidentRepository`** : Requêtes sur les incidents
@@ -206,12 +227,14 @@ Le projet suit une **architecture en couches** (Layered Architecture) pour une s
 - **`ServiceMunicipalRepository`** : Requêtes sur les services
 
 **Responsabilités** :
+
 - Requêtes CRUD de base (héritées de `JpaRepository`)
 - Requêtes personnalisées avec `@Query`
 - Méthodes de recherche complexes
 - Projections pour optimiser les requêtes
 
 #### 📦 **Entity Layer** (`entity/`)
+
 **Rôle** : Modéliser les tables de la base de données avec JPA/Hibernate.
 
 - **`Incident`** : Table des incidents
@@ -225,12 +248,14 @@ Le projet suit une **architecture en couches** (Layered Architecture) pour une s
 - **`PreferenceNotification`** : Préférences de notification
 
 **Responsabilités** :
+
 - Mapping objet-relationnel (ORM)
 - Définition des relations (OneToMany, ManyToOne)
 - Validation avec annotations JPA
 - Contraintes d'intégrité
 
 #### 📋 **DTO Layer** (`dto/`)
+
 **Rôle** : Objets de transfert de données pour isoler les entités de la couche présentation.
 
 - **`dto/incident/`** : DTOs pour les incidents
@@ -239,12 +264,14 @@ Le projet suit une **architecture en couches** (Layered Architecture) pour une s
 - **`dto/auth/`** : DTOs pour l'authentification
 
 **Avantages** :
+
 - Sécurité : ne pas exposer les entités directement
 - Performance : ne transférer que les données nécessaires
 - Validation : annotations Bean Validation
 - Flexibilité : structure différente de l'entité si besoin
 
 #### 🔄 **Mapper Layer** (`mapper/`)
+
 **Rôle** : Conversion entre entités et DTOs.
 
 - **`IncidentMapper`** : Conversion Incident ↔ IncidentDTO
@@ -252,6 +279,7 @@ Le projet suit une **architecture en couches** (Layered Architecture) pour une s
 - **`PreferenceNotificationMapper`** : Conversion préférences
 
 **Avantages** :
+
 - Code réutilisable
 - Séparation claire des responsabilités
 - Facilite les tests
@@ -297,6 +325,29 @@ Le projet suit une **architecture en couches** (Layered Architecture) pour une s
 - **Bootstrap** (optionnel) : Framework CSS
 
 ---
+
+## 📊 Diagramme de Classes
+
+Le projet inclut un diagramme de classes complet au format PlantUML et Mermaid :
+
+- **`diagramme-classes.puml`** : Fichier PlantUML (compatible IntelliJ, VS Code, draw.io)
+- **`diagramme-classes.md`** : Diagramme Mermaid (affichage direct sur GitHub)
+- **`DIAGRAMME_CLASSES.md`** : Documentation complète du diagramme
+
+### Visualisation
+
+Pour visualiser le diagramme PlantUML :
+
+- **IntelliJ IDEA** : Installer le plugin "PlantUML integration"
+- **VS Code** : Installer l'extension "PlantUML"
+- **En ligne** : [PlantText](https://www.planttext.com/)
+
+Le diagramme inclut :
+
+- ✅ Toutes les entités principales (Utilisateur, Incident, Photo, Notification, etc.)
+- ✅ Toutes les énumérations (Role, StatutIncident, PrioriteIncident, etc.)
+- ✅ Toutes les relations avec leurs cardinalités
+- ✅ Attributs principaux de chaque classe
 
 ## 📁 Structure du Projet
 
@@ -389,9 +440,11 @@ com.ville.gestionincidents/
 ### Entités Principales
 
 #### 📋 **Incident**
+
 Table centrale du système. Représente un incident signalé par un citoyen.
 
 **Champs principaux** :
+
 - `id` : Identifiant unique
 - `description` : Description détaillée de l'incident
 - `statut` : Statut actuel (enum `StatutIncident`)
@@ -403,6 +456,7 @@ Table centrale du système. Représente un incident signalé par un citoyen.
 - `dateResolution` : Date réelle de résolution
 
 **Relations** :
+
 - `@ManyToOne` → `Utilisateur citoyen` : Citoyen qui a déclaré l'incident
 - `@ManyToOne` → `Utilisateur agent` : Agent assigné (peut être null)
 - `@ManyToOne` → `Departement` : Département concerné (obligatoire)
@@ -412,9 +466,11 @@ Table centrale du système. Représente un incident signalé par un citoyen.
 - `@OneToMany` → `List<Notification>` : Notifications liées
 
 #### 👤 **Utilisateur**
+
 Représente tous les utilisateurs du système (citoyens, agents, admins, super-admins).
 
 **Champs principaux** :
+
 - `id` : Identifiant unique
 - `prenom` / `nom` : Nom complet
 - `email` : Email (unique, utilisé pour la connexion)
@@ -426,15 +482,18 @@ Représente tous les utilisateurs du système (citoyens, agents, admins, super-a
 - `imageUrl` : URL de la photo de profil (OAuth2)
 
 **Relations** :
+
 - `@ManyToOne` → `Departement` : Département (pour ADMIN)
 - `@ManyToOne` → `ServiceMunicipal` : Service (pour AGENT)
 - `@OneToMany` → `List<Notification>` : Notifications reçues
 - `@OneToOne` → `PreferenceNotification` : Préférences de notification
 
 #### 🔔 **Notification**
+
 Notifications envoyées aux utilisateurs.
 
 **Champs principaux** :
+
 - `id` : Identifiant unique
 - `type` : Type de notification (enum `TypeNotification`)
 - `message` : Message de la notification
@@ -442,13 +501,16 @@ Notifications envoyées aux utilisateurs.
 - `lu` : Statut de lecture
 
 **Relations** :
+
 - `@ManyToOne` → `Utilisateur` : Destinataire
 - `@ManyToOne` → `Incident` : Incident concerné
 
 #### 📸 **Photo**
+
 Photos associées aux incidents.
 
 **Champs principaux** :
+
 - `id` : Identifiant unique
 - `nomFichier` : Nom original du fichier
 - `typeContenu` : Type MIME (image/jpeg, etc.)
@@ -457,12 +519,15 @@ Photos associées aux incidents.
 - `principale` : Indique si c'est la photo principale
 
 **Relations** :
+
 - `@ManyToOne` → `Incident` : Incident associé
 
 #### 🏢 **Departement**
+
 Départements municipaux (catégories d'incidents).
 
 **Champs principaux** :
+
 - `id` : Identifiant unique
 - `nom` : Nom du département (unique)
 - `description` : Description
@@ -470,30 +535,37 @@ Départements municipaux (catégories d'incidents).
 - `telephone` : Téléphone de contact
 
 **Relations** :
+
 - `@OneToMany` → `List<ServiceMunicipal>` : Services du département
 - `@OneToMany` → `List<Incident>` : Incidents du département
 
 #### 🏘️ **Quartier**
+
 Quartiers de la ville.
 
 **Champs principaux** :
+
 - `id` : Identifiant unique
 - `nom` : Nom du quartier (unique)
 - `codePostal` : Code postal (4 chiffres)
 
 **Relations** :
+
 - `@ManyToOne` → `Departement` : Département auquel appartient le quartier
 - `@OneToMany` → `List<Incident>` : Incidents du quartier
 
 #### 🏛️ **ServiceMunicipal**
+
 Services municipaux (ex: Voirie, Éclairage, Propreté).
 
 **Champs principaux** :
+
 - `id` : Identifiant unique
 - `nom` : Nom du service
 - `description` : Description
 
 **Relations** :
+
 - `@ManyToOne` → `Departement` : Département parent
 - `@OneToMany` → `List<Utilisateur>` : Agents du service
 - `@OneToMany` → `List<Incident>` : Incidents assignés
@@ -595,12 +667,14 @@ public String ajouterIncident(
 Le système supporte **deux méthodes d'authentification** :
 
 #### 1. Authentification Locale (Email + Mot de passe)
+
 - Inscription avec email et mot de passe
 - Vérification d'email obligatoire (token envoyé par email)
 - Hashage des mots de passe avec **BCrypt**
 - Connexion via formulaire Spring Security
 
 #### 2. Authentification OAuth2 (Google)
+
 - Connexion via compte Google
 - Création automatique du compte si première connexion
 - Récupération du profil (nom, email, photo)
@@ -625,19 +699,19 @@ public enum Role {
 .authorizeRequests()
     // Public
     .antMatchers("/auth/login", "/auth/register").permitAll()
-    
+
     // Super Admin
     .antMatchers("/superadmin/**").hasRole("SUPERADMIN")
-    
+
     // Admin
     .antMatchers("/admin/**").hasRole("ADMIN")
-    
+
     // Citoyen
     .antMatchers("/citoyen/**").hasRole("CITOYEN")
-    
+
     // Agent
     .antMatchers("/agent/**").hasRole("AGENT")
-    
+
     // Autres
     .anyRequest().authenticated()
 ```
@@ -741,6 +815,7 @@ mvn spring-boot:run
 ```
 
 **Avec un IDE** :
+
 - Importer le projet comme projet Maven
 - Lancer la classe `VilleIncidentsApplication`
 
@@ -838,6 +913,7 @@ mvn clean
 ## 🔮 Améliorations Futures
 
 ### Court Terme
+
 - [ ] Activation de la protection CSRF
 - [ ] Tests unitaires et d'intégration
 - [ ] Documentation API avec Swagger/OpenAPI
@@ -845,6 +921,7 @@ mvn clean
 - [ ] Gestion des erreurs plus robuste
 
 ### Moyen Terme
+
 - [ ] API REST complète (JSON) en plus de Thymeleaf
 - [ ] Application mobile (React Native / Flutter)
 - [ ] Système de commentaires sur les incidents
@@ -853,6 +930,7 @@ mvn clean
 - [ ] Recherche full-text sur les incidents
 
 ### Long Terme
+
 - [ ] Intégration avec des systèmes externes (CRM municipal)
 - [ ] Analyse prédictive avec Machine Learning
 - [ ] Tableau de bord temps réel avec WebSocket
@@ -879,10 +957,10 @@ Ce projet est un projet éducatif/démonstratif. Tous droits réservés.
 ## 📞 Support
 
 Pour toute question ou problème :
+
 - Ouvrir une issue sur le repository
 - Contacter l'équipe de développement
 
 ---
 
 **Dernière mise à jour** : 2024
-

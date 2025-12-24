@@ -28,5 +28,5 @@ public class Notification {
     @JoinColumn(name = "incident_id")
     private Incident incident;
 
-    // getters/setters
+
 }

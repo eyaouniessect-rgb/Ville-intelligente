@@ -30,7 +30,7 @@ public class IncidentDetailsDto {
     private LocalDateTime dateDerniereMiseAJour;
     private LocalDateTime dateResolutionEstimee;
 
-    // ✅ NOUVEAUX CHAMPS MÉTIER
+
     private String departementNom;
     private String quartierNom;
 
