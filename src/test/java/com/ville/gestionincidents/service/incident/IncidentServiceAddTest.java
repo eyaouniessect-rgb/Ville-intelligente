@@ -25,7 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class IncidentServiceImplTest {
+class IncidentServiceAddTest {
 
     @Mock private IncidentRepository incidentRepository;
     @Mock private PhotoRepository photoRepository;
