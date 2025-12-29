@@ -3,30 +3,36 @@ package com.ville.gestionincidents.controller.incident;
 import com.ville.gestionincidents.entity.Departement;
 import com.ville.gestionincidents.entity.Quartier;
 import com.ville.gestionincidents.entity.Utilisateur;
+import com.ville.gestionincidents.enumeration.Role;
 import com.ville.gestionincidents.repository.DepartementRepository;
+import com.ville.gestionincidents.repository.IncidentRepository;
+import com.ville.gestionincidents.repository.NotificationRepository;  // ✅ AJOUTEZ
+import com.ville.gestionincidents.repository.PhotoRepository;         // ✅ AJOUTEZ si existe
 import com.ville.gestionincidents.repository.QuartierRepository;
+import com.ville.gestionincidents.repository.UtilisateurRepository;
 import com.ville.gestionincidents.security.CurrentUserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
 class IncidentControllerIntegrationTest {
 
     @Autowired
-    private WebApplicationContext context;
-
     private MockMvc mockMvc;
 
     @Autowired
@@ -35,7 +41,19 @@ class IncidentControllerIntegrationTest {
     @Autowired
     private QuartierRepository quartierRepository;
 
-    // 🔥 CLÉ DU SUCCÈS
+    @Autowired
+    private UtilisateurRepository utilisateurRepository;
+
+    @Autowired
+    private IncidentRepository incidentRepository;
+
+    @Autowired
+    private NotificationRepository notificationRepository;  // ✅ AJOUTEZ
+
+    // ✅ Si vous avez des photos, ajoutez aussi :
+    // @Autowired
+    // private PhotoRepository photoRepository;
+
     @MockBean
     private CurrentUserService currentUserService;
 
@@ -44,43 +62,46 @@ class IncidentControllerIntegrationTest {
 
     @BeforeEach
     void setup() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
+        // ✅ ORDRE CRITIQUE : supprimer dans l'ordre inverse des FK
+        notificationRepository.deleteAll();  // ✅ 1. D'ABORD les notifications
+        // photoRepository.deleteAll();      // ✅ 2. Ensuite les photos (si existe)
+        incidentRepository.deleteAll();      // ✅ 3. Puis les incidents
+        utilisateurRepository.deleteAll();   // ✅ 4. Puis les utilisateurs
+        quartierRepository.deleteAll();      // ✅ 5. Puis les quartiers
+        departementRepository.deleteAll();   // ✅ 6. Enfin les départements
 
-        if (departementRepository.count() == 0) {
-            Departement dep = new Departement();
-            dep.setNom("Voirie");
-            departementRepository.save(dep);
-        }
+        // Créer les données de test
+        Departement dep = new Departement();
+        dep.setNom("Voirie");
+        dep = departementRepository.save(dep);
+        departementId = dep.getId();
 
-        if (quartierRepository.count() == 0) {
-            Quartier q = new Quartier();
-            q.setNom("Centre-ville");
-            quartierRepository.save(q);
-        }
+        Quartier q = new Quartier();
+        q.setNom("Centre-ville");
+        q.setCodePostal("1000");
+        q = quartierRepository.save(q);
+        quartierId = q.getId();
 
-        departementId = departementRepository.findAll().get(0).getId();
-        quartierId = quartierRepository.findAll().get(0).getId();
+        Utilisateur u = new Utilisateur();
+        u.setNom("Test");
+        u.setEmail("test@test.com");
+        u.setRole(Role.CITOYEN);
+        utilisateurRepository.save(u);
     }
 
-    // ===================== GET =====================
     @Test
     void testAfficherFormulaire_nonConnecte() throws Exception {
-        // 🔹 utilisateur NON connecté
         Mockito.when(currentUserService.getCurrentUser()).thenReturn(null);
 
         mockMvc.perform(get("/citoyen/getFormIncident"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/auth/login"));
+                .andExpect(redirectedUrlPattern("**/auth/login"));
     }
 
-    // ===================== POST =====================
     @Test
+    @WithMockUser(username = "test@test.com", roles = "CITOYEN")
     void testAjouterIncident_valide() throws Exception {
-        // 🔹 utilisateur CONNECTÉ
-        Utilisateur utilisateur = new Utilisateur();
-        utilisateur.setId(1L);
-        utilisateur.setNom("Test");
-
+        Utilisateur utilisateur = utilisateurRepository.findAll().get(0);
         Mockito.when(currentUserService.getCurrentUser()).thenReturn(utilisateur);
 
         mockMvc.perform(post("/citoyen/incident/ajouter")
