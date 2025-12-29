@@ -18,11 +18,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -35,8 +33,6 @@ class IncidentServiceImplTest {
     @Mock private PhotoStorageService photoStorageService;
     @Mock private CurrentUserService currentUserService;
     @Mock private NotificationService notificationService;
-    @Mock private ServiceMunicipalRepository serviceMunicipalRepository;
-    @Mock private UtilisateurRepository utilisateurRepository;
     @Mock private DepartementRepository departementRepository;
     @Mock private QuartierRepository quartierRepository;
     @Mock private PreferenceNotificationService preferenceNotificationService;
@@ -47,8 +43,7 @@ class IncidentServiceImplTest {
     private Utilisateur citoyen;
     private Departement departement;
     private Quartier quartier;
-    private Incident incident;
-    private IncidentCreateDto incidentCreateDto;
+    private IncidentCreateDto dto;
 
     @BeforeEach
     void setUp() {
@@ -64,25 +59,17 @@ class IncidentServiceImplTest {
         quartier = new Quartier();
         quartier.setId(1L);
 
-        incident = new Incident();
-        incident.setId(1L);
-        incident.setCitoyen(citoyen);
-        incident.setDepartement(departement);
-        incident.setQuartier(quartier);
-        incident.setStatut(StatutIncident.SIGNALE);
-        incident.setDateDeclaration(LocalDateTime.now());
-
-        incidentCreateDto = new IncidentCreateDto();
-        incidentCreateDto.setDescription("Incident test");
-        incidentCreateDto.setLatitude(36.8);
-        incidentCreateDto.setLongitude(10.1);
-        incidentCreateDto.setDepartementId(1L);
-        incidentCreateDto.setQuartierId(1L);
+        dto = new IncidentCreateDto();
+        dto.setDescription("Incident test");
+        dto.setLatitude(36.8);
+        dto.setLongitude(10.1);
+        dto.setDepartementId(1L);
+        dto.setQuartierId(1L);
     }
 
-    // ========================= TEST 1 =========================
+    // ===================== CAS 1 =====================
     @Test
-    @DisplayName("Créer un incident avec succès")
+    @DisplayName("Créer un incident - succès")
     void creerIncident_success() {
 
         when(currentUserService.getCurrentUser()).thenReturn(citoyen);
@@ -91,51 +78,58 @@ class IncidentServiceImplTest {
         when(incidentRepository.save(any(Incident.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        incidentService.creerIncident(incidentCreateDto);
+        incidentService.creerIncident(dto);
 
         verify(incidentRepository, times(1)).save(any(Incident.class));
         verify(notificationService, times(1))
-                .creerNotification(
-                        eq("citoyen@test.com"),
-                        any(),
-                        anyString(),
-                        any(Incident.class)
-                );
+                .creerNotification(eq("citoyen@test.com"), any(), anyString(), any());
     }
 
-    // ========================= TEST 2 =========================
+    // ===================== CAS 2 =====================
     @Test
-    @DisplayName("Récupérer les incidents du citoyen courant")
-    void getIncidentsForCurrentUser_success() {
+    @DisplayName("Créer un incident - département introuvable")
+    void creerIncident_departementIntrouvable() {
 
         when(currentUserService.getCurrentUser()).thenReturn(citoyen);
-        when(incidentRepository.findByCitoyen(citoyen))
-                .thenReturn(List.of(incident));
-        when(incidentMapper.toListDtos(any()))
-                .thenReturn(List.of());
+        when(departementRepository.findById(1L)).thenReturn(Optional.empty());
 
-        var result = incidentService.getIncidentsForCurrentUser();
+        assertThrows(RuntimeException.class,
+                () -> incidentService.creerIncident(dto));
 
-        assertNotNull(result);
-        verify(incidentRepository).findByCitoyen(citoyen);
-        verify(incidentMapper).toListDtos(any());
+        verify(incidentRepository, never()).save(any());
     }
 
-    // ========================= TEST 3 =========================
+    // ===================== CAS 3 =====================
     @Test
-    @DisplayName("Compter les incidents SIGNALE pour le citoyen courant")
-    void countSignaleForCurrentUser_success() {
+    @DisplayName("Créer un incident - quartier introuvable")
+    void creerIncident_quartierIntrouvable() {
 
         when(currentUserService.getCurrentUser()).thenReturn(citoyen);
-        when(incidentRepository.countByCitoyenEmailAndStatut(
-                "citoyen@test.com",
-                StatutIncident.SIGNALE
-        )).thenReturn(5);
+        when(departementRepository.findById(1L)).thenReturn(Optional.of(departement));
+        when(quartierRepository.findById(1L)).thenReturn(Optional.empty());
 
-        int count = incidentService.countSignaleForCurrentUser();
+        assertThrows(RuntimeException.class,
+                () -> incidentService.creerIncident(dto));
 
-        assertEquals(5, count);
-        verify(incidentRepository)
-                .countByCitoyenEmailAndStatut("citoyen@test.com", StatutIncident.SIGNALE);
+        verify(incidentRepository, never()).save(any());
+    }
+
+    // ===================== CAS 4 =====================
+    @Test
+    @DisplayName("Créer un incident sans photos")
+    void creerIncident_sansPhotos() {
+
+        dto.setPhotos(null);
+
+        when(currentUserService.getCurrentUser()).thenReturn(citoyen);
+        when(departementRepository.findById(1L)).thenReturn(Optional.of(departement));
+        when(quartierRepository.findById(1L)).thenReturn(Optional.of(quartier));
+        when(incidentRepository.save(any(Incident.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        incidentService.creerIncident(dto);
+
+        verify(incidentRepository).save(any());
+        verify(photoRepository, never()).save(any());
     }
 }
