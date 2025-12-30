@@ -132,4 +132,38 @@ class IncidentServiceAddTest {
         verify(incidentRepository).save(any());
         verify(photoRepository, never()).save(any());
     }
+    // ======================CAS 5 =====================
+
+    @Test
+    @DisplayName("Créer un incident - utilisateur non connecté")
+    void creerIncident_userNonConnecte() {
+
+        // Arrange
+        when(currentUserService.getCurrentUser()).thenReturn(null);
+
+        // Act & Assert
+        assertThrows(RuntimeException.class,
+                () -> incidentService.creerIncident(dto));
+
+        // Assert
+        verify(incidentRepository, never()).save(any());
+        verify(notificationService, never()).creerNotification(any(), any(), any(), any());
+    }
+    // ======================CAS 6 =====================
+
+    @Test
+    @DisplayName("Créer un incident - rôle non citoyen")
+    void creerIncident_roleNonCitoyen() {
+
+        // Arrange
+        citoyen.setRole(Role.AGENT);
+        when(currentUserService.getCurrentUser()).thenReturn(citoyen);
+
+        // Act & Assert
+        assertThrows(RuntimeException.class,
+                () -> incidentService.creerIncident(dto));
+
+        verify(incidentRepository, never()).save(any());
+    }
+
 }
