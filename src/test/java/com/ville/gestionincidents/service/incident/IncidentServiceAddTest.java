@@ -166,4 +166,20 @@ class IncidentServiceAddTest {
         verify(incidentRepository, never()).save(any());
     }
 
+    // ======================CAS 7 =====================
+
+    @Test
+    @DisplayName("Créer un incident - description nulle")
+    void creerIncident_descriptionNull() {
+
+        // Arrange
+        dto.setDescription(null);
+        when(currentUserService.getCurrentUser()).thenReturn(citoyen);
+
+        // Act & Assert
+        assertThrows(RuntimeException.class,
+                () -> incidentService.creerIncident(dto));
+    }
+
+
 }
