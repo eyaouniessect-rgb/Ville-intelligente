@@ -181,5 +181,22 @@ class IncidentServiceAddTest {
                 () -> incidentService.creerIncident(dto));
     }
 
+    // ======================CAS 8 =====================
+
+    @Test
+    @DisplayName("Créer un incident - coordonnées invalides")
+    void creerIncident_coordonneesInvalides() {
+
+        // Arrange
+        dto.setLatitude(null);
+        dto.setLongitude(null);
+        when(currentUserService.getCurrentUser()).thenReturn(citoyen);
+
+        // Act & Assert
+        assertThrows(RuntimeException.class,
+                () -> incidentService.creerIncident(dto));
+    }
+
+
 
 }
