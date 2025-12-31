@@ -39,8 +39,7 @@ public class UtilisateurServiceImpl implements UtilisateurService {
     private final EmailService emailService;
     private final UtilisateurMapper utilisateurMapper;
     private final PasswordGeneratorService passwordGeneratorService;
-    @Autowired
-    private DepartementRepository departementRepository;
+    private final DepartementRepository departementRepository;
 
     // ==================== INSCRIPTION CITOYEN  ====================
 
