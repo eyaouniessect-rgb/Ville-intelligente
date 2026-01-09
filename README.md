@@ -794,7 +794,7 @@ Le workflow CI est déclenché automatiquement :
 Le workflow CD est déclenché automatiquement :
 
 - ✅ Lorsque le workflow **CI réussit** (`workflow_run` avec `conclusion: success`)
-- ✅ Uniquement après un push/merge réussi sur `main` ou `dev`
+- ✅ Uniquement après un push/merge réussi sur `main` 
 
 #### Étapes principales
 
