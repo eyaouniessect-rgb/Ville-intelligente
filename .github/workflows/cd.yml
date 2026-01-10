@@ -3,15 +3,15 @@ name: CD - Build, Push & Deploy
 on:
   workflow_run:
     workflows: ["CI - Build & Test"]
+    branches:
+      - main
     types:
       - completed
 
 jobs:
   docker:
-    # Filtre pour déployer uniquement depuis main
-    if: |
-      github.event.workflow_run.conclusion == 'success' && 
-      github.event.workflow_run.head_branch == 'main'
+    # Vérifie que le CI a réussi
+    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
 
     steps:
